@@ -24,8 +24,8 @@ function WineModal({ wine, onClose }) {
     wine.price = editedWine.price;
     wine.stock = editedWine.stock;
     wine.location = editedWine.location;
-    setIsEditMode(false);
     alert('Cambios guardados correctamente');
+    onClose(); // Cerrar modal para que se re-renderice todo
   };
 
   // Cancelar edición

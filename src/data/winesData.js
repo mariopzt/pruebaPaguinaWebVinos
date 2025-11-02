@@ -540,3 +540,18 @@ export const getTimeAgo = (date) => {
     return `Updated ${diffDays} days ago`;
   }
 };
+
+// Función para verificar si un vino está agotado
+export const isWineOutOfStock = (wine) => {
+  return wine.stock === 0;
+};
+
+// Función para obtener vinos en stock
+export const getWinesInStock = () => {
+  return winesData.filter(wine => wine.stock > 0);
+};
+
+// Función para obtener vinos agotados
+export const getWinesOutOfStock = () => {
+  return winesData.filter(wine => wine.stock === 0);
+};

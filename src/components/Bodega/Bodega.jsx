@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { winesData } from '../../data/winesData';
+import { winesData, isWineOutOfStock } from '../../data/winesData';
 import WineCard from './WineCard';
 import './Bodega.css';
 
@@ -12,8 +12,8 @@ function Bodega({ onNavigateHome, onSelectWine }) {
 
   // Filtrar vinos según el tipo seleccionado y término de búsqueda
   let filteredWines = activeFilter === 'Todos' 
-    ? winesData 
-    : winesData.filter(wine => wine.type === activeFilter);
+    ? winesData.filter(wine => wine.stock > 0)
+    : winesData.filter(wine => wine.type === activeFilter && wine.stock > 0);
 
   // Aplicar búsqueda por nombre
   if (searchTerm.trim()) {

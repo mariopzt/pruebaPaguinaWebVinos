@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { winesData } from '../../data/winesData';
+import { winesData, isWineOutOfStock } from '../../data/winesData';
 import WineCard from './WineCard';
 import './Bodega.css';
 
