@@ -1,12 +1,13 @@
 import './App.css'
 import { useState } from 'react'
 import Bodega from './components/Bodega/Bodega'
+import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
 import { winesData } from './data/winesData'
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [currentView, setCurrentView] = useState('home') // 'home' o 'bodega'
+  const [currentView, setCurrentView] = useState('home') // 'home', 'bodega', o 'agotados'
   const [selectedWine, setSelectedWine] = useState(null)
 
   const toggleMenu = () => {
@@ -15,7 +16,13 @@ function App() {
 
   const navigateToBodega = () => {
     setCurrentView('bodega')
-    setIsMenuOpen(false) // Cerrar menú móvil si está abierto
+    setIsMenuOpen(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const navigateToAgotados = () => {
+    setCurrentView('agotados')
+    setIsMenuOpen(false)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -48,7 +55,7 @@ function App() {
     <>
     <div className="app">
       <div className="Padre-container">
- {/* Sidebar */}
+{/* Sidebar */}
  <div className="sidebar">
         <div className="sidebar-header">
           <div className="hamburger-menu" onClick={toggleMenu}>
@@ -75,6 +82,31 @@ function App() {
         
         <nav className="sidebar-nav">
           {currentView === 'home' ? (
+            <>
+              <div 
+                className="nav-item" 
+                onClick={navigateToBodega}
+              >
+                <span className="nav-icon">★</span>
+                <span className="nav-text">Bodega</span>
+              </div>
+              <div 
+                className="nav-item" 
+                onClick={navigateToAgotados}
+              >
+                <span className="nav-icon">★</span>
+                <span className="nav-text">Agotados</span>
+              </div>
+            </>
+          ) : currentView === 'bodega' ? (
+            <div 
+              className="nav-item" 
+              onClick={navigateToAgotados}
+            >
+              <span className="nav-icon">★</span>
+              <span className="nav-text">Agotados</span>
+            </div>
+          ) : (
             <div 
               className="nav-item" 
               onClick={navigateToBodega}
@@ -82,7 +114,8 @@ function App() {
               <span className="nav-icon">★</span>
               <span className="nav-text">Bodega</span>
             </div>
-          ) : (
+          )}
+          {currentView !== 'home' && (
             <div 
               className="nav-item" 
               onClick={navigateToHome}
@@ -91,10 +124,6 @@ function App() {
               <span className="nav-text">Inicio</span>
             </div>
           )}
-          <div className="nav-item">
-            <span className="nav-icon">★</span>
-            <span className="nav-text">Agotados</span>
-          </div>
         </nav>
       </div>
 
@@ -108,6 +137,31 @@ function App() {
             </div>
             <div className="mobile-menu-content">
               {currentView === 'home' ? (
+                <>
+                  <div 
+                    className="mobile-nav-item" 
+                    onClick={navigateToBodega}
+                  >
+                    <span className="mobile-nav-icon">★</span>
+                    <span className="mobile-nav-text">Bodega</span>
+                  </div>
+                  <div 
+                    className="mobile-nav-item" 
+                    onClick={navigateToAgotados}
+                  >
+                    <span className="mobile-nav-icon">★</span>
+                    <span className="mobile-nav-text">Agotados</span>
+                  </div>
+                </>
+              ) : currentView === 'bodega' ? (
+                <div 
+                  className="mobile-nav-item" 
+                  onClick={navigateToAgotados}
+                >
+                  <span className="mobile-nav-icon">★</span>
+                  <span className="mobile-nav-text">Agotados</span>
+                </div>
+              ) : (
                 <div 
                   className="mobile-nav-item" 
                   onClick={navigateToBodega}
@@ -115,7 +169,8 @@ function App() {
                   <span className="mobile-nav-icon">★</span>
                   <span className="mobile-nav-text">Bodega</span>
                 </div>
-              ) : (
+              )}
+              {currentView !== 'home' && (
                 <div 
                   className="mobile-nav-item" 
                   onClick={navigateToHome}
@@ -124,10 +179,6 @@ function App() {
                   <span className="mobile-nav-text">Inicio</span>
                 </div>
               )}
-              <div className="mobile-nav-item">
-                <span className="mobile-nav-icon">★</span>
-                <span className="mobile-nav-text">Agotados</span>
-              </div>
             </div>
           </div>
         </div>
@@ -143,7 +194,7 @@ function App() {
             <div className="hamburger-line"></div>
           </div>
           <h1 className="app-title" onClick={navigateToHome} style={{ cursor: 'pointer' }}>
-            {currentView === 'home' ? 'VinosStock' : 'Bodega'}
+            {currentView === 'home' ? 'VinosStock' : currentView === 'bodega' ? 'Bodega' : 'Agotados'}
           </h1>
           <div className="header-icons">
             <div className="icon bell-icon">
@@ -258,6 +309,13 @@ function App() {
                 {currentView === 'bodega' && (
                   <div key="bodega-view" className="view-enter">
                     <Bodega onNavigateHome={navigateToHome} onSelectWine={setSelectedWine} />
+                  </div>
+                )}
+
+        {/* Vista Agotados */}
+                {currentView === 'agotados' && (
+                  <div key="agotados-view" className="view-enter">
+                    <Agotados onNavigateHome={navigateToHome} onSelectWine={setSelectedWine} />
                   </div>
                 )}
         

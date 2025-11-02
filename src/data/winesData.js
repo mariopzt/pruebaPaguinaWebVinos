@@ -432,6 +432,97 @@ export const winesData = [
     price: 16.00,
     awards: ['Revelación Autóctona'],
     updatedAt: new Date(Date.now() - 86400000),
+  },
+  {
+    id: 24,
+    name: 'Garnacha Reserva Agotada',
+    type: 'Tinto',
+    image: 'https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg',
+    region: 'Priorat',
+    year: 2020,
+    grapeVariety: [
+      { name: 'Garnacha', percentage: 100 }
+    ],
+    alcoholContent: '15%',
+    location: 'Estante #6 Arriba',
+    description: 'De viñas centenarias, complejo y con gran potencial.',
+    stock: 0,
+    price: 35.00,
+    awards: ['Gran Vino del Año', 'Medalla de Oro'],
+    updatedAt: new Date(Date.now() - 172800000),
+  },
+  {
+    id: 25,
+    name: 'Tempranillo Premium Agotado',
+    type: 'Tinto',
+    image: 'https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg',
+    region: 'Ribera del Duero',
+    year: 2018,
+    grapeVariety: [
+      { name: 'Tempranillo', percentage: 100 }
+    ],
+    alcoholContent: '14.5%',
+    location: 'Estante #7 Arriba',
+    description: 'Gran Reserva excepcional con larga crianza.',
+    stock: 0,
+    price: 45.00,
+    awards: ['Gran Reserva del Año', 'Medalla de Oro'],
+    updatedAt: new Date(Date.now() - 172800000),
+  },
+  {
+    id: 26,
+    name: 'Albariño Limitado Agotado',
+    type: 'Blanco',
+    image: 'https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg',
+    region: 'Rías Baixas',
+    year: 2023,
+    grapeVariety: [
+      { name: 'Albariño', percentage: 100 }
+    ],
+    alcoholContent: '12.5%',
+    location: 'Estante #1 Centro',
+    description: 'Blanco fresco y aromático, edición limitada.',
+    stock: 0,
+    price: 25.00,
+    awards: ['Mejor Albariño 2023'],
+    updatedAt: new Date(Date.now() - 172800000),
+  },
+  {
+    id: 27,
+    name: 'Dulce Especial Agotado',
+    type: 'Dulce',
+    image: 'https://images.pexels.com/photos/708777/pexels-photo-708777.jpeg',
+    region: 'Valencia',
+    year: 2022,
+    grapeVariety: [
+      { name: 'Moscatel', percentage: 100 }
+    ],
+    alcoholContent: '11.5%',
+    location: 'Estante #5 Centro',
+    description: 'Dulce aromático con notas florales y cítricos.',
+    stock: 0,
+    price: 20.00,
+    awards: ['Premio Especial'],
+    updatedAt: new Date(Date.now() - 172800000),
+  },
+  {
+    id: 28,
+    name: 'Mencía Barrica Agotada',
+    type: 'Tinto',
+    image: 'https://images.pexels.com/photos/1407855/pexels-photo-1407855.jpeg',
+    region: 'Bierzo',
+    year: 2021,
+    grapeVariety: [
+      { name: 'Mencía', percentage: 80 },
+      { name: 'Garnacha', percentage: 20 }
+    ],
+    alcoholContent: '14%',
+    location: 'Estante #2 Abajo',
+    description: 'Tinto potente con paso por barrica de roble francés.',
+    stock: 0,
+    price: 19.50,
+    awards: ['Medalla de Oro'],
+    updatedAt: new Date(),
   }
 ];
 
