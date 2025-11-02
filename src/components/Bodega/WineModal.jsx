@@ -1,13 +1,57 @@
+import { useState } from 'react';
 import './WineModal.css';
 
 function WineModal({ wine, onClose }) {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedWine, setEditedWine] = useState({
+    price: wine?.price || 0,
+    stock: wine?.stock || 0,
+    location: wine?.location || ''
+  });
+
   if (!wine) return null;
+
+  // Manejar cambios en los campos editables
+  const handleChange = (field, value) => {
+    setEditedWine({
+      ...editedWine,
+      [field]: field === 'price' || field === 'stock' ? parseFloat(value) || 0 : value
+    });
+  };
+
+  // Guardar cambios en el objeto wine
+  const handleSave = () => {
+    wine.price = editedWine.price;
+    wine.stock = editedWine.stock;
+    wine.location = editedWine.location;
+    setIsEditMode(false);
+    alert('Cambios guardados correctamente');
+  };
+
+  // Cancelar edición
+  const handleCancel = () => {
+    setEditedWine({
+      price: wine.price,
+      stock: wine.stock,
+      location: wine.location
+    });
+    setIsEditMode(false);
+  };
 
   return (
     <div className="wine-modal-overlay" onClick={onClose}>
       <div className="wine-modal" onClick={(e) => e.stopPropagation()}>
         <button className="wine-modal-close" onClick={onClose}>
           ×
+        </button>
+        
+        {/* Botón Editar */}
+        <button 
+          className="wine-edit-button"
+          onClick={() => setIsEditMode(!isEditMode)}
+          title={isEditMode ? 'Cancelar edición' : 'Editar vino'}
+        >
+          {isEditMode ? '✕' : '✎'}
         </button>
         
         <div className="wine-modal-content">
@@ -33,14 +77,39 @@ function WineModal({ wine, onClose }) {
                 
                 <div className="wine-info-item half-width">
                   <span className="wine-info-label">Stock:</span>
-                  <span className="wine-info-value">{wine.stock} unidades</span>
+                  {isEditMode ? (
+                    <div className="wine-editable-field">
+                      <input 
+                        type="number" 
+                        className="wine-editable-input"
+                        value={editedWine.stock}
+                        onChange={(e) => handleChange('stock', e.target.value)}
+                      />
+                      <span className="wine-input-unit">unidades</span>
+                    </div>
+                  ) : (
+                    <span className="wine-info-value">{wine.stock} unidades</span>
+                  )}
                 </div>
               </div>
               
               <div className="wine-info-row">
                 <div className="wine-info-item half-width">
                   <span className="wine-info-label">Precio:</span>
-                  <span className="wine-info-value">{wine.price.toFixed(2)}€</span>
+                  {isEditMode ? (
+                    <div className="wine-editable-field">
+                      <input 
+                        type="number" 
+                        className="wine-editable-input"
+                        value={editedWine.price}
+                        onChange={(e) => handleChange('price', e.target.value)}
+                        step="0.01"
+                      />
+                      <span className="wine-input-unit">€</span>
+                    </div>
+                  ) : (
+                    <span className="wine-info-value">{wine.price.toFixed(2)}€</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -65,7 +134,15 @@ function WineModal({ wine, onClose }) {
 
             <div className="wine-modal-location">
               <h3>Lugar</h3>
-              <p>{wine.location}</p>
+              {isEditMode ? (
+                <textarea 
+                  className="wine-editable-textarea"
+                  value={editedWine.location}
+                  onChange={(e) => handleChange('location', e.target.value)}
+                />
+              ) : (
+                <p>{wine.location}</p>
+              )}
             </div>
 
             {wine.awards && wine.awards.length > 0 && (
@@ -79,6 +156,18 @@ function WineModal({ wine, onClose }) {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Botones de Guardar y Cancelar (solo en modo edición) */}
+            {isEditMode && (
+              <div className="wine-modal-actions">
+                <button className="wine-cancel-button" onClick={handleCancel}>
+                  Cancelar
+                </button>
+                <button className="wine-save-button" onClick={handleSave}>
+                  💾 Guardar
+                </button>
               </div>
             )}
           </div>
