@@ -12,6 +12,8 @@ function App() {
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
   const [highlightedWineId, setHighlightedWineId] = useState(null)
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false)
+  const [chatMessages, setChatMessages] = useState([])
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -68,6 +70,19 @@ function App() {
     setNotifications(prev => prev.filter(n => n.id !== notificationId));
   };
 
+  // Enviar mensaje en el chat
+  const handleSendMessage = (message) => {
+    if (message.trim()) {
+      const newMessage = {
+        id: Date.now(),
+        text: message,
+        sender: 'user',
+        timestamp: new Date()
+      };
+      setChatMessages(prev => [...prev, newMessage]);
+    }
+  };
+
   const handleWineClick = (wineName) => {
     // Buscar el vino en winesData por nombre
     let wine = winesData.find(w => w.name.toLowerCase().includes(wineName.toLowerCase()))
@@ -103,7 +118,7 @@ function App() {
         </div>
         
         <div className="sidebar-logo">
-          <div className="wine-icon">
+          <div className="wine-icon" onClick={() => setIsChatModalOpen(!isChatModalOpen)}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000010" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <circle cx="12" cy="5" r="2"/>
@@ -366,6 +381,69 @@ function App() {
       </div>
      
     </div>
+
+    {/* Chat Modal Flotante */}
+    {isChatModalOpen && (
+      <div className="chat-modal">
+        <div className="chat-header">
+          <h3>Asistente VinosStock</h3>
+          <button 
+            className="chat-close"
+            onClick={() => {
+              setIsChatModalOpen(false);
+              setChatMessages([]);
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        
+        <div className="chat-messages">
+          <div className="chat-welcome-container">
+            <span className="chat-welcome-icon">🤖</span>
+            <div className="chat-welcome">
+              <p>¡Hola! ¿Cómo podemos ayudarte hoy?</p>
+            </div>
+          </div>
+          {chatMessages.length > 0 && (
+            chatMessages.map(msg => (
+              <div key={msg.id} className={`chat-message-container ${msg.sender}`}>
+                <span className="chat-message-icon">
+                  {msg.sender === 'user' ? '👤' : '🤖'}
+                </span>
+                <div className="chat-message">
+                  <p>{msg.text}</p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        
+        <div className="chat-input-container">
+          <input
+            type="text"
+            className="chat-input"
+            placeholder="Escribe tu mensaje..."
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleSendMessage(e.target.value);
+                e.target.value = '';
+              }
+            }}
+          />
+          <button
+            className="chat-send"
+            onClick={(e) => {
+              const input = e.target.previousElementSibling;
+              handleSendMessage(input.value);
+              input.value = '';
+            }}
+          >
+            →
+          </button>
+        </div>
+      </div>
+    )}
 
     {/* Panel de Notificaciones */}
     {showNotifications && (
