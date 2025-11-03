@@ -1156,7 +1156,7 @@ body {
 }
 
 .chat-modal {
-  background: linear-gradient(135deg, #f8f4ff 0%, #e8d5ff 100%);
+  background:rgba(255, 255, 255, 0.913);
   border-radius: 20px;
   padding: 20px;
   width: 350px;
@@ -1169,6 +1169,10 @@ body {
   bottom: 20px;
   right: 20px;
   z-index: 2000;
+}
+
+.chat-modal::before {
+  display: none;
 }
 
 .chat-header {
@@ -1245,6 +1249,7 @@ body {
   color: #555;
   text-align: left;
   flex: 1;
+  opacity: 1;
 }
 
 .chat-welcome p {
@@ -1264,6 +1269,7 @@ body {
   line-height: 1.4;
   background-color: #ffffff;
   color: #333;
+  opacity: 1;
 }
 
 .chat-message-container {
@@ -1371,6 +1377,43 @@ body {
 
 .chat-messages::-webkit-scrollbar-thumb:hover {
   background: #b8aff7;
+}
+
+/* Chat Suggested Options */
+.chat-suggested-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.suggested-option-button {
+  padding: 7px 5px;
+  border: 0.8px solid transparent;
+  border-radius: 10px;
+  background: linear-gradient(white, white) padding-box, linear-gradient(135deg, #6334b0 0%, #5075e7 100%) border-box;
+  background-color: transparent;
+  color: #6b5ce7;
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 110px;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.suggested-option-button:hover {
+  transform: translateY(-2px);
+}
+
+.suggested-option-button.selected {
+  background: linear-gradient(135deg, #6b5ce7 0%, #5a4cd6 100%);
+  color: white;
+  border-color: #6b5ce7;
+  box-shadow: 0 4px 12px rgba(107, 92, 231, 0.3);
 }
 
 

@@ -14,6 +14,7 @@ function App() {
   const [highlightedWineId, setHighlightedWineId] = useState(null)
   const [isChatModalOpen, setIsChatModalOpen] = useState(false)
   const [chatMessages, setChatMessages] = useState([])
+  const [suggestedOptions, setSuggestedOptions] = useState([])
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -83,6 +84,14 @@ function App() {
     }
   };
 
+  // Manejar click en opción sugerida
+  const handleSuggestedOption = (option) => {
+    handleSendMessage(option);
+    setSuggestedOptions(prev => 
+      prev.map(opt => opt.label === option ? {...opt, selected: true} : opt)
+    );
+  };
+
   const handleWineClick = (wineName) => {
     // Buscar el vino en winesData por nombre
     let wine = winesData.find(w => w.name.toLowerCase().includes(wineName.toLowerCase()))
@@ -118,7 +127,17 @@ function App() {
         </div>
         
         <div className="sidebar-logo">
-          <div className="wine-icon" onClick={() => setIsChatModalOpen(!isChatModalOpen)}>
+          <div className="wine-icon" onClick={() => {
+            setIsChatModalOpen(!isChatModalOpen);
+            if (!isChatModalOpen) {
+              setSuggestedOptions([
+                { label: 'Ver disponibles', selected: false },
+                { label: 'Vinos agotados', selected: false },
+                { label: 'Ofertas especiales', selected: false },
+                { label: 'Ayuda', selected: false }
+              ]);
+            }
+          }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000010" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <circle cx="12" cy="5" r="2"/>
@@ -405,6 +424,22 @@ function App() {
               <p>¡Hola! ¿Cómo podemos ayudarte hoy?</p>
             </div>
           </div>
+
+          {/* Botones de opciones sugeridas */}
+          {suggestedOptions.length > 0 && (
+            <div className="chat-suggested-options">
+              {suggestedOptions.map((option, index) => (
+                <button
+                  key={index}
+                  className={`suggested-option-button ${option.selected ? 'selected' : ''}`}
+                  onClick={() => handleSuggestedOption(option.label)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {chatMessages.length > 0 && (
             chatMessages.map(msg => (
               <div key={msg.id} className={`chat-message-container ${msg.sender}`}>
