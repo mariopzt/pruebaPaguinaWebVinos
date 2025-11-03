@@ -9,6 +9,9 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [currentView, setCurrentView] = useState('home') // 'home', 'bodega', o 'agotados'
   const [selectedWine, setSelectedWine] = useState(null)
+  const [notifications, setNotifications] = useState([])
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [highlightedWineId, setHighlightedWineId] = useState(null)
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -30,6 +33,33 @@ function App() {
     setCurrentView('home')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  // Agregar notificación cuando un vino se agota
+  const addNotification = (wine) => {
+    const newNotification = {
+      id: Date.now(),
+      wineId: wine.id,
+      wineName: wine.name,
+      message: `${wine.name} se ha agotado temporalmente. Te sugerimos hacer tu pedido cuanto antes para no quedarte sin él.`
+    };
+    setNotifications(prev => [newNotification, ...prev]);
+  };
+
+  // Manejar click en notificación
+  const handleNotificationClick = (wineId) => {
+    setCurrentView('agotados');
+    setHighlightedWineId(wineId);
+    setShowNotifications(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Remover highlight después de 2 segundos
+    setTimeout(() => setHighlightedWineId(null), 2000);
+  };
+
+  // Remover notificación
+  const removeNotification = (notificationId) => {
+    setNotifications(prev => prev.filter(n => n.id !== notificationId));
+  };
 
   const handleWineClick = (wineName) => {
     // Buscar el vino en winesData por nombre
@@ -197,14 +227,15 @@ function App() {
             {currentView === 'home' ? 'VinosStock' : currentView === 'bodega' ? 'Bodega' : 'Agotados'}
           </h1>
           <div className="header-icons">
-            <div className="icon bell-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="icon bell-icon" onClick={() => setShowNotifications(!showNotifications)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
                 <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
               </svg>
+              {notifications.length > 0 && !showNotifications && <span className="notification-badge">{notifications.length}</span>}
             </div>
             <div className="icon gear-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
               </svg>
@@ -315,7 +346,12 @@ function App() {
         {/* Vista Agotados */}
                 {currentView === 'agotados' && (
                   <div key="agotados-view" className="view-enter">
-                    <Agotados onNavigateHome={navigateToHome} onSelectWine={setSelectedWine} />
+                    <Agotados 
+                      onNavigateHome={navigateToHome} 
+                      onSelectWine={setSelectedWine}
+                      onWineOutOfStock={addNotification}
+                      highlightedWineId={highlightedWineId}
+                    />
                   </div>
                 )}
         
@@ -324,11 +360,71 @@ function App() {
      
     </div>
 
+    {/* Panel de Notificaciones */}
+    {showNotifications && (
+      <div 
+        className="notifications-overlay"
+        onClick={() => {
+          setShowNotifications(false);
+          setNotifications([]);
+        }}
+      >
+        <div 
+          className="notifications-panel"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="notifications-header">
+            <h2>Notificaciones ({notifications.length})</h2>
+            <button 
+              className="notifications-close"
+              onClick={() => {
+                setShowNotifications(false);
+                setNotifications([]);
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div className="notifications-list">
+            {notifications.length > 0 ? (
+              notifications.map(notification => (
+                <div 
+                  key={notification.id} 
+                  className="notification-item"
+                  onClick={() => handleNotificationClick(notification.wineId)}
+                >
+                  <div className="notification-icon">⚠</div>
+                  <div className="notification-content">
+                    <p className="notification-text">{notification.message}</p>
+                  </div>
+                  <button
+                    className="notification-remove"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeNotification(notification.id);
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="notifications-empty">
+                <p>No tienes notificaciones</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+
     {/* Modal de detalles de vino - fuera del contenedor principal */}
     {selectedWine && (
       <WineModal
         wine={selectedWine}
         onClose={() => setSelectedWine(null)}
+        onWineOutOfStock={addNotification}
       />
     )}
     </>

@@ -3,7 +3,7 @@ import { winesData, isWineOutOfStock } from '../../data/winesData';
 import WineCard from './WineCard';
 import './Bodega.css';
 
-function Agotados({ onNavigateHome, onSelectWine }) {
+function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedWineId }) {
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -167,6 +167,7 @@ function Agotados({ onNavigateHome, onSelectWine }) {
               key={wine.id}
               wine={wine}
               onClick={(w) => onSelectWine && onSelectWine(w)}
+              isHighlighted={highlightedWineId === wine.id}
             />
           ))
         ) : (

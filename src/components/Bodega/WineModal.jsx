@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './WineModal.css';
 
-function WineModal({ wine, onClose }) {
+function WineModal({ wine, onClose, onWineOutOfStock }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedWine, setEditedWine] = useState({
     price: wine?.price || 0,
@@ -21,11 +21,18 @@ function WineModal({ wine, onClose }) {
 
   // Guardar cambios en el objeto wine
   const handleSave = () => {
+    const wasOutOfStock = wine.stock === 0;
     wine.price = editedWine.price;
     wine.stock = editedWine.stock;
     wine.location = editedWine.location;
+    
+    // Si el vino pasa a stock 0, crear notificación
+    if (!wasOutOfStock && editedWine.stock === 0 && onWineOutOfStock) {
+      onWineOutOfStock(wine);
+    }
+    
     alert('Cambios guardados correctamente');
-    onClose(); // Cerrar modal para que se re-renderice todo
+    onClose();
   };
 
   // Cancelar edición

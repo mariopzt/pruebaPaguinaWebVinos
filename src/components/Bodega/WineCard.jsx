@@ -1,9 +1,12 @@
 import { getTimeAgo } from '../../data/winesData';
 import './WineCard.css';
 
-function WineCard({ wine, onClick }) {
+function WineCard({ wine, onClick, isHighlighted }) {
   return (
-    <div className="wine-card" onClick={() => onClick(wine)}>
+    <div 
+      className={`wine-card ${isHighlighted ? 'highlighted' : ''}`}
+      onClick={() => onClick(wine)}
+    >
       <div className="wine-card-image">
         <img src={wine.image} alt={wine.name} />
       </div>
