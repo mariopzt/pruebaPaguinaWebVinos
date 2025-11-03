@@ -1,5 +1,6 @@
 import './App.css'
 import { useState, useEffect, useRef } from 'react'
+import { IoSend } from 'react-icons/io5'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
@@ -461,19 +462,34 @@ function App() {
         </div>
         
         <div className="chat-input-container">
-          <input
-            type="text"
-            className="chat-input"
-            placeholder="Escribe tu mensaje..."
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleSendMessage(e.target.value);
-                e.target.value = '';
-              }
-            }}
-          />
+          <div className="chat-input-wrapper">
+            <input
+              type="text"
+              className="chat-input"
+              placeholder="Ask me anything"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleSendMessage(e.target.value);
+                  e.target.value = '';
+                }
+              }}
+            />
+            <button
+              className="chat-send-arrow"
+              onClick={(e) => {
+                const button = e.currentTarget;
+                const input = button.closest('.chat-input-wrapper').querySelector('.chat-input');
+                if (input.value.trim()) {
+                  handleSendMessage(input.value);
+                  input.value = '';
+                }
+              }}
+            >
+              <IoSend />
+            </button>
+          </div>
           <button
-            className="chat-send"
+            className="chat-send chat-send-hidden"
             onClick={(e) => {
               const input = e.target.previousElementSibling;
               handleSendMessage(input.value);
