@@ -1,7 +1,7 @@
 import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
-import { AiFillSlackCircle } from 'react-icons/ai'
+import { AiFillSlackCircle, AiOutlineWarning } from 'react-icons/ai'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
@@ -564,7 +564,7 @@ function App() {
                   className={`notification-item ${!notification.read ? 'unread' : ''}`}
                   onClick={() => handleNotificationClick(notification.wineId)}
                 >
-                  <div className="notification-icon">⚠</div>
+                  <div className="notification-icon"><AiOutlineWarning size={14} /></div>
                   <div className="notification-content">
                     {(() => {
                       const parts = notification.message.split('.')
