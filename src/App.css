@@ -366,6 +366,7 @@ body {
 .horizontal-scroll.auto-scroll {
   animation: scroll-horizontal 120s linear infinite;
   overflow: hidden;
+  will-change: transform;
 }
 
 .horizontal-scroll::-webkit-scrollbar {

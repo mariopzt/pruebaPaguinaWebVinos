@@ -310,9 +310,11 @@ function App() {
                 <div key={index} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
                   <div className="wine-image">
                     <img 
-                      src={`https://images.pexels.com/photos/${['1053914', '708777', '1267320', '1407855', '1283219', '1267320', '1407855', '1283219', '1053914'][index]}/pexels-photo-${['1053914', '708777', '1267320', '1407855', '1283219', '1267320', '1407855', '1283219', '1053914'][index]}.jpeg`}
+                      src={`https://images.pexels.com/photos/${['1053914', '708777', '1267320', '1407855', '1283219', '1267320', '1407855', '1283219', '1053914'][index]}/pexels-photo-${['1053914', '708777', '1267320', '1407855', '1283219', '1267320', '1407855', '1283219', '1053914'][index]}.jpeg?auto=compress&cs=tinysrgb&w=640`}
                       alt={`Botella de vino ${wine}`}
                       className="wine-photo"
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                   <span className="wine-name">{wine}</span>
@@ -333,11 +335,13 @@ function App() {
                   <div className="grape-image">
                     <img 
                       src={index === 0 
-                        ? "https://images.pexels.com/photos/1053914/pexels-photo-1053914.jpeg?_gl=1*1js1a58*_ga*MTI5NjI5NjIxOS4xNzYwOTA1MzA3*_ga_8JE65Q40S6*czE3NjA5MDUzMDckbzEkZzEkdDE3NjA5MDczOTAkajM2JGwwJGgw"
-                        : "https://images.pexels.com/photos/708777/pexels-photo-708777.jpeg?_gl=1*13f3ecb*_ga*MTI5NjI5NjIxOS4xNzYwOTA1MzA3*_ga_8JE65Q40S6*czE3NjA5MDUzMDckbzEkZzEkdDE3NjA5MDc0MjAkajYkbDAkaDA"
-                      } 
+                        ? "https://images.pexels.com/photos/1053914/pexels-photo-1053914.jpeg?auto=compress&cs=tinysrgb&w=640"
+                        : "https://images.pexels.com/photos/708777/pexels-photo-708777.jpeg?auto=compress&cs=tinysrgb&w=640"
+                      }
                       alt="Uvas de vino" 
                       className="grape-photo"
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                   <span className="grape-name">{grape}</span>
@@ -358,9 +362,11 @@ function App() {
                   <div key={index} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
                     <div className="wine-image">
                       <img 
-                        src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?_gl=1*11emm52*_ga*MTI5NjI5NjIxOS4xNzYwOTA1MzA3*_ga_8JE65Q40S6*czE3NjA5MDUzMDckbzEkZzEkdDE3NjA5MDU2NTQkajM4JGwwJGgw" 
+                        src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?auto=compress&cs=tinysrgb&w=640" 
                         alt="Tres copas de vino" 
                         className="wine-photo"
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                     <div className="wine-info">
@@ -374,9 +380,11 @@ function App() {
                   <div key={`duplicate-${index}`} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
                     <div className="wine-image">
                       <img 
-                        src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?_gl=1*11emm52*_ga*MTI5NjI5NjIxOS4xNzYwOTA1MzA3*_ga_8JE65Q40S6*czE3NjA5MDUzMDckbzEkZzEkdDE3NjA5MDU2NTQkajM4JGwwJGgw" 
+                        src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?auto=compress&cs=tinysrgb&w=640" 
                         alt="Tres copas de vino" 
                         className="wine-photo"
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                     <div className="wine-info">
@@ -390,9 +398,11 @@ function App() {
                   <div key={`duplicate-3-${index}`} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
                     <div className="wine-image">
                       <img 
-                        src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?_gl=1*11emm52*_ga*MTI5NjI5NjIxOS4xNzYwOTA1MzA3*_ga_8JE65Q40S6*czE3NjA5MDUzMDckbzEkZzEkdDE3NjA5MDU2NTQkajM4JGwwJGgw" 
+                        src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?auto=compress&cs=tinysrgb&w=640" 
                         alt="Tres copas de vino" 
                         className="wine-photo"
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                     <div className="wine-info">
