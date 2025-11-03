@@ -1,5 +1,5 @@
 import './App.css'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
@@ -15,6 +15,7 @@ function App() {
   const [isChatModalOpen, setIsChatModalOpen] = useState(false)
   const [chatMessages, setChatMessages] = useState([])
   const [suggestedOptions, setSuggestedOptions] = useState([])
+  const chatMessagesContainerRef = useRef(null);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -111,6 +112,12 @@ function App() {
     
     setSelectedWine(wine)
   }
+
+  useEffect(() => {
+    if (chatMessagesContainerRef.current) {
+      chatMessagesContainerRef.current.scrollTop = chatMessagesContainerRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
 
   return (
     <>
@@ -417,27 +424,26 @@ function App() {
           </button>
         </div>
         
-        <div className="chat-messages">
-          <div className="chat-welcome-container">
-            <span className="chat-welcome-icon">🤖</span>
-            <div className="chat-welcome">
+        <div className="chat-messages" ref={chatMessagesContainerRef}>
+          <div className="chat-message-container bot">
+            <span className="chat-message-icon">🤖</span>
+            <div className="chat-message">
               <p>¡Hola! ¿Cómo podemos ayudarte hoy?</p>
             </div>
           </div>
 
           {/* Botones de opciones sugeridas */}
           {suggestedOptions.length > 0 && (
-            <div className="chat-suggested-options">
-              {suggestedOptions.map((option, index) => (
+            suggestedOptions.map((option, index) => (
+              <div key={index} className="chat-message-container bot">
                 <button
-                  key={index}
-                  className={`suggested-option-button ${option.selected ? 'selected' : ''}`}
+                  className={`chat-message chat-option-button ${option.selected ? 'selected' : ''}`}
                   onClick={() => handleSuggestedOption(option.label)}
                 >
-                  {option.label}
+                  <p>{option.label}</p>
                 </button>
-              ))}
-            </div>
+              </div>
+            ))
           )}
 
           {chatMessages.length > 0 && (
