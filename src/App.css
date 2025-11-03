@@ -10,10 +10,12 @@ body {
   background-color: #f5f5f5;
   color: #333;
   position: relative;
+  overflow-x: hidden;
 }
 
 #root {
   position: relative;
+  overflow-x: hidden;
 }
 
 /* Main App Layout */
@@ -24,6 +26,7 @@ body {
   height: auto;
   position: relative;
   transform: none;
+  overflow-x: hidden;
 }
 
 .Padre-container {
@@ -78,6 +81,7 @@ body {
 }
 
 .wine-icon {
+  cursor: pointer;
   width: 40px;
   height: 40px;
   background-color: #EADDFF;
@@ -153,6 +157,7 @@ body {
   height: auto;
   position: relative;
   z-index: 1;
+  overflow-x: hidden;
 }
 
 /* Animaciones de transición de vistas */
@@ -328,17 +333,24 @@ body {
 }
 
 /* Horizontal Scroll */
+.horizontal-scroll-viewport {
+  width: 100%;
+  overflow: hidden;
+}
+
 .horizontal-scroll {
   display: flex;
   gap: 15px;
-  width: 100%;
+  width: max-content;
   padding-bottom: 8px;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  flex-wrap: nowrap;
 }
 
 .horizontal-scroll.auto-scroll {
-  animation: scroll-horizontal 80s linear infinite;
+  animation: scroll-horizontal 120s linear infinite;
+  overflow: hidden;
 }
 
 .horizontal-scroll::-webkit-scrollbar {
@@ -350,7 +362,7 @@ body {
     transform: translateX(0);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(-33.333%);
   }
 }
 

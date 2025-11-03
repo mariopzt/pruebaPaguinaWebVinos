@@ -348,38 +348,56 @@ function App() {
               <h2 className="section-title">Nuestros vinos</h2>
               <span className="star-icon">★</span>
             </div>
-            <div className="horizontal-scroll auto-scroll">
-              {['Casal de arman', 'Arman doce', 'Amorodos', 'Revelde', 'Valdecontina', 'Almanova', 'Attis', 'Albariño', 'Tempranillo', 'Garnacha', 'Mencía', 'Godello', 'Treixadura', 'Loureiro', 'Caiño', 'Brancellao', 'Espadeiro', 'Sousón'].map((wine, index) => (
-                <div key={index} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
-                  <div className="wine-image">
-                    <img 
-                      src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?_gl=1*11emm52*_ga*MTI5NjI5NjIxOS4xNzYwOTA1MzA3*_ga_8JE65Q40S6*czE3NjA5MDUzMDckbzEkZzEkdDE3NjA5MDU2NTQkajM4JGwwJGgw" 
-                      alt="Tres copas de vino" 
-                      className="wine-photo"
-                    />
+            <div className="horizontal-scroll-viewport">
+              <div className="horizontal-scroll auto-scroll">
+                {['Casal de arman', 'Arman doce', 'Amorodos', 'Revelde', 'Valdecontina', 'Almanova', 'Attis', 'Albariño', 'Tempranillo', 'Garnacha', 'Mencía', 'Godello', 'Treixadura', 'Loureiro', 'Caiño', 'Brancellao', 'Espadeiro', 'Sousón'].map((wine, index) => (
+                  <div key={index} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
+                    <div className="wine-image">
+                      <img 
+                        src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?_gl=1*11emm52*_ga*MTI5NjI5NjIxOS4xNzYwOTA1MzA3*_ga_8JE65Q40S6*czE3NjA5MDUzMDckbzEkZzEkdDE3NjA5MDU2NTQkajM4JGwwJGgw" 
+                        alt="Tres copas de vino" 
+                        className="wine-photo"
+                      />
+                    </div>
+                    <div className="wine-info">
+                      <span className="wine-artist">{wine}</span>
+                      <span className="wine-song">Ribeiro</span>
+                    </div>
                   </div>
-                  <div className="wine-info">
-                    <span className="wine-artist">{wine}</span>
-                    <span className="wine-song">Ribeiro</span>
+                ))}
+                {/* Duplicado para animación continua */}
+                {['Casal de arman', 'Arman doce', 'Amorodos', 'Revelde', 'Valdecontina', 'Almanova', 'Attis', 'Albariño', 'Tempranillo', 'Garnacha', 'Mencía', 'Godello', 'Treixadura', 'Loureiro', 'Caiño', 'Brancellao', 'Espadeiro', 'Sousón'].map((wine, index) => (
+                  <div key={`duplicate-${index}`} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
+                    <div className="wine-image">
+                      <img 
+                        src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?_gl=1*11emm52*_ga*MTI5NjI5NjIxOS4xNzYwOTA1MzA3*_ga_8JE65Q40S6*czE3NjA5MDUzMDckbzEkZzEkdDE3NjA5MDU2NTQkajM4JGwwJGgw" 
+                        alt="Tres copas de vino" 
+                        className="wine-photo"
+                      />
+                    </div>
+                    <div className="wine-info">
+                      <span className="wine-artist">{wine}</span>
+                      <span className="wine-song">Ribeiro</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {/* Duplicado para animación continua */}
-              {['Casal de arman', 'Arman doce', 'Amorodos', 'Revelde', 'Valdecontina', 'Almanova', 'Attis', 'Albariño', 'Tempranillo', 'Garnacha', 'Mencía', 'Godello', 'Treixadura', 'Loureiro', 'Caiño', 'Brancellao', 'Espadeiro', 'Sousón'].map((wine, index) => (
-                <div key={`duplicate-${index}`} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
-                  <div className="wine-image">
-                    <img 
-                      src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?_gl=1*11emm52*_ga*MTI5NjI5NjIxOS4xNzYwOTA1MzA3*_ga_8JE65Q40S6*czE3NjA5MDUzMDckbzEkZzEkdDE3NjA5MDU2NTQkajM4JGwwJGgw" 
-                      alt="Tres copas de vino" 
-                      className="wine-photo"
-                    />
+                ))}
+                {/* Tercer duplicado para animación ultra suave */}
+                {['Casal de arman', 'Arman doce', 'Amorodos', 'Revelde', 'Valdecontina', 'Almanova', 'Attis', 'Albariño', 'Tempranillo', 'Garnacha', 'Mencía', 'Godello', 'Treixadura', 'Loureiro', 'Caiño', 'Brancellao', 'Espadeiro', 'Sousón'].map((wine, index) => (
+                  <div key={`duplicate-3-${index}`} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
+                    <div className="wine-image">
+                      <img 
+                        src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?_gl=1*11emm52*_ga*MTI5NjI5NjIxOS4xNzYwOTA1MzA3*_ga_8JE65Q40S6*czE3NjA5MDUzMDckbzEkZzEkdDE3NjA5MDU2NTQkajM4JGwwJGgw" 
+                        alt="Tres copas de vino" 
+                        className="wine-photo"
+                      />
+                    </div>
+                    <div className="wine-info">
+                      <span className="wine-artist">{wine}</span>
+                      <span className="wine-song">Ribeiro</span>
+                    </div>
                   </div>
-                  <div className="wine-info">
-                    <span className="wine-artist">{wine}</span>
-                    <span className="wine-song">Ribeiro</span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </section>
         </div>
