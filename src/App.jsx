@@ -2,6 +2,7 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiFillSlackCircle, AiOutlineWarning } from 'react-icons/ai'
+import { FaArrowAltCircleLeft } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
@@ -18,6 +19,14 @@ function App() {
   const [chatMessages, setChatMessages] = useState([])
   const [suggestedOptions, setSuggestedOptions] = useState([])
   const chatMessagesContainerRef = useRef(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [settings, setSettings] = useState({
+    autoScrollCarousel: true,
+    markReadOnOpen: true,
+    lockScrollOnNotifications: true,
+    showUnreadBadge: true,
+  })
+  const [settingsView, setSettingsView] = useState('menu')
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -52,10 +61,12 @@ function App() {
     setNotifications(prev => [newNotification, ...prev]);
   };
 
-  // Marcar todas las notificaciones como leídas al abrir el panel
+  // Marcar todas las notificaciones como leídas al abrir el panel (según ajustes)
   const handleOpenNotifications = () => {
     setShowNotifications(true);
-    setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
+    if (settings.markReadOnOpen) {
+      setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
+    }
   };
 
   // Manejar click en notificación
@@ -64,7 +75,6 @@ function App() {
     setHighlightedWineId(wineId);
     setShowNotifications(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
     // Remover highlight después de 2 segundos
     setTimeout(() => setHighlightedWineId(null), 2000);
   };
@@ -98,7 +108,6 @@ function App() {
   const handleWineClick = (wineName) => {
     // Buscar el vino en winesData por nombre
     let wine = winesData.find(w => w.name.toLowerCase().includes(wineName.toLowerCase()))
-    
     // Si no encuentra coincidencia exacta, buscar por palabras clave
     if (!wine) {
       wine = winesData.find(w => {
@@ -106,12 +115,10 @@ function App() {
         return searchTerms.some(term => w.name.toLowerCase().includes(term))
       })
     }
-    
     // Si aún no encuentra, usar el primer vino como fallback
     if (!wine) {
       wine = winesData[0]
     }
-    
     setSelectedWine(wine)
   }
 
@@ -121,22 +128,23 @@ function App() {
     }
   }, [chatMessages]);
 
+  // Bloquear scroll del fondo si ajustes lo permiten
   useEffect(() => {
-    if (showNotifications) {
+    if (showNotifications && settings.lockScrollOnNotifications) {
       const previousOverflow = document.body.style.overflow
       document.body.style.overflow = 'hidden'
       return () => {
         document.body.style.overflow = previousOverflow
       }
     }
-  }, [showNotifications])
+  }, [showNotifications, settings.lockScrollOnNotifications])
 
   return (
     <>
     <div className="app">
       <div className="Padre-container">
-{/* Sidebar */}
- <div className="sidebar">
+ {/* Sidebar */}
+  <div className="sidebar">
         <div className="sidebar-header">
           <div className="hamburger-menu" onClick={toggleMenu}>
             <div className="hamburger-line"></div>
@@ -287,9 +295,9 @@ function App() {
                 <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
                 <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
               </svg>
-              {notifications.filter(n => !n.read).length > 0 && !showNotifications && <span className="notification-badge">{notifications.filter(n => !n.read).length}</span>}
+              {notifications.filter(n => !n.read).length > 0 && settings.showUnreadBadge && !showNotifications && <span className="notification-badge">{notifications.filter(n => !n.read).length}</span>}
             </div>
-            <div className="icon gear-icon">
+            <div className="icon gear-icon" onClick={() => { setIsSettingsOpen(true); setSettingsView('menu') }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -358,8 +366,8 @@ function App() {
               <h2 className="section-title">Nuestros vinos</h2>
               <span className="star-icon">★</span>
             </div>
-            <div className="horizontal-scroll-viewport">
-              <div className="horizontal-scroll auto-scroll">
+            <div className={`horizontal-scroll-viewport`}>
+              <div className={`horizontal-scroll ${settings.autoScrollCarousel ? 'auto-scroll' : ''}`}>
                 {['Casal de arman', 'Arman doce', 'Amorodos', 'Revelde', 'Valdecontina', 'Almanova', 'Attis', 'Albariño', 'Tempranillo', 'Garnacha', 'Mencía', 'Godello', 'Treixadura', 'Loureiro', 'Caiño', 'Brancellao', 'Espadeiro', 'Sousón'].map((wine, index) => (
                   <div key={index} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
                     <div className="wine-image">
@@ -543,7 +551,7 @@ function App() {
         onClick={() => setShowNotifications(false)}
       >
         <div 
-          className="notifications-panel"
+          className={`notifications-panel ${settings.compactNotifications ? 'notifications-compact' : ''}`}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="notifications-header">
@@ -596,6 +604,65 @@ function App() {
               <div className="notifications-empty">
                 <p>No tienes notificaciones</p>
               </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Modal de Ajustes */}
+    {isSettingsOpen && (
+      <div className="settings-overlay" onClick={() => setIsSettingsOpen(false)}>
+        <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
+          <div className="settings-header">
+            {settingsView !== 'menu' && (
+              <button className="settings-back header-back" onClick={() => setSettingsView('menu')}><FaArrowAltCircleLeft size={16} /></button>
+            )}
+            <h3>{settingsView === 'menu' ? 'Ajustes' : `Ajustes / ${settingsView.charAt(0).toUpperCase() + settingsView.slice(1)}`}</h3>
+            <button className="settings-close" onClick={() => setIsSettingsOpen(false)}>✕</button>
+          </div>
+          <div className="settings-content">
+            {settingsView === 'menu' && (
+              <div className="settings-menu">
+                <button className="menu-btn" onClick={() => setSettingsView('vista')}>Vista</button>
+                <button className="menu-btn" onClick={() => setSettingsView('notificaciones')}>Notificaciones</button>
+                <button className="menu-btn" onClick={() => setSettingsView('apariencia')}>Apariencia</button>
+                <button className="menu-btn" onClick={() => setSettingsView('acerca')}>Acerca de</button>
+              </div>
+            )}
+
+            {settingsView === 'vista' && (
+              <>
+                <label className="setting-row">
+                  <input type="checkbox" checked={settings.autoScrollCarousel} onChange={(e) => setSettings(s => ({...s, autoScrollCarousel: e.target.checked}))} />
+                  <span>Animar carrusel de "Nuestros vinos"</span>
+                </label>
+                <label className="setting-row">
+                  <input type="checkbox" checked={settings.markReadOnOpen} onChange={(e) => setSettings(s => ({...s, markReadOnOpen: e.target.checked}))} />
+                  <span>Marcar notificaciones como leídas al abrir</span>
+                </label>
+                <label className="setting-row">
+                  <input type="checkbox" checked={settings.lockScrollOnNotifications} onChange={(e) => setSettings(s => ({...s, lockScrollOnNotifications: e.target.checked}))} />
+                  <span>Bloquear scroll del fondo con notificaciones abiertas</span>
+                </label>
+                <label className="setting-row">
+                  <input type="checkbox" checked={settings.showUnreadBadge} onChange={(e) => setSettings(s => ({...s, showUnreadBadge: e.target.checked}))} />
+                  <span>Mostrar contador en campana</span>
+                </label>
+              </>
+            )}
+
+            {(settingsView === 'notificaciones' || settingsView === 'apariencia' || settingsView === 'acerca') && (
+              <>
+                <p className="settings-placeholder">Sección en preparación. Próximamente más opciones.</p>
+              </>
+            )}
+          </div>
+          <div className="settings-footer">
+            {settingsView !== 'menu' ? (
+              <button className="settings-primary" onClick={() => setIsSettingsOpen(false)}>Guardar</button>
+            ) : (
+              <button className="settings-primary" onClick={() => setIsSettingsOpen(false)}>Cerrar</button>
             )}
           </div>
         </div>
