@@ -1,6 +1,7 @@
 import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
+import { AiFillSlackCircle } from 'react-icons/ai'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
@@ -150,16 +151,7 @@ function App() {
               ]);
             }
           }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000010" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <circle cx="12" cy="5" r="2"/>
-              <path d="M12 7v4"/>
-              <line x1="8" y1="16" x2="8" y2="16"/>
-              <line x1="16" y1="16" x2="16" y2="16"/>
-              <path d="M12 19v2"/>
-              <path d="M8 19v2"/>
-              <path d="M16 19v2"/>
-            </svg>
+            <AiFillSlackCircle size={28} color="#000000f0" />
           </div>
         </div>
         
