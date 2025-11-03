@@ -92,6 +92,21 @@ body {
   font-size: 16px;
   font-weight: bold;
   color: #4A4459;
+  transition: transform 0.2s ease;
+}
+
+.wine-icon:active {
+  transform: scale(0.92);
+}
+
+.wine-icon.pulse {
+  animation: winePulse 0.5s ease-out;
+}
+
+@keyframes winePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1); }
 }
 
 .wine-icon svg {

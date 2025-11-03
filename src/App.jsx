@@ -135,7 +135,11 @@ function App() {
         </div>
         
         <div className="sidebar-logo">
-          <div className="wine-icon" onClick={() => {
+          <div className="wine-icon" onClick={(e) => {
+            // mini animación al icono
+            e.currentTarget.classList.add('pulse')
+            setTimeout(() => e.currentTarget.classList.remove('pulse'), 500)
+
             setIsChatModalOpen(!isChatModalOpen);
             if (!isChatModalOpen) {
               setSuggestedOptions([
