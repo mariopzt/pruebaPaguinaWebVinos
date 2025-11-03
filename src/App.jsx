@@ -121,6 +121,16 @@ function App() {
     }
   }, [chatMessages]);
 
+  useEffect(() => {
+    if (showNotifications) {
+      const previousOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = previousOverflow
+      }
+    }
+  }, [showNotifications])
+
   return (
     <>
     <div className="app">
@@ -556,7 +566,19 @@ function App() {
                 >
                   <div className="notification-icon">⚠</div>
                   <div className="notification-content">
-                    <p className="notification-text">{notification.message}</p>
+                    {(() => {
+                      const parts = notification.message.split('.')
+                      const primary = parts.shift()?.trim() || ''
+                      const secondary = parts.join('.').trim()
+                      return (
+                        <p className="notification-text">
+                          <span className="notification-primary">{primary}{primary && '.'}</span>
+                          {secondary && (
+                            <span className="notification-secondary"> {secondary}</span>
+                          )}
+                        </p>
+                      )
+                    })()}
                   </div>
                   {!notification.read && <span className="notification-badge-item">NUEVA</span>}
                   <button
