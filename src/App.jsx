@@ -40,9 +40,16 @@ function App() {
       id: Date.now(),
       wineId: wine.id,
       wineName: wine.name,
-      message: `${wine.name} se ha agotado temporalmente. Te sugerimos hacer tu pedido cuanto antes para no quedarte sin él.`
+      message: `${wine.name} se ha agotado temporalmente. Te sugerimos hacer tu pedido cuanto antes para no quedarte sin él.`,
+      read: false
     };
     setNotifications(prev => [newNotification, ...prev]);
+  };
+
+  // Marcar todas las notificaciones como leídas al abrir el panel
+  const handleOpenNotifications = () => {
+    setShowNotifications(true);
+    setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
   };
 
   // Manejar click en notificación
@@ -227,12 +234,12 @@ function App() {
             {currentView === 'home' ? 'VinosStock' : currentView === 'bodega' ? 'Bodega' : 'Agotados'}
           </h1>
           <div className="header-icons">
-            <div className="icon bell-icon" onClick={() => setShowNotifications(!showNotifications)}>
+            <div className="icon bell-icon" onClick={handleOpenNotifications}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
                 <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
               </svg>
-              {notifications.length > 0 && !showNotifications && <span className="notification-badge">{notifications.length}</span>}
+              {notifications.filter(n => !n.read).length > 0 && !showNotifications && <span className="notification-badge">{notifications.filter(n => !n.read).length}</span>}
             </div>
             <div className="icon gear-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -364,10 +371,7 @@ function App() {
     {showNotifications && (
       <div 
         className="notifications-overlay"
-        onClick={() => {
-          setShowNotifications(false);
-          setNotifications([]);
-        }}
+        onClick={() => setShowNotifications(false)}
       >
         <div 
           className="notifications-panel"
@@ -377,10 +381,7 @@ function App() {
             <h2>Notificaciones ({notifications.length})</h2>
             <button 
               className="notifications-close"
-              onClick={() => {
-                setShowNotifications(false);
-                setNotifications([]);
-              }}
+              onClick={() => setShowNotifications(false)}
             >
               ✕
             </button>
@@ -391,13 +392,14 @@ function App() {
               notifications.map(notification => (
                 <div 
                   key={notification.id} 
-                  className="notification-item"
+                  className={`notification-item ${!notification.read ? 'unread' : ''}`}
                   onClick={() => handleNotificationClick(notification.wineId)}
                 >
                   <div className="notification-icon">⚠</div>
                   <div className="notification-content">
                     <p className="notification-text">{notification.message}</p>
                   </div>
+                  {!notification.read && <span className="notification-badge-item">NUEVA</span>}
                   <button
                     className="notification-remove"
                     onClick={(e) => {
