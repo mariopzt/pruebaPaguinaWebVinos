@@ -27,6 +27,7 @@ function App() {
     showUnreadBadge: true,
   })
   const [settingsView, setSettingsView] = useState('menu')
+  const [settingsTransition, setSettingsTransition] = useState('forward')
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -616,23 +617,23 @@ function App() {
         <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
           <div className="settings-header">
             {settingsView !== 'menu' && (
-              <button className="settings-back header-back" onClick={() => setSettingsView('menu')}><FaArrowAltCircleLeft size={16} /></button>
+              <button className="settings-back header-back" onClick={() => { setSettingsTransition('back'); setSettingsView('menu') }}><FaArrowAltCircleLeft size={16} /></button>
             )}
             <h3>{settingsView === 'menu' ? 'Ajustes' : `Ajustes / ${settingsView.charAt(0).toUpperCase() + settingsView.slice(1)}`}</h3>
             <button className="settings-close" onClick={() => setIsSettingsOpen(false)}>✕</button>
           </div>
           <div className="settings-content">
             {settingsView === 'menu' && (
-              <div className="settings-menu">
-                <button className="menu-btn" onClick={() => setSettingsView('vista')}>Vista</button>
-                <button className="menu-btn" onClick={() => setSettingsView('notificaciones')}>Notificaciones</button>
-                <button className="menu-btn" onClick={() => setSettingsView('apariencia')}>Apariencia</button>
-                <button className="menu-btn" onClick={() => setSettingsView('acerca')}>Acerca de</button>
+              <div className={`settings-menu settings-section ${settingsTransition === 'back' ? 'back' : ''}`}>
+                <button className="menu-btn" onClick={() => { setSettingsTransition('forward'); setSettingsView('vista') }}>Vista</button>
+                <button className="menu-btn" onClick={() => { setSettingsTransition('forward'); setSettingsView('notificaciones') }}>Notificaciones</button>
+                <button className="menu-btn" onClick={() => { setSettingsTransition('forward'); setSettingsView('apariencia') }}>Apariencia</button>
+                <button className="menu-btn" onClick={() => { setSettingsTransition('forward'); setSettingsView('acerca') }}>Acerca de</button>
               </div>
             )}
 
             {settingsView === 'vista' && (
-              <>
+              <div className={`settings-section ${settingsTransition}`} key={settingsView}>
                 <label className="setting-row">
                   <input type="checkbox" checked={settings.autoScrollCarousel} onChange={(e) => setSettings(s => ({...s, autoScrollCarousel: e.target.checked}))} />
                   <span>Animar carrusel de "Nuestros vinos"</span>
@@ -649,13 +650,13 @@ function App() {
                   <input type="checkbox" checked={settings.showUnreadBadge} onChange={(e) => setSettings(s => ({...s, showUnreadBadge: e.target.checked}))} />
                   <span>Mostrar contador en campana</span>
                 </label>
-              </>
+              </div>
             )}
 
             {(settingsView === 'notificaciones' || settingsView === 'apariencia' || settingsView === 'acerca') && (
-              <>
+              <div className={`settings-section ${settingsTransition}`} key={settingsView}>
                 <p className="settings-placeholder">Sección en preparación. Próximamente más opciones.</p>
-              </>
+              </div>
             )}
           </div>
           <div className="settings-footer">
