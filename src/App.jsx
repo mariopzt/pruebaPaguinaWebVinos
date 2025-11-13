@@ -2,8 +2,7 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
-import { FiHome, FiShoppingBag } from 'react-icons/fi'
-import { TbWine, TbCircleX, TbChecklist, TbReceipt2 } from 'react-icons/tb'
+import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare } from 'react-icons/fi'
 import { FaArrowAltCircleLeft } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
@@ -171,28 +170,28 @@ function App() {
             className={`nav-item ${currentView === 'bodega' ? 'active' : ''}`} 
             onClick={navigateToBodega}
           >
-            <span className="nav-icon"><TbWine size={16} /></span>
+            <span className="nav-icon"><FiBox size={16} /></span>
             <span className="nav-text">Bodega</span>
           </div>
           <div 
             className={`nav-item ${currentView === 'agotados' ? 'active' : ''}`} 
             onClick={navigateToAgotados}
           >
-            <span className="nav-icon"><TbCircleX size={16} /></span>
+            <span className="nav-icon"><FiSlash size={16} /></span>
             <span className="nav-text">Agotados</span>
           </div>
           <div 
             className={`nav-item ${currentView === 'tareas' ? 'active' : ''}`} 
             onClick={() => setCurrentView('tareas')}
           >
-            <span className="nav-icon"><TbChecklist size={16} /></span>
+            <span className="nav-icon"><FiCheckSquare size={16} /></span>
             <span className="nav-text">Tareas</span>
           </div>
           <div 
             className={`nav-item ${currentView === 'pedidos' ? 'active' : ''}`} 
             onClick={() => setCurrentView('pedidos')}
           >
-            <span className="nav-icon"><TbReceipt2 size={16} /></span>
+            <span className="nav-icon"><FiShoppingBag size={16} /></span>
             <span className="nav-text">Pedidos</span>
           </div>
         </nav>
