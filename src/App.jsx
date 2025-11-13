@@ -146,6 +146,7 @@ function App() {
       <div className="Padre-container">
  {/* Sidebar */}
   <div className="sidebar">
+        <div className="sidebar-brand">VinosStk</div>
         <div className="sidebar-header">
           <div className="hamburger-menu" onClick={toggleMenu}>
             <div className="hamburger-line"></div>
@@ -219,6 +220,21 @@ function App() {
             </div>
           )}
         </nav>
+        <div className="sidebar-bottom">
+          <div className="ai-card" onClick={() => setIsChatModalOpen(true)}>
+            <div className="ai-icon">✧</div>
+            <div className="ai-title">AI FOR RESULTS</div>
+            <div className="ai-subtitle">ANALYTICS</div>
+            <button className="ai-button">TRY NOW  <span>›</span></button>
+          </div>
+          <div className="profile-card">
+            <img className="profile-avatar" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=80" alt="User avatar" />
+            <div className="profile-texts">
+              <div className="profile-name">Jonny Alvarez</div>
+              <div className="profile-role">Admin</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Mobile Menu Overlay */}
@@ -287,9 +303,14 @@ function App() {
             <div className="hamburger-line"></div>
             <div className="hamburger-line"></div>
           </div>
-          <h1 className="app-title" onClick={navigateToHome} style={{ cursor: 'pointer' }}>
-            {currentView === 'home' ? 'VinosStock' : currentView === 'bodega' ? 'Bodega' : 'Agotados'}
-          </h1>
+          <div className="header-title" onClick={navigateToHome} style={{ cursor: 'pointer' }}>
+            <h1 className="app-title">
+              {currentView === 'home' ? 'Hola Jonny' : currentView === 'bodega' ? 'Bodega' : 'Agotados'}
+            </h1>
+            {currentView === 'home' && (
+              <p className="app-subtitle">Mira nuestro stock de vinos y dejanos tu comentario &gt;</p>
+            )}
+          </div>
           <div className="header-icons">
             <div className="icon bell-icon" onClick={handleOpenNotifications}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

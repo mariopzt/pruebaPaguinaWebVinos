@@ -8,7 +8,7 @@ function Bodega({ onNavigateHome, onSelectWine }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const itemsPerPage = 10;
+  const itemsPerPage = 30;
 
   // Filtrar vinos según el tipo seleccionado y término de búsqueda
   let filteredWines = activeFilter === 'Todos' 

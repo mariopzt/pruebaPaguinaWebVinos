@@ -8,7 +8,7 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const itemsPerPage = 10;
+  const itemsPerPage = 30;
 
   // Filtrar vinos agotados (stock = 0)
   let agotadosWines = winesData.filter(wine => wine.stock === 0);

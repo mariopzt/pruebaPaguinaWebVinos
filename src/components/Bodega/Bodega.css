@@ -24,11 +24,11 @@
 }
 
 .filter-button {
-  padding: 10px 20px;
+  padding: 8px 16px;
   background: white;
   border: 2px solid #e5e5e5;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 500;
   color: #555;
   cursor: pointer;
@@ -52,14 +52,14 @@
 }
 
 .checkmark {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .bodega-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
   margin-bottom: 40px;
 }
 
@@ -100,13 +100,13 @@
 }
 
 .pagination-button {
-  min-width: 40px;
-  height: 40px;
+  min-width: 34px;
+  height: 34px;
   padding: 0 12px;
   background: white;
   border: 2px solid #e5e5e5;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 500;
   color: #555;
   cursor: pointer;
@@ -128,7 +128,7 @@
 .pagination-ellipsis {
   padding: 0 8px;
   color: #999;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -163,7 +163,7 @@
   border: none;
   background: transparent;
   padding: 8px 12px;
-  font-size: 14px;
+  font-size: 12px;
   color: #333;
   outline: none;
   width: 0;
@@ -230,8 +230,8 @@
 /* Responsive */
 @media (max-width: 1200px) {
   .bodega-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
   }
 }
 
