@@ -163,35 +163,35 @@ function App() {
             className={`nav-item ${currentView === 'home' ? 'active' : ''}`} 
             onClick={navigateToHome}
           >
-            <span className="nav-icon"><FiHome size={16} /></span>
+            <span className="nav-icon"><FiHome size={12} /></span>
             <span className="nav-text">Inicio</span>
           </div>
           <div 
             className={`nav-item ${currentView === 'bodega' ? 'active' : ''}`} 
             onClick={navigateToBodega}
           >
-            <span className="nav-icon"><FiBox size={16} /></span>
+            <span className="nav-icon"><FiBox size={12} /></span>
             <span className="nav-text">Bodega</span>
           </div>
           <div 
             className={`nav-item ${currentView === 'agotados' ? 'active' : ''}`} 
             onClick={navigateToAgotados}
           >
-            <span className="nav-icon"><FiSlash size={16} /></span>
+            <span className="nav-icon"><FiSlash size={12} /></span>
             <span className="nav-text">Agotados</span>
           </div>
           <div 
             className={`nav-item ${currentView === 'tareas' ? 'active' : ''}`} 
             onClick={() => setCurrentView('tareas')}
           >
-            <span className="nav-icon"><FiCheckSquare size={16} /></span>
+            <span className="nav-icon"><FiCheckSquare size={12} /></span>
             <span className="nav-text">Tareas</span>
           </div>
           <div 
             className={`nav-item ${currentView === 'pedidos' ? 'active' : ''}`} 
             onClick={() => setCurrentView('pedidos')}
           >
-            <span className="nav-icon"><FiShoppingBag size={16} /></span>
+            <span className="nav-icon"><FiShoppingBag size={12} /></span>
             <span className="nav-text">Pedidos</span>
           </div>
         </nav>

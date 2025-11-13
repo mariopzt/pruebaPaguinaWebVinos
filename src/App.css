@@ -320,17 +320,19 @@ body {
 }
 
 .nav-icon {
-display: flex;
-justify-content: center;
-align-items: center;
-  font-size: 14px;
-  color: #a7aab3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  color: #ffffff;
 }
 
 .nav-text {
-  font-size: 10px;
-  color: #d7d9df;
-  font-weight: 600;
+  font-size: 9px;
+  color: #ffffff;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 /* Main Content */
