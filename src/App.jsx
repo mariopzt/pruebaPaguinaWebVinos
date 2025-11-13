@@ -155,25 +155,7 @@ function App() {
           </div>
         </div>
         
-        <div className="sidebar-logo">
-          <div className="wine-icon" onClick={(e) => {
-            // mini animación al icono
-            e.currentTarget.classList.add('pulse')
-            setTimeout(() => e.currentTarget.classList.remove('pulse'), 500)
-
-            setIsChatModalOpen(!isChatModalOpen);
-            if (!isChatModalOpen) {
-              setSuggestedOptions([
-                { label: 'Ver disponibles', selected: false },
-                { label: 'Vinos agotados', selected: false },
-                { label: 'Ofertas especiales', selected: false },
-                { label: 'Ayuda', selected: false }
-              ]);
-            }
-          }}>
-            <AiFillSlackCircle size={28} color="#000000f0" />
-          </div>
-        </div>
+        
         
         <nav className="sidebar-nav">
           {currentView === 'home' ? (
@@ -221,7 +203,18 @@ function App() {
           )}
         </nav>
         <div className="sidebar-bottom">
-          <div className="ai-card" onClick={() => setIsChatModalOpen(true)}>
+          <div className="ai-card" onClick={() => {
+            const opening = !isChatModalOpen;
+            setIsChatModalOpen(true);
+            if (opening) {
+              setSuggestedOptions([
+                { label: 'Ver disponibles', selected: false },
+                { label: 'Vinos agotados', selected: false },
+                { label: 'Ofertas especiales', selected: false },
+                { label: 'Ayuda', selected: false }
+              ]);
+            }
+          }}>
             <div className="ai-icon">✧</div>
             <div className="ai-title">AI FOR RESULTS</div>
             <div className="ai-subtitle">ANALYTICS</div>
