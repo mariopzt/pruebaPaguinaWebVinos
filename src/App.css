@@ -44,7 +44,7 @@ body {
   justify-content: flex-start;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: start;
   padding: 15px 0;
   left: 0;
   top: 0;
@@ -174,17 +174,16 @@ body {
 
 .sidebar-brand {
   width: 100%;
-  margin-left:16px;
-  padding: 12px 14px 6px;
+  margin-left: 16px;
+  padding: 16px 0 10px 0;
   color: #e7e7f0;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   font-weight: 800;
   font-size: 19px;
   letter-spacing: 0.5px;
   text-align: left;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  padding-bottom: 10px;
-  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.18);
+  margin-bottom: 8px;
 }
 
 .hamburger-menu {
@@ -260,45 +259,58 @@ body {
   justify-content: flex-start;
   gap: 10px;
   cursor: pointer;
-  padding: 10px 12px;
+  padding: 3px 12px;
   border-radius: 10px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   width: 100%;
 }
 
-.nav-item:hover {
-  background-color: rgba(255,255,255,0.06);
-  transform: translateY(-1px);
-}
+.nav-item:hover { transform: translateY(-1px); }
 
 .nav-item:active {
   transform: scale(0.95);
 }
 
 .nav-item.active {
-  background-color: rgba(255,255,255,0.08);
+  background-color: transparent;
   transform: none;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+  box-shadow: none;
 }
 
 .nav-item::before {
   content: '';
   position: absolute;
-  left: 6px;
+  left: 3px;
   top: 50%;
   transform: translateY(-50%);
-  width: 4px;
-  height: 60%;
-  border-radius: 6px;
-  background: linear-gradient(180deg, #e8ff6a 0%, #bff24a 100%);
-  box-shadow: 0 0 12px rgba(223, 255, 120, 0.35);
+  width: 1px;
+  height: 75%;
+  border-radius: 1px;
+  background: linear-gradient(180deg, #f0ff9e 0%, #d7ff57 100%);
+  box-shadow: 0 0 10px rgba(232,255,106,0.75), 0 0 20px rgba(232,255,106,0.35);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
 
 .nav-item:hover::before,
 .nav-item.active::before {
+  opacity: 1;
+}
+
+/* Glow suave del mismo color para el activo */
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 70%;
+  height: 68%;
+  pointer-events: none;
+  /* Glow que nace en la barra izquierda y se expande suave hacia la derecha */
+  background: radial-gradient(36% 80% at 4% 50%, rgba(232,255,106,0.85) 0%, rgba(232,255,106,0.42) 35%, rgba(232,255,106,0.0) 70%);
+  filter: blur(10px);
   opacity: 1;
 }
 

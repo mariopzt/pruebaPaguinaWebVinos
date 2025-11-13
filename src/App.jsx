@@ -1,7 +1,9 @@
 import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
-import { AiFillSlackCircle, AiOutlineWarning } from 'react-icons/ai'
+import { AiOutlineWarning } from 'react-icons/ai'
+import { FiHome, FiShoppingBag } from 'react-icons/fi'
+import { TbWine, TbCircleX, TbChecklist, TbReceipt2 } from 'react-icons/tb'
 import { FaArrowAltCircleLeft } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
@@ -146,7 +148,7 @@ function App() {
       <div className="Padre-container">
  {/* Sidebar */}
   <div className="sidebar">
-        <div className="sidebar-brand">VinosStk</div>
+        <div className="sidebar-brand">NL CORP.</div>
         <div className="sidebar-header">
           <div className="hamburger-menu" onClick={toggleMenu}>
             <div className="hamburger-line"></div>
@@ -158,49 +160,41 @@ function App() {
         
         
         <nav className="sidebar-nav">
-          {currentView === 'home' ? (
-            <>
-              <div 
-                className="nav-item" 
-                onClick={navigateToBodega}
-              >
-                <span className="nav-icon">★</span>
-                <span className="nav-text">Bodega</span>
-              </div>
-              <div 
-                className="nav-item" 
-                onClick={navigateToAgotados}
-              >
-                <span className="nav-icon">★</span>
-                <span className="nav-text">Agotados</span>
-              </div>
-            </>
-          ) : currentView === 'bodega' ? (
-            <div 
-              className="nav-item" 
-              onClick={navigateToAgotados}
-            >
-              <span className="nav-icon">★</span>
-              <span className="nav-text">Agotados</span>
-            </div>
-          ) : (
-            <div 
-              className="nav-item" 
-              onClick={navigateToBodega}
-            >
-              <span className="nav-icon">★</span>
-              <span className="nav-text">Bodega</span>
-            </div>
-          )}
-          {currentView !== 'home' && (
-            <div 
-              className="nav-item" 
-              onClick={navigateToHome}
-            >
-              <span className="nav-icon">🏠</span>
-              <span className="nav-text">Inicio</span>
-            </div>
-          )}
+          <div 
+            className={`nav-item ${currentView === 'home' ? 'active' : ''}`} 
+            onClick={navigateToHome}
+          >
+            <span className="nav-icon"><FiHome size={16} /></span>
+            <span className="nav-text">Inicio</span>
+          </div>
+          <div 
+            className={`nav-item ${currentView === 'bodega' ? 'active' : ''}`} 
+            onClick={navigateToBodega}
+          >
+            <span className="nav-icon"><TbWine size={16} /></span>
+            <span className="nav-text">Bodega</span>
+          </div>
+          <div 
+            className={`nav-item ${currentView === 'agotados' ? 'active' : ''}`} 
+            onClick={navigateToAgotados}
+          >
+            <span className="nav-icon"><TbCircleX size={16} /></span>
+            <span className="nav-text">Agotados</span>
+          </div>
+          <div 
+            className={`nav-item ${currentView === 'tareas' ? 'active' : ''}`} 
+            onClick={() => setCurrentView('tareas')}
+          >
+            <span className="nav-icon"><TbChecklist size={16} /></span>
+            <span className="nav-text">Tareas</span>
+          </div>
+          <div 
+            className={`nav-item ${currentView === 'pedidos' ? 'active' : ''}`} 
+            onClick={() => setCurrentView('pedidos')}
+          >
+            <span className="nav-icon"><TbReceipt2 size={16} /></span>
+            <span className="nav-text">Pedidos</span>
+          </div>
         </nav>
         <div className="sidebar-bottom">
           <div className="ai-card" onClick={() => {
@@ -239,49 +233,41 @@ function App() {
               <button className="close-menu" onClick={toggleMenu}>×</button>
             </div>
             <div className="mobile-menu-content">
-              {currentView === 'home' ? (
-                <>
-                  <div 
-                    className="mobile-nav-item" 
-                    onClick={navigateToBodega}
-                  >
-                    <span className="mobile-nav-icon">★</span>
-                    <span className="mobile-nav-text">Bodega</span>
-                  </div>
-                  <div 
-                    className="mobile-nav-item" 
-                    onClick={navigateToAgotados}
-                  >
-                    <span className="mobile-nav-icon">★</span>
-                    <span className="mobile-nav-text">Agotados</span>
-                  </div>
-                </>
-              ) : currentView === 'bodega' ? (
-                <div 
-                  className="mobile-nav-item" 
-                  onClick={navigateToAgotados}
-                >
-                  <span className="mobile-nav-icon">★</span>
-                  <span className="mobile-nav-text">Agotados</span>
-                </div>
-              ) : (
-                <div 
-                  className="mobile-nav-item" 
-                  onClick={navigateToBodega}
-                >
-                  <span className="mobile-nav-icon">★</span>
-                  <span className="mobile-nav-text">Bodega</span>
-                </div>
-              )}
-              {currentView !== 'home' && (
-                <div 
-                  className="mobile-nav-item" 
-                  onClick={navigateToHome}
-                >
-                  <span className="mobile-nav-icon">🏠</span>
-                  <span className="mobile-nav-text">Inicio</span>
-                </div>
-              )}
+              <div 
+                className="mobile-nav-item" 
+                onClick={() => { navigateToHome(); setIsMenuOpen(false); }}
+              >
+                <span className="mobile-nav-icon"><FiHome /></span>
+                <span className="mobile-nav-text">Inicio</span>
+              </div>
+              <div 
+                className="mobile-nav-item" 
+                onClick={() => { navigateToBodega(); setIsMenuOpen(false); }}
+              >
+                <span className="mobile-nav-icon"><TbWine /></span>
+                <span className="mobile-nav-text">Bodega</span>
+              </div>
+              <div 
+                className="mobile-nav-item" 
+                onClick={() => { navigateToAgotados(); setIsMenuOpen(false); }}
+              >
+                <span className="mobile-nav-icon"><TbCircleX /></span>
+                <span className="mobile-nav-text">Agotados</span>
+              </div>
+              <div 
+                className="mobile-nav-item" 
+                onClick={() => { setCurrentView('tareas'); setIsMenuOpen(false); }}
+              >
+                <span className="mobile-nav-icon"><TbChecklist /></span>
+                <span className="mobile-nav-text">Tareas</span>
+              </div>
+              <div 
+                className="mobile-nav-item" 
+                onClick={() => { setCurrentView('pedidos'); setIsMenuOpen(false); }}
+              >
+                <span className="mobile-nav-icon"><TbReceipt2 /></span>
+                <span className="mobile-nav-text">Pedidos</span>
+              </div>
             </div>
           </div>
         </div>
@@ -291,17 +277,21 @@ function App() {
       <div className="main-content">
         {/* Header */}
         <header className="header">
-          <div className="hamburger-menu mobile-only" onClick={toggleMenu}>
+          <div className="hamburger-menu mobile-only" onClick={navigateToHome} style={{ cursor: 'pointer' }}>
             <div className="hamburger-line"></div>
             <div className="hamburger-line"></div>
             <div className="hamburger-line"></div>
           </div>
           <div className="header-title" onClick={navigateToHome} style={{ cursor: 'pointer' }}>
             <h1 className="app-title">
-              {currentView === 'home' ? 'Hola Jonny' : currentView === 'bodega' ? 'Bodega' : 'Agotados'}
+              {currentView === 'home' && 'NL CORP.'}
+              {currentView === 'bodega' && 'Bodega'}
+              {currentView === 'agotados' && 'Agotados'}
+              {currentView === 'tareas' && 'Tareas'}
+              {currentView === 'pedidos' && 'Pedidos'}
             </h1>
-            {currentView === 'home' && (
-              <p className="app-subtitle">Mira nuestro stock de vinos y dejanos tu comentario &gt;</p>
+            { (currentView === 'home') && (
+              <span className="app-subtitle">Mira nuestro stock de vinos y dejanos tu comentario &gt;</span>
             )}
           </div>
           <div className="header-icons">
@@ -460,6 +450,30 @@ function App() {
                     />
                   </div>
                 )}
+
+        {/* Vista Tareas */}
+        {currentView === 'tareas' && (
+          <div key="tareas-view" className="content view-enter">
+            <div className="section">
+              <div className="section-header">
+                <h2 className="section-title">Tareas</h2>
+              </div>
+              <p className="settings-placeholder">Sección en preparación. Próximamente podrás gestionar tus tareas.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Vista Pedidos */}
+        {currentView === 'pedidos' && (
+          <div key="pedidos-view" className="content view-enter">
+            <div className="section">
+              <div className="section-header">
+                <h2 className="section-title">Pedidos</h2>
+              </div>
+              <p className="settings-placeholder">Sección en preparación. Aquí verás y gestionarás pedidos.</p>
+            </div>
+          </div>
+        )}
         
       </div>
       </div>
