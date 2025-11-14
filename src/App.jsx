@@ -8,6 +8,7 @@ import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
 import { winesData } from './data/winesData'
+import aiVideo from './vids/short.mp4'
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -208,6 +209,15 @@ function App() {
               ]);
             }
           }}>
+            <video
+              className="ai-bg"
+              src={aiVideo}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+            />
             <div className="ai-icon">✧</div>
             <div className="ai-title">AI FOR RESULTS</div>
             <div className="ai-subtitle">ANALYTICS</div>
