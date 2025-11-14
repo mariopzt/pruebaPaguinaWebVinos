@@ -74,10 +74,8 @@ body {
   height: 125px;
   border-radius: 16px;
   padding: 10px 10px 10px;
-  background:
-    radial-gradient(120% 90% at 30% 15%, rgba(255,255,255,0.35) 0%, rgba(245,245,245,0.12) 45%, rgba(20,20,20,0.0) 75%),
-    linear-gradient(180deg, rgba(255,255,255,0.10), rgba(35,35,35,0.10));
-  box-shadow:
+  
+    box-shadow:
     0 12px 20px rgba(5, 6, 8, 0.72),
     0 4px 10px rgba(5, 6, 8, 0.62),
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
@@ -100,15 +98,15 @@ body {
 }
 
 .ai-icon {
-  font-size: 12px;
-  color: #e9e9f0;
+  font-size: 17px;
+  color: #ffffff;
   text-shadow: 0 0 12px rgba(248, 231, 28, 0.6);
 }
 
 .ai-title {
   font-size: 7px;
   font-weight: 600;
-  color: #e9e9f0;
+  color: #ffffff;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -116,7 +114,7 @@ body {
 .ai-subtitle {
   font-size: 6.5px;
   font-weight: 500;
-  color: #bdbdcc;
+  color: #ffffff;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -124,14 +122,13 @@ body {
 .ai-button {
   margin-top: 6px;
   background: linear-gradient(180deg, #16171b 0%, #0a0a0d 100%);
-  color: #f2f2f7;
-  border: 1px solid rgba(255,255,255,0.14);
+  color: #ffffff;
+  border: none;
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 8px;
-  font-weight: 700;
   letter-spacing: 0.08em;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.15);
+  box-shadow: 1px 1px 1px rgb(23, 23, 23);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
