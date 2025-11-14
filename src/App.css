@@ -71,13 +71,17 @@ body {
 
 .ai-card {
   width: 100%;
-  height: 100px;
+  height: 125px;
   border-radius: 16px;
   padding: 10px 10px 10px;
-  background: radial-gradient(120% 80% at 30% 10%, rgba(255, 255, 255, 0.35) 0%, rgba(240,240,240,0.18) 35%, rgba(20,20,20,0.0) 70%),
-              linear-gradient(180deg, rgba(255,255,255,0.12), rgba(40,40,40,0.12));
-  border: 1px solid rgba(255,255,255,0.18);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.25);
+  background:
+    radial-gradient(120% 90% at 30% 15%, rgba(255,255,255,0.35) 0%, rgba(245,245,245,0.12) 45%, rgba(20,20,20,0.0) 75%),
+    linear-gradient(180deg, rgba(255,255,255,0.10), rgba(35,35,35,0.10));
+  box-shadow:
+    0 12px 20px rgba(5, 6, 8, 0.72),
+    0 4px 10px rgba(5, 6, 8, 0.62),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(0, 0, 0, 0.22);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -88,7 +92,11 @@ body {
 
 .ai-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 36px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.35);
+  box-shadow:
+    0 16px 32px rgba(5, 6, 8, 0.78),
+    0 8px 16px rgba(5, 6, 8, 0.68),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.26);
 }
 
 .ai-icon {
@@ -140,7 +148,21 @@ body {
   padding: 6px;
   background: transparent;
   border-radius: 10px;
-  box-shadow:    1px solid #050506  ;
+  box-shadow:
+    0 12px 20px rgba(5, 6, 8, 0.72),
+    0 4px 10px rgba(5, 6, 8, 0.62),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(0, 0, 0, 0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+ 
+.profile-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 16px 32px rgba(5, 6, 8, 0.78),
+    0 8px 16px rgba(5, 6, 8, 0.68),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.26);
 }
 
 .profile-avatar {
@@ -179,7 +201,7 @@ body {
   width: 100%;
   margin-left: 8px;
   padding: 16px 0 10px 0;
-  color: #e7e7f0;
+  color: #ffffff;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   font-weight: 800;
   font-size: 19px;
@@ -308,12 +330,12 @@ body {
   left: 8px;
   top: 50%;
   transform: translateY(-50%);
-  width: 70%;
-  height: 68%;
+  width: 55%;
+  height: 60%;
   pointer-events: none;
   /* Glow que nace en la barra izquierda y se expande suave hacia la derecha */
-  background: radial-gradient(36% 80% at 4% 50%, rgba(232,255,106,0.85) 0%, rgba(232,255,106,0.42) 35%, rgba(232,255,106,0.0) 70%);
-  filter: blur(10px);
+  background: radial-gradient(32% 70% at 4% 50%, rgba(232,255,106,0.6) 0%, rgba(232,255,106,0.25) 32%, rgba(232,255,106,0.0) 55%);
+  filter: blur(6px);
   opacity: 1;
 }
 
