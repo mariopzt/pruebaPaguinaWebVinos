@@ -130,7 +130,7 @@ body {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-
+/*ai button*/
 .ai-button {
   margin-top: 6px;
   background: linear-gradient(180deg, #000000 0%, #1b1b25  100%);
