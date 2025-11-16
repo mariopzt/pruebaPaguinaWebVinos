@@ -2,13 +2,12 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
-import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp } from 'react-icons/fi'
+import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu } from 'react-icons/fi'
 import { FaArrowAltCircleLeft } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
 import { winesData } from './data/winesData'
-import aiVideo from './vids/short.mp4'
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -17,7 +16,6 @@ function App() {
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
   const [highlightedWineId, setHighlightedWineId] = useState(null)
-  const [isChatModalOpen, setIsChatModalOpen] = useState(false)
   const [chatMessages, setChatMessages] = useState([])
   const [suggestedOptions, setSuggestedOptions] = useState([])
   const chatMessagesContainerRef = useRef(null);
@@ -30,14 +28,9 @@ function App() {
   })
   const [settingsView, setSettingsView] = useState('menu')
   const [settingsTransition, setSettingsTransition] = useState('forward')
-  const [expandedNavItem, setExpandedNavItem] = useState(null)
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
-  }
-
-  const toggleNavItem = (itemName) => {
-    setExpandedNavItem(expandedNavItem === itemName ? null : itemName)
   }
 
   const navigateToBodega = () => {
@@ -147,126 +140,116 @@ function App() {
     }
   }, [showNotifications, settings.lockScrollOnNotifications])
 
+  // Inicializar opciones sugeridas del chat cuando entramos en la vista IA
+  useEffect(() => {
+    if (currentView === 'ia') {
+      setSuggestedOptions([
+        { label: 'Ver disponibles', selected: false },
+        { label: 'Vinos agotados', selected: false },
+        { label: 'Ofertas especiales', selected: false },
+        { label: 'Ayuda', selected: false }
+      ]);
+    }
+  }, [currentView])
+
   return (
     <>
     <div className="app">
       <div className="Padre-container">
- {/* Sidebar */}
-  <div className="sidebar">
-        <div className="sidebar-brand">VinosStK.</div>
-        <div className="sidebar-header">
-          <div className="hamburger-menu" onClick={toggleMenu}>
-            <div className="hamburger-line"></div>
-            <div className="hamburger-line"></div>
-            <div className="hamburger-line"></div>
+        {/* Sidebar */}
+        <div className="sidebar">
+          {/* Perfil principal tipo tarjeta (como el ejemplo) */}
+          <div className="sidebar-profile">
+            <div className="sidebar-avatar-wrapper">
+              <img
+                className="sidebar-avatar"
+                src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120"
+                alt="User avatar"
+              />
+            </div>
+            <div className="sidebar-user-name">Jonny Alvarez</div>
+            <div className="sidebar-user-email">Administrador</div>
           </div>
-        </div>
-        
-        
-        
-        <nav className="sidebar-nav">
-          <div 
-            className={`nav-item ${currentView === 'home' ? 'active' : ''}`} 
-            onClick={navigateToHome}
-          >
-            <span className="nav-icon"><FiHome size={12} /></span>
-            <span className="nav-text">Inicio</span>
-          </div>
-          <div 
-            className={`nav-item ${currentView === 'bodega' ? 'active' : ''}`} 
-            onClick={navigateToBodega}
-          >
-            <span className="nav-icon"><FiBox size={12} /></span>
-            <span className="nav-text">Bodega</span>
-          </div>
-          <div 
-            className={`nav-item ${currentView === 'agotados' ? 'active' : ''}`} 
-            onClick={navigateToAgotados}
-          >
-            <span className="nav-icon"><FiSlash size={12} /></span>
-            <span className="nav-text">Agotados</span>
-          </div>
-          
-          {/* Nav item con menú desplegable */}
-          <div className="nav-item-container">
+
+          <div className="sidebar-menu-label">MENÚ</div>
+
+          <nav className="sidebar-nav">
             <div 
-              className={`nav-item ${currentView === 'tareas' || currentView === 'tareas-completadas' || currentView === 'tareas-pendientes' ? 'active' : ''}`} 
-              onClick={() => toggleNavItem('tareas')}
+              className={`nav-item ${currentView === 'home' ? 'active' : ''}`} 
+              onClick={navigateToHome}
             >
-              <span className="nav-icon"><FiCheckSquare size={12} /></span>
-              <span className="nav-text">Tareas</span>
-              <span className={`nav-chevron ${expandedNavItem === 'tareas' ? 'expanded' : ''}`}>
-                <FiChevronDown size={10} />
-              </span>
+              <div className="nav-item-content">
+                <span className="nav-icon"><FiHome size={10} /></span>
+                <span className="nav-text">Inicio</span>
+              </div>
+            </div>
+
+            <div 
+              className={`nav-item ${currentView === 'bodega' ? 'active' : ''}`} 
+              onClick={navigateToBodega}
+            >
+              <div className="nav-item-content">
+                <span className="nav-icon"><FiBox size={10} /></span>
+                <span className="nav-text">Bodega</span>
+              </div>
+            </div>
+
+            <div 
+              className={`nav-item ${currentView === 'agotados' ? 'active' : ''}`} 
+              onClick={navigateToAgotados}
+            >
+              <div className="nav-item-content">
+                <span className="nav-icon"><FiSlash size={10} /></span>
+                <span className="nav-text">Agotados</span>
+              </div>
+            </div>
+
+            {/* Nav item simple para Tareas (sin plegado) */}
+            <div 
+              className={`nav-item ${['tareas','tareas-completadas','tareas-pendientes'].includes(currentView) ? 'active' : ''}`} 
+              onClick={() => setCurrentView('tareas')}
+            >
+              <div className="nav-item-content">
+                <span className="nav-icon"><FiCheckSquare size={10} /></span>
+                <span className="nav-text">Tareas</span>
+              </div>
             </div>
             
-            {/* Submenú desplegable */}
-            <div className={`nav-submenu ${expandedNavItem === 'tareas' ? 'expanded' : ''}`}>
-              <div 
-                className={`nav-subitem ${currentView === 'tareas-completadas' ? 'active' : ''}`}
-                onClick={() => { setCurrentView('tareas-completadas'); setIsMenuOpen(false); }}
-              >
-                <span className="nav-subitem-text">Completadas</span>
-              </div>
-              <div 
-                className={`nav-subitem ${currentView === 'tareas-pendientes' ? 'active' : ''}`}
-                onClick={() => { setCurrentView('tareas-pendientes'); setIsMenuOpen(false); }}
-              >
-                <span className="nav-subitem-text">Pendientes</span>
+            <div 
+              className={`nav-item ${currentView === 'pedidos' ? 'active' : ''}`} 
+              onClick={() => setCurrentView('pedidos')}
+            >
+              <div className="nav-item-content">
+                <span className="nav-icon"><FiShoppingBag size={10} /></span>
+                <span className="nav-text">Pedidos</span>
               </div>
             </div>
-          </div>
-          
-          <div 
-            className={`nav-item ${currentView === 'pedidos' ? 'active' : ''}`} 
-            onClick={() => setCurrentView('pedidos')}
-          >
-            <span className="nav-icon"><FiShoppingBag size={12} /></span>
-            <span className="nav-text">Pedidos</span>
-          </div>
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="ai-card" onClick={() => {
-            const opening = !isChatModalOpen;
-            setIsChatModalOpen(true);
-            if (opening) {
-              setSuggestedOptions([
-                { label: 'Ver disponibles', selected: false },
-                { label: 'Vinos agotados', selected: false },
-                { label: 'Ofertas especiales', selected: false },
-                { label: 'Ayuda', selected: false }
-              ]);
-            }
-          }}>
-            <video
-              className="ai-bg"
-              src={aiVideo}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
-            />
-            <div className="ai-icon">✧</div>
-            <div className="ai-title">AI FOR RESULTS</div>
-            <div className="ai-subtitle">ANALYTICS</div>
-            <button className="ai-button">TRY NOW  <span>›</span></button>
-          </div>
-          <div className="profile-card">
-            <div className="profile-info">
-              <img className="profile-avatar" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=80" alt="User avatar" />
-              <div className="profile-texts">
-                <div className="profile-name">Jonny Alvarez</div>
-                <div className="profile-role">Admin</div>
+          </nav>
+
+          {/* Sección adicional: Acerca de / Ayuda / IA */}
+          <div className="sidebar-menu-label">Acerca de</div>
+          <nav className="sidebar-nav">
+            <div 
+              className={`nav-item ${currentView === 'ayuda' ? 'active' : ''}`} 
+              onClick={() => setCurrentView('ayuda')}
+            >
+              <div className="nav-item-content">
+                <span className="nav-icon"><FiHelpCircle size={10} /></span>
+                <span className="nav-text">Ayuda</span>
               </div>
             </div>
-            <div className="profile-toggle-icon">
-              <FiChevronUp size={10} />
-              <FiChevronDown size={10} />
+            <div 
+              className={`nav-item ${currentView === 'ia' ? 'active' : ''}`} 
+              onClick={() => setCurrentView('ia')}
+            >
+              <div className="nav-item-content">
+                <span className="nav-icon"><FiCpu size={10} /></span>
+                <span className="nav-text">IA</span>
+              </div>
             </div>
-          </div>
+          </nav>
+
         </div>
-      </div>
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
@@ -335,6 +318,8 @@ function App() {
               {currentView === 'tareas-completadas' && 'Tareas Completadas'}
               {currentView === 'tareas-pendientes' && 'Tareas Pendientes'}
               {currentView === 'pedidos' && 'Pedidos'}
+              {currentView === 'ayuda' && 'Ayuda'}
+              {currentView === 'ia' && 'IA'}
             </h1>
             { (currentView === 'home') && (
               <span className="app-subtitle">Mira nuestro stock de vinos y dejanos tu comentario &gt;</span>
@@ -500,11 +485,53 @@ function App() {
         {/* Vista Tareas */}
         {currentView === 'tareas' && (
           <div key="tareas-view" className="content view-enter">
-            <div className="section">
-              <div className="section-header">
+            <div className="section section-full tareas-section">
+              <div className="section-header tareas-header">
                 <h2 className="section-title">Tareas</h2>
+                <div className="tareas-header-badge">HOY</div>
               </div>
-              <p className="settings-placeholder">Sección en preparación. Próximamente podrás gestionar tus tareas.</p>
+
+              {/* Botones de sesión de tareas (provisional) */}
+              <div className="tareas-actions-row">
+                <button
+                  className="tareas-action-btn primary"
+                  onClick={() => setCurrentView('tareas-pendientes')}
+                >
+                  Pendientes
+                </button>
+                <button
+                  className="tareas-action-btn"
+                  onClick={() => setCurrentView('tareas-completadas')}
+                >
+                  Completadas
+                </button>
+                <button
+                  className="tareas-action-btn"
+                  onClick={() => setCurrentView('tareas')}
+                >
+                  Todas
+                </button>
+              </div>
+
+              {/* Resumen rápido de tareas */}
+              <div className="tareas-summary">
+                <div className="tarea-card pendientes">
+                  <span className="tarea-card-label">Pendientes</span>
+                  <span className="tarea-card-value">8</span>
+                </div>
+                <div className="tarea-card en-progreso">
+                  <span className="tarea-card-label">En progreso</span>
+                  <span className="tarea-card-value">3</span>
+                </div>
+                <div className="tarea-card completadas">
+                  <span className="tarea-card-label">Completadas</span>
+                  <span className="tarea-card-value">21</span>
+                </div>
+              </div>
+
+              <p className="settings-placeholder tareas-placeholder">
+                Diseño provisional de la vista de tareas. Aquí luego podrás listar y gestionar tus tareas reales.
+              </p>
             </div>
           </div>
         )}
@@ -512,11 +539,51 @@ function App() {
         {/* Vista Tareas Completadas */}
         {currentView === 'tareas-completadas' && (
           <div key="tareas-completadas-view" className="content view-enter">
-            <div className="section">
-              <div className="section-header">
-                <h2 className="section-title">Tareas Completadas</h2>
+            <div className="section section-full tareas-section">
+              <div className="section-header tareas-header">
+                <h2 className="section-title">Tareas</h2>
+                <div className="tareas-header-badge">COMPLETADAS</div>
               </div>
-              <p className="settings-placeholder">Aquí verás las tareas que has completado.</p>
+
+              <div className="tareas-actions-row">
+                <button
+                  className="tareas-action-btn"
+                  onClick={() => setCurrentView('tareas-pendientes')}
+                >
+                  Pendientes
+                </button>
+                <button
+                  className="tareas-action-btn primary"
+                  onClick={() => setCurrentView('tareas-completadas')}
+                >
+                  Completadas
+                </button>
+                <button
+                  className="tareas-action-btn"
+                  onClick={() => setCurrentView('tareas')}
+                >
+                  Todas
+                </button>
+              </div>
+
+              <div className="tareas-summary">
+                <div className="tarea-card completadas">
+                  <span className="tarea-card-label">Completadas hoy</span>
+                  <span className="tarea-card-value">5</span>
+                </div>
+                <div className="tarea-card completadas">
+                  <span className="tarea-card-label">Esta semana</span>
+                  <span className="tarea-card-value">12</span>
+                </div>
+                <div className="tarea-card completadas">
+                  <span className="tarea-card-label">Total</span>
+                  <span className="tarea-card-value">21</span>
+                </div>
+              </div>
+
+              <p className="settings-placeholder tareas-placeholder">
+                Aquí verás el detalle de todas las tareas completadas. De momento es solo un diseño de ejemplo.
+              </p>
             </div>
           </div>
         )}
@@ -524,11 +591,51 @@ function App() {
         {/* Vista Tareas Pendientes */}
         {currentView === 'tareas-pendientes' && (
           <div key="tareas-pendientes-view" className="content view-enter">
-            <div className="section">
-              <div className="section-header">
-                <h2 className="section-title">Tareas Pendientes</h2>
+            <div className="section section-full tareas-section">
+              <div className="section-header tareas-header">
+                <h2 className="section-title">Tareas</h2>
+                <div className="tareas-header-badge">PENDIENTES</div>
               </div>
-              <p className="settings-placeholder">Aquí verás las tareas que tienes pendientes.</p>
+
+              <div className="tareas-actions-row">
+                <button
+                  className="tareas-action-btn primary"
+                  onClick={() => setCurrentView('tareas-pendientes')}
+                >
+                  Pendientes
+                </button>
+                <button
+                  className="tareas-action-btn"
+                  onClick={() => setCurrentView('tareas-completadas')}
+                >
+                  Completadas
+                </button>
+                <button
+                  className="tareas-action-btn"
+                  onClick={() => setCurrentView('tareas')}
+                >
+                  Todas
+                </button>
+              </div>
+
+              <div className="tareas-summary">
+                <div className="tarea-card pendientes">
+                  <span className="tarea-card-label">Pendientes hoy</span>
+                  <span className="tarea-card-value">4</span>
+                </div>
+                <div className="tarea-card pendientes">
+                  <span className="tarea-card-label">Para esta semana</span>
+                  <span className="tarea-card-value">8</span>
+                </div>
+                <div className="tarea-card en-progreso">
+                  <span className="tarea-card-label">En progreso</span>
+                  <span className="tarea-card-value">3</span>
+                </div>
+              </div>
+
+              <p className="settings-placeholder tareas-placeholder">
+                Aquí verás el detalle de lo que te queda por hacer. Por ahora solo mostramos un resumen demo.
+              </p>
             </div>
           </div>
         )}
@@ -536,11 +643,101 @@ function App() {
         {/* Vista Pedidos */}
         {currentView === 'pedidos' && (
           <div key="pedidos-view" className="content view-enter">
-            <div className="section">
+            <div className="section section-full">
               <div className="section-header">
                 <h2 className="section-title">Pedidos</h2>
               </div>
               <p className="settings-placeholder">Sección en preparación. Aquí verás y gestionarás pedidos.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Vista Ayuda */}
+        {currentView === 'ayuda' && (
+          <div key="ayuda-view" className="content view-enter">
+            <div className="section section-full">
+              <div className="section-header">
+                <h2 className="section-title">Ayuda</h2>
+              </div>
+              <p className="settings-placeholder">Centro de ayuda provisional. Aquí podrás consultar FAQs y soporte.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Vista IA con chat embebido */}
+        {currentView === 'ia' && (
+          <div key="ia-view" className="content view-enter">
+            <div className="section section-full">
+             
+
+              <div className="ia-chat-container">
+                
+
+                <div className="chat-messages ia-chat-messages" ref={chatMessagesContainerRef}>
+                  <div className="chat-message-container bot">
+                    <span className="chat-message-icon">🤖</span>
+                    <div className="chat-message">
+                      <p>¡Hola! ¿Cómo podemos ayudarte hoy?</p>
+                    </div>
+                  </div>
+
+                  {/* Botones de opciones sugeridas */}
+                  {suggestedOptions.length > 0 && (
+                    suggestedOptions.map((option, index) => (
+                      <div key={index} className="chat-message-container bot">
+                        <button
+                          className={`chat-message chat-option-button ${option.selected ? 'selected' : ''}`}
+                          onClick={() => handleSuggestedOption(option.label)}
+                        >
+                          <p>{option.label}</p>
+                        </button>
+                      </div>
+                    ))
+                  )}
+
+                  {chatMessages.length > 0 && (
+                    chatMessages.map(msg => (
+                      <div key={msg.id} className={`chat-message-container ${msg.sender}`}>
+                        <span className="chat-message-icon">
+                          {msg.sender === 'user' ? '👤' : '🤖'}
+                        </span>
+                        <div className="chat-message">
+                          <p>{msg.text}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="chat-input-container ia-chat-input">
+                  <div className="chat-input-wrapper">
+                    <input
+                      type="text"
+                      className="chat-input"
+                      placeholder="Escribe tu mensaje..."
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSendMessage(e.target.value);
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+                    <button
+                      className="chat-send-arrow"
+                      onClick={(e) => {
+                        const button = e.currentTarget;
+                        const input = button.closest('.chat-input-wrapper').querySelector('.chat-input');
+                        if (input.value.trim()) {
+                          handleSendMessage(input.value);
+                          input.value = '';
+                        }
+                      }}
+                    >
+                      <IoSend />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -550,98 +747,6 @@ function App() {
      
     </div>
 
-    {/* Chat Modal Flotante */}
-    {isChatModalOpen && (
-      <div className="chat-modal">
-        <div className="chat-header">
-          <h3>Asistente VinosStock</h3>
-          <button 
-            className="chat-close"
-            onClick={() => {
-              setIsChatModalOpen(false);
-              setChatMessages([]);
-            }}
-          >
-            ✕
-          </button>
-        </div>
-        
-        <div className="chat-messages" ref={chatMessagesContainerRef}>
-          <div className="chat-message-container bot">
-            <span className="chat-message-icon">🤖</span>
-            <div className="chat-message">
-              <p>¡Hola! ¿Cómo podemos ayudarte hoy?</p>
-            </div>
-          </div>
-
-          {/* Botones de opciones sugeridas */}
-          {suggestedOptions.length > 0 && (
-            suggestedOptions.map((option, index) => (
-              <div key={index} className="chat-message-container bot">
-                <button
-                  className={`chat-message chat-option-button ${option.selected ? 'selected' : ''}`}
-                  onClick={() => handleSuggestedOption(option.label)}
-                >
-                  <p>{option.label}</p>
-                </button>
-              </div>
-            ))
-          )}
-
-          {chatMessages.length > 0 && (
-            chatMessages.map(msg => (
-              <div key={msg.id} className={`chat-message-container ${msg.sender}`}>
-                <span className="chat-message-icon">
-                  {msg.sender === 'user' ? '👤' : '🤖'}
-                </span>
-                <div className="chat-message">
-                  <p>{msg.text}</p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        
-        <div className="chat-input-container">
-          <div className="chat-input-wrapper">
-            <input
-              type="text"
-              className="chat-input"
-              placeholder="Ask me anything"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  handleSendMessage(e.target.value);
-                  e.target.value = '';
-                }
-              }}
-            />
-            <button
-              className="chat-send-arrow"
-              onClick={(e) => {
-                const button = e.currentTarget;
-                const input = button.closest('.chat-input-wrapper').querySelector('.chat-input');
-                if (input.value.trim()) {
-                  handleSendMessage(input.value);
-                  input.value = '';
-                }
-              }}
-            >
-              <IoSend />
-            </button>
-          </div>
-          <button
-            className="chat-send chat-send-hidden"
-            onClick={(e) => {
-              const input = e.target.previousElementSibling;
-              handleSendMessage(input.value);
-              input.value = '';
-            }}
-          >
-            →
-          </button>
-        </div>
-      </div>
-    )}
 
     {/* Panel de Notificaciones */}
     {showNotifications && (
