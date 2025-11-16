@@ -2,7 +2,7 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
-import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu } from 'react-icons/fi'
+import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser } from 'react-icons/fi'
 import { FaArrowAltCircleLeft } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
@@ -675,7 +675,9 @@ function App() {
 
                 <div className="chat-messages ia-chat-messages" ref={chatMessagesContainerRef}>
                   <div className="chat-message-container bot">
-                    <span className="chat-message-icon">🤖</span>
+                    <span className="chat-message-icon">
+                      <FiCpu size={12} />
+                    </span>
                     <div className="chat-message">
                       <p>¡Hola! ¿Cómo podemos ayudarte hoy?</p>
                     </div>
@@ -699,7 +701,15 @@ function App() {
                     chatMessages.map(msg => (
                       <div key={msg.id} className={`chat-message-container ${msg.sender}`}>
                         <span className="chat-message-icon">
-                          {msg.sender === 'user' ? '👤' : '🤖'}
+                          {msg.sender === 'user' ? (
+                            <img
+                              src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=80"
+                              alt="User avatar"
+                              className="chat-avatar"
+                            />
+                          ) : (
+                            <FiCpu size={12} />
+                          )}
                         </span>
                         <div className="chat-message">
                           <p>{msg.text}</p>

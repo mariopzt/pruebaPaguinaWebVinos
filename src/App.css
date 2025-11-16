@@ -1924,7 +1924,7 @@ body {
 .chat-message-container {
   margin-bottom: 6px;
   display: flex;
-  gap: 6px;
+  gap: 2px;              /* icono un poco más pegado al mensaje */
   align-items: flex-start;
 }
 
@@ -1939,16 +1939,25 @@ body {
 }
 
 .chat-message-icon {
-  font-size: 12px;
+  font-size: 12px;        /* un poco más grande */
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  background: linear-gradient(135deg, #6b5ce7 0%, #5a4cd6 100%);
+  width: 24px;
+  height: 24px;
+  background: transparent;
   border-radius: 50%;
-  color: white;
+  color: #e8ff6a; /* mismo verde que en el menú */
+}
+
+/* Imagen de avatar dentro del icono del chat */
+.chat-avatar {
+  width: 85%;
+  height: 85%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
 .chat-message {
