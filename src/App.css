@@ -686,11 +686,11 @@ body {
 .app-title {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   font-size: 1.5rem;
-  font-weight: 900;
+  font-weight: 400;
   letter-spacing: -0.02em;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  color: #1d1d1d;
+  color: #ffffff;
   margin: 0;
   transition: all 0.3s ease;
   animation: titleFade 0.4s ease-out;
@@ -1842,22 +1842,89 @@ body {
 
 /* Chat embebido en la vista IA */
 .ia-chat-container {
-  margin-top: 16px;
+  margin-top: 12px;
   border-radius: 14px;
   display: flex;
   flex-direction: column;
   background: transparent;
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.06);
   width: 100%;
-  /* altura fija del contenedor (no crece más que esto) */
-  max-height: 100%;
-  height: 100%;
+  flex: 1;          /* ocupa el espacio restante dentro de .section-full */
+  min-height: 0;
   overflow: hidden; /* el scroll vertical solo ocurre dentro de ia-chat-messages */
 }
 
 .ia-chat-header {
   padding: 10px 16px 6px 16px;
   border-bottom: 1px solid rgba(107, 92, 231, 0.05);
+}
+
+.ia-hero {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.ia-hero-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f5f5f5;
+  margin-bottom: 4px;
+}
+
+.ia-hero-subtitle {
+  font-size: 11px;
+  color: #9fa1b8;
+}
+
+.ia-quick-actions {
+  width: 400px;
+  margin: 12px auto 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 880px; /* un poco más estrecho que el ancho total */
+}
+
+.ia-quick-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #f5f5f5;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
+}
+
+.ia-quick-chip:hover {
+  background: rgba(232, 255, 106, 0.12);
+  border-color: rgba(232, 255, 106, 0.6);
+  transform: translateY(-1px);
+}
+
+.ia-quick-chip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e8ff6a;
+}
+
+/* Wrapper para hero + chips: se oculta cuando hay mensajes en el chat */
+.ia-quick-wrapper {
+  transition: opacity 0.2s ease, max-height 0.2s ease, transform 0.2s ease;
+  max-height: 260px;
+}
+
+.ia-quick-wrapper.ia-quick-hide {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-4px);
+  overflow: hidden;
 }
 
 .ia-chat-header h3 {
@@ -2042,6 +2109,8 @@ body {
   align-items: center;
   flex-shrink: 0;
   background: transparent;
+  width: 350px;      /* ancho fijo */
+  margin: 0 auto;    /* centrado horizontal */
 }
 
 .chat-input-wrapper {

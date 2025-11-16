@@ -2,7 +2,7 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
-import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiInfo } from 'react-icons/fi'
+import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiInfo, FiTag } from 'react-icons/fi'
 import { FaArrowAltCircleLeft } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
@@ -725,35 +725,84 @@ function App() {
         {currentView === 'ia' && (
           <div key="ia-view" className="content view-enter">
             <div className="section section-full">
-             
+              {/* Hero + chips de acciones rápidas: visibles solo antes del primer mensaje */}
+              <div className={`ia-quick-wrapper ${chatMessages.length > 0 ? 'ia-quick-hide' : ''}`}>
+                <div className="ia-hero">
+                  <h2 className="ia-hero-title">Bienvenido a VinosStK IA</h2>
+                  <p className="ia-hero-subtitle">
+                    Explora preguntas sugeridas o pregúntanos lo que quieras sobre tu bodega y tus vinos.
+                  </p>
+                </div>
+
+                <div className="ia-quick-actions">
+                  <button
+                    className="ia-quick-chip"
+                    onClick={() => handleSuggestedOption('Ver vinos disponibles')}
+                  >
+                    <span className="ia-quick-chip-icon"><FiBox size={10} /></span>
+                    <span>Disponibles</span>
+                  </button>
+                  <button
+                    className="ia-quick-chip"
+                    onClick={() => handleSuggestedOption('Vinos agotados')}
+                  >
+                    <span className="ia-quick-chip-icon"><FiSlash size={10} /></span>
+                    <span>Agotados</span>
+                  </button>
+                  <button
+                    className="ia-quick-chip"
+                    onClick={() => handleSuggestedOption('Ofertas especiales')}
+                  >
+                    <span className="ia-quick-chip-icon"><FiTag size={10} /></span>
+                    <span>Ofertas</span>
+                  </button>
+                  <button
+                    className="ia-quick-chip"
+                    onClick={() => handleSuggestedOption('Vinos más vendidos')}
+                  >
+                    <span className="ia-quick-chip-icon"><FiTrendingUp size={10} /></span>
+                    <span>Top ventas</span>
+                  </button>
+                  <button
+                    className="ia-quick-chip"
+                    onClick={() => handleSuggestedOption('Mejores valorados')}
+                  >
+                    <span className="ia-quick-chip-icon"><FiStar size={10} /></span>
+                    <span>Mejor valorados</span>
+                  </button>
+                  <button
+                    className="ia-quick-chip"
+                    onClick={() => handleSuggestedOption('Pedidos pendientes')}
+                  >
+                    <span className="ia-quick-chip-icon"><FiShoppingBag size={10} /></span>
+                    <span>Pedidos</span>
+                  </button>
+                  <button
+                    className="ia-quick-chip"
+                    onClick={() => handleSuggestedOption('Recomendaciones de hoy')}
+                  >
+                    <span className="ia-quick-chip-icon"><FiCpu size={10} /></span>
+                    <span>Recomendados</span>
+                  </button>
+                  <button
+                    className="ia-quick-chip"
+                    onClick={() => handleSuggestedOption('Vinos con poco stock')}
+                  >
+                    <span className="ia-quick-chip-icon"><FiSlash size={10} /></span>
+                    <span>Stock bajo</span>
+                  </button>
+                  <button
+                    className="ia-quick-chip"
+                    onClick={() => handleSuggestedOption('Nuevos vinos en la bodega')}
+                  >
+                    <span className="ia-quick-chip-icon"><FiBox size={10} /></span>
+                    <span>Nuevos vinos</span>
+                  </button>
+                </div>
+              </div>
 
               <div className="ia-chat-container">
-                
-
                 <div className="chat-messages ia-chat-messages" ref={chatMessagesContainerRef}>
-                  <div className="chat-message-container bot">
-                    <span className="chat-message-icon">
-                      <FiCpu size={12} />
-                    </span>
-                    <div className="chat-message">
-                      <p>¡Hola! ¿Cómo podemos ayudarte hoy?</p>
-                    </div>
-                  </div>
-
-                  {/* Botones de opciones sugeridas */}
-                  {suggestedOptions.length > 0 && (
-                    suggestedOptions.map((option, index) => (
-                      <div key={index} className="chat-message-container bot">
-                        <button
-                          className={`chat-message chat-option-button ${option.selected ? 'selected' : ''}`}
-                          onClick={() => handleSuggestedOption(option.label)}
-                        >
-                          <p>{option.label}</p>
-                        </button>
-                      </div>
-                    ))
-                  )}
-
                   {chatMessages.length > 0 && (
                     chatMessages.map(msg => (
                       <div key={msg.id} className={`chat-message-container ${msg.sender}`}>
