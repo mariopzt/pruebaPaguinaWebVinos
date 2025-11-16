@@ -153,25 +153,45 @@ body {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
   padding: 6px;
   background: transparent;
-  border-radius: 10px;
-  box-shadow:
-    0 12px 20px rgba(5, 6, 8, 0.72),
-    0 4px 10px rgba(5, 6, 8, 0.62),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 0 0 1px rgba(0, 0, 0, 0.22);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 4px;
+ cursor: pointer;
+  transition: transform 0.5s ease, box-shadow 0.2s ease;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
  
 .profile-card:hover {
   transform: translateY(-2px);
-  box-shadow:
-    0 16px 32px rgba(5, 6, 8, 0.78),
-    0 8px 16px rgba(5, 6, 8, 0.68),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 0 0 1px rgba(0, 0, 0, 0.26);
+  background-color: rgba(255, 255, 255, 0.014);
+
+}
+
+.profile-toggle-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0px; /* iconos muy juntos */
+  color: #f5f5f5;
+  font-size: 9px;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+/* superponer ligeramente los chevrons para que se vean casi unidos */
+.profile-toggle-icon svg:last-child {
+  margin-top: -4px;
+}
+
+.profile-card:hover .profile-toggle-icon {
+  opacity: 1;
 }
 
 .profile-avatar {
@@ -212,12 +232,13 @@ body {
   padding: 16px 0 10px 0;
   color: #ffffff;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  font-weight: 800;
-  font-size: 19px;
+  font-weight: 500;
+  font-size: 18px;
   letter-spacing: 0.5px;
   text-align: left;
   border-bottom: 0.1px solid rgba(255,255,255,0.18);
   margin-bottom: 8px;
+  padding-left: 5px;
 }
 
 .hamburger-menu {
@@ -284,6 +305,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  width: 90%;
 }
 
 .nav-item {
@@ -293,11 +315,15 @@ body {
   justify-content: flex-start;
   gap: 10px;
   cursor: pointer;
-  padding: 3px 12px;
-  border-radius: 10px;
+  padding: 6px 12px;
+  border-radius: 4px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   width: 100%;
+}
+.nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+  transform: translateX(2px);
 }
 
 .nav-item:hover { transform: translateY(-1px); }
@@ -367,6 +393,129 @@ body {
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.02em;
+}
+
+/* Nav item container para menús desplegables */
+.nav-item-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+}
+
+/* Flecha chevron en nav-item */
+.nav-chevron {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+  color: #ffffff;
+}
+
+.nav-chevron.expanded {
+  transform: rotate(180deg);
+}
+
+/* Submenú desplegable */
+.nav-submenu {
+  max-height: 0;
+  overflow: hidden; /* ocultamos contenido cuando está colapsado */
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  padding-left: 22px;
+  position: relative;
+}
+
+.nav-submenu.expanded {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: 8px;
+  overflow: visible; /* dejamos que el glow se salga sin cortar bordes */
+}
+
+/* Línea vertical que conecta el menú con los subitems */
+.nav-submenu::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 0;
+  bottom: 6px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.nav-submenu.expanded::before {
+  opacity: 1;
+}
+
+/* Items del submenú */
+.nav-subitem {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.nav-subitem:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+  transform: translateX(2px);
+}
+
+
+
+.nav-subitem.active::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 70%;
+  border-radius: 1px;
+  background: linear-gradient(180deg, #f0ff9e 0%, #d7ff57 100%);
+  box-shadow: 0 0 8px rgba(232, 255, 106, 0.6);
+}
+
+/* Glow tipo "slayer" detrás del texto del subitem activo */
+.nav-subitem.active::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 65%;
+  height: 80%;
+  pointer-events: none;
+  background: radial-gradient(
+    32% 70% at 4% 50%,
+    rgba(232, 255, 106, 0.6) 0%,
+    rgba(232, 255, 106, 0.25) 32%,
+    rgba(232, 255, 106, 0) 55%
+  );
+  filter: blur(7px);
+  opacity: 1;
+}
+
+.nav-subitem-text {
+  font-size: 8px;
+  color: #ffffff;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  transition: padding 0.2s ease, color 0.2s ease;
+}
+
+.nav-subitem.active .nav-subitem-text {
+  padding-left: 10px;
+  color: #e8ff6a;
+  font-weight: 500;
 }
 
 /* Main Content */

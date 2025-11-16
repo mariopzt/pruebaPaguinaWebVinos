@@ -2,7 +2,7 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
-import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare } from 'react-icons/fi'
+import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp } from 'react-icons/fi'
 import { FaArrowAltCircleLeft } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
@@ -30,9 +30,14 @@ function App() {
   })
   const [settingsView, setSettingsView] = useState('menu')
   const [settingsTransition, setSettingsTransition] = useState('forward')
+  const [expandedNavItem, setExpandedNavItem] = useState(null)
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
+  }
+
+  const toggleNavItem = (itemName) => {
+    setExpandedNavItem(expandedNavItem === itemName ? null : itemName)
   }
 
   const navigateToBodega = () => {
@@ -148,7 +153,7 @@ function App() {
       <div className="Padre-container">
  {/* Sidebar */}
   <div className="sidebar">
-        <div className="sidebar-brand">NL CORP.</div>
+        <div className="sidebar-brand">VinosStK.</div>
         <div className="sidebar-header">
           <div className="hamburger-menu" onClick={toggleMenu}>
             <div className="hamburger-line"></div>
@@ -181,13 +186,37 @@ function App() {
             <span className="nav-icon"><FiSlash size={12} /></span>
             <span className="nav-text">Agotados</span>
           </div>
-          <div 
-            className={`nav-item ${currentView === 'tareas' ? 'active' : ''}`} 
-            onClick={() => setCurrentView('tareas')}
-          >
-            <span className="nav-icon"><FiCheckSquare size={12} /></span>
-            <span className="nav-text">Tareas</span>
+          
+          {/* Nav item con menú desplegable */}
+          <div className="nav-item-container">
+            <div 
+              className={`nav-item ${currentView === 'tareas' || currentView === 'tareas-completadas' || currentView === 'tareas-pendientes' ? 'active' : ''}`} 
+              onClick={() => toggleNavItem('tareas')}
+            >
+              <span className="nav-icon"><FiCheckSquare size={12} /></span>
+              <span className="nav-text">Tareas</span>
+              <span className={`nav-chevron ${expandedNavItem === 'tareas' ? 'expanded' : ''}`}>
+                <FiChevronDown size={10} />
+              </span>
+            </div>
+            
+            {/* Submenú desplegable */}
+            <div className={`nav-submenu ${expandedNavItem === 'tareas' ? 'expanded' : ''}`}>
+              <div 
+                className={`nav-subitem ${currentView === 'tareas-completadas' ? 'active' : ''}`}
+                onClick={() => { setCurrentView('tareas-completadas'); setIsMenuOpen(false); }}
+              >
+                <span className="nav-subitem-text">Completadas</span>
+              </div>
+              <div 
+                className={`nav-subitem ${currentView === 'tareas-pendientes' ? 'active' : ''}`}
+                onClick={() => { setCurrentView('tareas-pendientes'); setIsMenuOpen(false); }}
+              >
+                <span className="nav-subitem-text">Pendientes</span>
+              </div>
+            </div>
           </div>
+          
           <div 
             className={`nav-item ${currentView === 'pedidos' ? 'active' : ''}`} 
             onClick={() => setCurrentView('pedidos')}
@@ -224,10 +253,16 @@ function App() {
             <button className="ai-button">TRY NOW  <span>›</span></button>
           </div>
           <div className="profile-card">
-            <img className="profile-avatar" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=80" alt="User avatar" />
-            <div className="profile-texts">
-              <div className="profile-name">Jonny Alvarez</div>
-              <div className="profile-role">Admin</div>
+            <div className="profile-info">
+              <img className="profile-avatar" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=80" alt="User avatar" />
+              <div className="profile-texts">
+                <div className="profile-name">Jonny Alvarez</div>
+                <div className="profile-role">Admin</div>
+              </div>
+            </div>
+            <div className="profile-toggle-icon">
+              <FiChevronUp size={10} />
+              <FiChevronDown size={10} />
             </div>
           </div>
         </div>
@@ -293,10 +328,12 @@ function App() {
           </div>
           <div className="header-title" onClick={navigateToHome} style={{ cursor: 'pointer' }}>
             <h1 className="app-title">
-              {currentView === 'home' && 'NL CORP.'}
+              {currentView === 'home' && 'Inicio'}
               {currentView === 'bodega' && 'Bodega'}
               {currentView === 'agotados' && 'Agotados'}
               {currentView === 'tareas' && 'Tareas'}
+              {currentView === 'tareas-completadas' && 'Tareas Completadas'}
+              {currentView === 'tareas-pendientes' && 'Tareas Pendientes'}
               {currentView === 'pedidos' && 'Pedidos'}
             </h1>
             { (currentView === 'home') && (
@@ -468,6 +505,30 @@ function App() {
                 <h2 className="section-title">Tareas</h2>
               </div>
               <p className="settings-placeholder">Sección en preparación. Próximamente podrás gestionar tus tareas.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Vista Tareas Completadas */}
+        {currentView === 'tareas-completadas' && (
+          <div key="tareas-completadas-view" className="content view-enter">
+            <div className="section">
+              <div className="section-header">
+                <h2 className="section-title">Tareas Completadas</h2>
+              </div>
+              <p className="settings-placeholder">Aquí verás las tareas que has completado.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Vista Tareas Pendientes */}
+        {currentView === 'tareas-pendientes' && (
+          <div key="tareas-pendientes-view" className="content view-enter">
+            <div className="section">
+              <div className="section-header">
+                <h2 className="section-title">Tareas Pendientes</h2>
+              </div>
+              <p className="settings-placeholder">Aquí verás las tareas que tienes pendientes.</p>
             </div>
           </div>
         )}
