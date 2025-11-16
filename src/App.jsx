@@ -2,7 +2,7 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
-import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser } from 'react-icons/fi'
+import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiInfo } from 'react-icons/fi'
 import { FaArrowAltCircleLeft } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
@@ -226,9 +226,41 @@ function App() {
             </div>
           </nav>
 
+          {/* Sección Opiniones (subida bajo Menú) */}
+          <div className="sidebar-menu-label">Opiniones</div>
+          <nav className="sidebar-nav">
+            <div 
+              className={`nav-item ${currentView === 'valoraciones' ? 'active' : ''}`} 
+              onClick={() => setCurrentView('valoraciones')}
+            >
+              <div className="nav-item-content">
+                <span className="nav-icon"><FiStar size={10} /></span>
+                <span className="nav-text">Valoraciones</span>
+              </div>
+            </div>
+            <div 
+              className={`nav-item ${currentView === 'top-vinos' ? 'active' : ''}`} 
+              onClick={() => setCurrentView('top-vinos')}
+            >
+              <div className="nav-item-content">
+                <span className="nav-icon"><FiTrendingUp size={10} /></span>
+                <span className="nav-text">Top Vinos</span>
+              </div>
+            </div>
+          </nav>
+
           {/* Sección adicional: Acerca de / Ayuda / IA */}
           <div className="sidebar-menu-label">Acerca de</div>
           <nav className="sidebar-nav">
+            <div 
+              className={`nav-item ${currentView === 'sobre-nosotros' ? 'active' : ''}`} 
+              onClick={() => setCurrentView('sobre-nosotros')}
+            >
+              <div className="nav-item-content">
+                <span className="nav-icon"><FiInfo size={10} /></span>
+                <span className="nav-text">Sobre nosotros</span>
+              </div>
+            </div>
             <div 
               className={`nav-item ${currentView === 'ayuda' ? 'active' : ''}`} 
               onClick={() => setCurrentView('ayuda')}
@@ -248,6 +280,14 @@ function App() {
               </div>
             </div>
           </nav>
+
+          {/* Logout */}
+          <div className="sidebar-logout nav-item">
+            <div className="nav-item-content">
+              <span className="nav-icon"><FiLogOut size={10} /></span>
+              <span className="nav-text">Cerrar sesión</span>
+            </div>
+          </div>
 
         </div>
 
@@ -318,8 +358,11 @@ function App() {
               {currentView === 'tareas-completadas' && 'Tareas Completadas'}
               {currentView === 'tareas-pendientes' && 'Tareas Pendientes'}
               {currentView === 'pedidos' && 'Pedidos'}
+              {currentView === 'sobre-nosotros' && 'Sobre nosotros'}
               {currentView === 'ayuda' && 'Ayuda'}
               {currentView === 'ia' && 'IA'}
+              {currentView === 'valoraciones' && 'Valoraciones'}
+              {currentView === 'top-vinos' && 'Top Vinos'}
             </h1>
             { (currentView === 'home') && (
               <span className="app-subtitle">Mira nuestro stock de vinos y dejanos tu comentario &gt;</span>
@@ -652,6 +695,20 @@ function App() {
           </div>
         )}
 
+        {/* Vista Sobre nosotros */}
+        {currentView === 'sobre-nosotros' && (
+          <div key="sobre-nosotros-view" className="content view-enter">
+            <div className="section section-full">
+              <div className="section-header">
+                <h2 className="section-title">Sobre nosotros</h2>
+              </div>
+              <p className="settings-placeholder">
+                Aquí podrás contar la historia de la bodega, el equipo y la filosofía detrás de VinosStK.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Vista Ayuda */}
         {currentView === 'ayuda' && (
           <div key="ayuda-view" className="content view-enter">
@@ -748,6 +805,34 @@ function App() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Vista Valoraciones */}
+        {currentView === 'valoraciones' && (
+          <div key="valoraciones-view" className="content view-enter">
+            <div className="section section-full">
+              <div className="section-header">
+                <h2 className="section-title">Valoraciones</h2>
+              </div>
+              <p className="settings-placeholder">
+                Aquí podrás ver y gestionar las valoraciones de tus clientes sobre los vinos.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Vista Top Vinos */}
+        {currentView === 'top-vinos' && (
+          <div key="top-vinos-view" className="content view-enter">
+            <div className="section section-full">
+              <div className="section-header">
+                <h2 className="section-title">Top Vinos</h2>
+              </div>
+              <p className="settings-placeholder">
+                Sección en preparación para mostrar los vinos mejor valorados y más vendidos.
+              </p>
             </div>
           </div>
         )}

@@ -46,7 +46,7 @@ body {
 /* Sidebar */
 .sidebar {
   background-color: #1C1C1C;
-  width: 160px;
+  width: 140px;
   justify-content: flex-start;
   display: flex;
   flex-direction: column;
@@ -150,6 +150,11 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #7d7d92;
+}
+
+/* Segunda y siguientes secciones de título (Acerca de / Opiniones) más cerca entre sí */
+.sidebar-menu-label + .sidebar-menu-label {
+  margin-top: 10px; /* reduce el espacio encima de Opiniones para centrarla más bajo MENÚ */
 }
 
 .ai-card {
@@ -460,6 +465,15 @@ body {
   color: #e8ff6a;
 }
 
+.sidebar-logout {
+  margin-top: auto;      /* empuja el botón al final del sidebar */
+  width: 100%;
+}
+
+.sidebar-logout .nav-text {
+  color: #ffffff;
+}
+
 .nav-icon {
   display: flex;
   justify-content: center;
@@ -469,7 +483,7 @@ body {
 }
 
 .nav-text {
-  font-size: 7px;
+  font-size: 8px;
   color: #ffffff;
   font-weight: 400;
   text-transform: none; /* Primera letra en mayúscula, resto según el texto */
@@ -618,7 +632,7 @@ body {
   display: flex;
   flex-direction: column; /* permite que .content crezca hasta el máximo */
   border-radius: 14px;
-  margin: 16px 0 0 5px;
+  margin: 16px 0 0 -7px;
   min-height: 95%;   /* ocupa casi todo el alto disponible */
   height: auto;
   position: relative;
