@@ -12,49 +12,52 @@ body {
   color: #333;
   position: relative;
   overflow-x: hidden;
+  height: 100vh;              /* referencia para los porcentajes de alto */
 }
 
 #root {
   position: relative;
   overflow-x: hidden;
+  height: 100%;  
+  background-color: #0D0D0D;             /* permite que .app use % de alto */
 }
 
 /* Main App Layout */
 .app {
   display: flex;
-  min-height: 100vh;
-  background-color: #f5f5f5;
-  height: auto;
+  width: 100%;                 /* 95% del ancho, más grande que antes */
+  min-height: 95%;            /* 95% del alto del #root (que es 100vh) */
+  margin: 0 auto;             /* centra horizontalmente todo el layout */
   position: relative;
   transform: none;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .Padre-container {
-  background:linear-gradient(180deg, #050506 0%, #15161b 100%);
+  background-color: transparent;
   display: flex;
   flex-direction: row;
-  width: 100%;
-  height: 100%;
-  padding-left: 160px;
+  width: 95%;
+  min-height: 100%;   /* se ajusta al alto de .app */
+  margin: 0 auto;     /* centra el contenedor dentro de .app */
+  padding-left: 160px;/* deja espacio para el sidebar fijo a la izquierda */
 }
 /* Sidebar */
 .sidebar {
+  background-color: #1C1C1C;
   width: 160px;
   justify-content: flex-start;
   display: flex;
   flex-direction: column;
   align-items: start;
-  padding: 15px 0 5px 0;
-  left: 0;
-  top: 0;
-  border-top-left-radius: 24px;
-  border-bottom-left-radius: 24px;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  z-index: 100;
-  position: fixed;
-  height: 100vh;
+  padding: 15px 0;
+  left: 20px;
+  top: 50%;                 /* centrado vertical respecto a la ventana */
+ border-radius: 10px;
+  z-index: 10;
+  position: fixed;          /* sidebar fijo */
+  height: 95vh;             /* 90% del alto: mismo margen arriba/abajo */
+  transform: translateY(-50%);
   overflow: hidden;
   color: #d9d9de;
   box-shadow: none;
@@ -525,11 +528,10 @@ body {
   flex: 1;
   margin-left: 0;
   padding: 20px 20px 20px 0;
-  background: #ffffff;
   border-radius: 14px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.08);
   margin: 16px 16px 16px 5px;
-  min-height: 100vh;
+  min-height: 100%;   /* se adapta al alto del padre */
   height: auto;
   position: relative;
   z-index: 1;
@@ -1121,7 +1123,7 @@ body {
   }
   
   .Padre-container {
-    background: linear-gradient(180deg, #0f0f12 0%, #15161b 100%);
+    background: #0D0D0D;
     display: flex;
     flex-direction: column;
     width: 100%;
