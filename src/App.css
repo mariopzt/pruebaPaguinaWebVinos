@@ -618,7 +618,7 @@ body {
   display: flex;
   flex-direction: column; /* permite que .content crezca hasta el máximo */
   border-radius: 14px;
-  margin: 16px 16px 16px 5px;
+  margin: 16px 0 0 5px;
   min-height: 95%;   /* ocupa casi todo el alto disponible */
   height: auto;
   position: relative;
@@ -772,7 +772,7 @@ body {
 
 /* Content */
 .content {
-  padding: 0 25px 0 0;
+  padding:  0 0;
   border-radius: 0 0 12px 12px;
   flex: 1;          /* llena el máximo alto del padre (.main-content) */
   min-height: 0;    /* permite que el contenido interno haga scroll si se pasa */
@@ -785,8 +785,8 @@ body {
 
 /* Variante para vistas de una sola sección que debe ocupar todo el alto */
 .section-full {
-  width: 795px;
-  height: 502px;
+  width: 100%;
+  height: 497px;
   min-height: 100%;
   display: flex;
   flex-direction: column;
@@ -1117,7 +1117,7 @@ body {
   }
   
   .content {
-    padding: 0 20px 20px;
+    padding: 0 ;
   }
   
   .wine-card.circular {
@@ -1936,6 +1936,7 @@ body {
 .chat-message-container.user {
   flex-direction: row-reverse;
   align-items: center;
+  animation: chatMessageIn 0.18s ease-out;
 }
 
 .chat-message-icon {
@@ -1958,6 +1959,18 @@ body {
   border-radius: 50%;
   object-fit: cover;
   display: block;
+}
+
+/* Animación ligera al enviar mensaje del usuario */
+@keyframes chatMessageIn {
+  from {
+    opacity: 0;
+    transform: translateX(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
 
 .chat-message {
