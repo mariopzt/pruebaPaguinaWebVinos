@@ -2,7 +2,7 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
-import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiInfo, FiTag } from 'react-icons/fi'
+import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings } from 'react-icons/fi'
 import { FaArrowAltCircleLeft } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
@@ -253,12 +253,12 @@ function App() {
           <div className="sidebar-menu-label">Acerca de</div>
           <nav className="sidebar-nav">
             <div 
-              className={`nav-item ${currentView === 'sobre-nosotros' ? 'active' : ''}`} 
-              onClick={() => setCurrentView('sobre-nosotros')}
+              className={`nav-item ${currentView === 'ajustes' ? 'active' : ''}`} 
+              onClick={() => setCurrentView('ajustes')}
             >
               <div className="nav-item-content">
-                <span className="nav-icon"><FiInfo size={10} /></span>
-                <span className="nav-text">Sobre nosotros</span>
+                <span className="nav-icon"><FiSettings size={10} /></span>
+                <span className="nav-text">Ajustes</span>
               </div>
             </div>
             <div 
@@ -358,7 +358,7 @@ function App() {
               {currentView === 'tareas-completadas' && 'Tareas Completadas'}
               {currentView === 'tareas-pendientes' && 'Tareas Pendientes'}
               {currentView === 'pedidos' && 'Pedidos'}
-              {currentView === 'sobre-nosotros' && 'Sobre nosotros'}
+              {currentView === 'ajustes' && 'Ajustes'}
               {currentView === 'ayuda' && 'Ayuda'}
               {currentView === 'ia' && 'IA'}
               {currentView === 'valoraciones' && 'Valoraciones'}
@@ -375,12 +375,6 @@ function App() {
                 <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
               </svg>
               {notifications.filter(n => !n.read).length > 0 && settings.showUnreadBadge && !showNotifications && <span className="notification-badge">{notifications.filter(n => !n.read).length}</span>}
-            </div>
-            <div className="icon gear-icon" onClick={() => { setIsSettingsOpen(true); setSettingsView('menu') }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-              </svg>
             </div>
           </div>
         </header>
@@ -695,15 +689,15 @@ function App() {
           </div>
         )}
 
-        {/* Vista Sobre nosotros */}
-        {currentView === 'sobre-nosotros' && (
-          <div key="sobre-nosotros-view" className="content view-enter">
+        {/* Vista Ajustes */}
+        {currentView === 'ajustes' && (
+          <div key="ajustes-view" className="content view-enter">
             <div className="section section-full">
               <div className="section-header">
-                <h2 className="section-title">Sobre nosotros</h2>
+                <h2 className="section-title">Ajustes</h2>
               </div>
               <p className="settings-placeholder">
-                Aquí podrás contar la historia de la bodega, el equipo y la filosofía detrás de VinosStK.
+                Aquí podrás configurar la experiencia de VinosStK: preferencias de vista, notificaciones y más.
               </p>
             </div>
           </div>
