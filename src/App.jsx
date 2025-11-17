@@ -394,6 +394,170 @@ function App() {
                 </div>
               </div>
             </section>
+
+            {/* Sección de métricas de la bodega */}
+            <section className="heritage-section">
+              <div className="heritage-left">
+                <h3 className="heritage-title">De nuestra tierra al mundo</h3>
+                
+
+                <div className="heritage-grid">
+                  <div className="heritage-card">
+                    <div className="heritage-number">120+</div>
+                    <div className="heritage-label">Referencias en bodega</div>
+                    <p className="heritage-description">
+                      Desde blancos jóvenes hasta tintos de guarda y espumosos de celebración.
+                    </p>
+                  </div>
+                  <div className="heritage-card accent">
+                    <div className="heritage-number">15+</div>
+                    <div className="heritage-label">Denominaciones de origen</div>
+                    <p className="heritage-description">
+                      Trabajamos con zonas clave para ofrecer variedad sin perder identidad.
+                    </p>
+                  </div>
+                  <div className="heritage-card">
+                    <div className="heritage-number">3000+</div>
+                    <div className="heritage-label">Botellas gestionadas al año</div>
+                    <p className="heritage-description">
+                      Controladas desde este panel: stock, rotación y momentos de consumo.
+                    </p>
+                  </div>
+                  <div className="heritage-card">
+                    <div className="heritage-number">50+</div>
+                    <div className="heritage-label">Cartas personalizadas</div>
+                    <p className="heritage-description">
+                      Configuradas para restaurantes, eventos y experiencias a medida.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="heritage-right">
+                <div className="heritage-image-card">
+                  <div className="heritage-image" />
+                  <div className="heritage-text">
+                    <div className="heritage-text-col">
+                      <p>
+                        VinosStK nace con una idea sencilla: que la gestión de tu bodega sea tan cuidada como el vino
+                        que sirves cada día. Aquí conectas stock, cartas y experiencia en un solo lugar.
+                      </p>
+                    </div>
+                    <div className="heritage-text-col">
+                      <p>
+                        Desde un pequeño local hasta una carta amplia, puedes ver qué se vende, qué falta y qué
+                        recomendar, manteniendo siempre la esencia de tu proyecto y lo que tus clientes esperan.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Nuestros mejores puntos */}
+            <section className="gallery-section">
+              <div className="gallery-header">
+                <h3 className="gallery-title">Nuestros mejores puntos</h3>
+                <p className="gallery-subtitle">
+                  Lo que nos diferencia: una bodega pensada para que disfrutes siempre el mejor vino, al mejor precio.
+                </p>
+              </div>
+              <div className="gallery-grid">
+                {[
+                  {
+                    title: 'Gestión de stock',
+                    description: 'Controla el inventario de tu bodega, vinos disponibles y agotados desde un solo panel.',
+                  },
+                  {
+                    title: 'Pedidos rápidos',
+                    description: 'Visualiza y organiza tus pedidos para reponer stock sin perder de vista ninguna referencia.',
+                  },
+                  {
+                    title: 'Vista de bodega',
+                    description: 'Explora tu catálogo completo con fichas, detalles y estados de cada vino.',
+                  },
+                  {
+                    title: 'Panel de tareas',
+                    description: 'Organiza tareas pendientes, completadas y generales para el día a día de la bodega.',
+                  },
+                  {
+                    title: 'Alertas y avisos',
+                    description: 'Recibe notificaciones sobre vinos agotados, movimientos clave y recordatorios.',
+                  },
+                  {
+                    title: 'IA y recomendaciones',
+                    description: 'Consulta a la IA para descubrir vinos, tendencias y sugerencias basadas en tu stock.',
+                  },
+                ].map((item, index) => (
+                  <figure key={index} className="gallery-card">
+                    <div className="gallery-icon">
+                      {index === 0 && <FiStar size={18} />}
+                      {index === 1 && <FiTrendingUp size={18} />}
+                      {index === 2 && <FiBox size={18} />}
+                      {index === 3 && <FiUser size={18} />}
+                      {index === 4 && <FiShoppingBag size={18} />}
+                      {index === 5 && <FiCpu size={18} />}
+                    </div>
+                    <figcaption className="gallery-caption">
+                      <div className="gallery-caption-title">{item.title}</div>
+                      <div className="gallery-caption-text">{item.description}</div>
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            </section>
+
+            {/* Carrusel de vinos destacados */}
+            <section className="wine-carousel-section">
+              <div className="wine-carousel-header">
+                <h3 className="wine-carousel-title">Vinos que no te puedes perder</h3>
+                <p className="wine-carousel-subtitle">
+                  Una selección rápida de botellas clave de tu bodega: ideales para destacar en promociones o recomendaciones.
+                </p>
+              </div>
+              <div className="wine-carousel">
+                <div className="wine-carousel-track">
+                  {[
+                    {
+                      name: 'Casal de Armán',
+                      type: 'Blanco · Ribeiro',
+                      note: 'Perfecto para iniciar la carta con un blanco fresco y aromático.',
+                      image: 'https://images.pexels.com/photos/1407855/pexels-photo-1407855.jpeg?auto=compress&cs=tinysrgb&w=640',
+                    },
+                    {
+                      name: 'Mencía Atlántica',
+                      type: 'Tinto · Bierzo',
+                      note: 'Ideal para maridar con carnes y platos de cuchara en temporada.',
+                      image: 'https://images.pexels.com/photos/5947021/pexels-photo-5947021.jpeg?auto=compress&cs=tinysrgb&w=640',
+                    },
+                    {
+                      name: 'Selección Barrica',
+                      type: 'Tinto · Crianza',
+                      note: 'Vino de carta para ofrecer experiencias más complejas y estructuradas.',
+                      image: 'https://images.pexels.com/photos/3952042/pexels-photo-3952042.jpeg?auto=compress&cs=tinysrgb&w=640',
+                    },
+                    {
+                      name: 'Espumoso Brut',
+                      type: 'Espumoso · Celebración',
+                      note: 'La opción perfecta para brindar en eventos y momentos especiales.',
+                      image: 'https://images.pexels.com/photos/3171768/pexels-photo-3171768.jpeg?auto=compress&cs=tinysrgb&w=640',
+                    },
+                  ].map((wine, index) => (
+                    <article key={index} className="wine-feature-card">
+                      <div
+                        className="wine-feature-image"
+                        style={{ backgroundImage: `url(${wine.image})` }}
+                      />
+                      <div className="wine-feature-content">
+                        <span className="wine-feature-type">{wine.type}</span>
+                        <h4 className="wine-feature-name">{wine.name}</h4>
+                        <p className="wine-feature-note">{wine.note}</p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
           </div>
         )}
 
