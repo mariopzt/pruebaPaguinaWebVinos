@@ -827,52 +827,205 @@ body {
   box-shadow: 0 16px 35px rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
-.hero-summary-title {
-  font-size: 16px;
+.tasks-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tasks-title {
+  font-size: 9px;
   font-weight: 600;
   color: #ffffff;
   margin: 0;
 }
 
-.hero-summary-text {
-  font-size: 9px;
-  color: #c7c7d0;
-  margin: 0;
-  line-height: 1.5;
+.tasks-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
-.hero-summary-stats {
+.tasks-kpi {
+  background: rgba(6, 10, 18, 0.9);
+  border-radius: 10px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tasks-kpi-label {
+  font-size: 8px;
+  color: #9fa4c0;
+}
+
+.tasks-kpi-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.tasks-kpi-bar {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(44, 44, 60, 0.9);
+  overflow: hidden;
+  position: relative;
+}
+
+.tasks-kpi-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.tasks-kpi-bar-pending::after {
+  width: 50%;
+  background: linear-gradient(90deg, #ffb347, #ff7b54);
+}
+
+.tasks-kpi-bar-running::after {
+  width: 70%;
+  background: linear-gradient(90deg, #5ce1e6, #7a5cff);
+}
+
+.tasks-kpi-bar-done::after {
+  width: 90%;
+  background: linear-gradient(90deg, #34d399, #22c55e);
+}
+
+.tasks-quick-row {
+  margin-top: 4px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.hero-summary-pill {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(10, 10, 12, 0.85);
-  border: 1px solid rgba(192, 230, 65, 0.35);
-  display: inline-flex;
-  align-items: center;
   gap: 6px;
+}
+
+.tasks-quick-btn {
+  padding: 6px 8px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 10, 12, 0.85);
+  color: #d4d4e6;
   font-size: 8px;
-  color: #e6ffe0;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
 }
 
-.pill-label {
-  opacity: 0.8;
+.tasks-quick-btn.primary {
+  background:rgb(115 111 255 / 5%);
+  border-color: #00e67776;
+  color: #ffffff;
 }
 
-.pill-value {
-  font-weight: 600;
+.tasks-quick-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.pill-value-warn {
-  color: #ffb347;
+.tasks-timeline {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: row;      /* items en fila */
+  gap: 6px;
+}
+
+.tasks-timeline-item {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 3px 3px;
+}
+
+.tasks-timeline-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  margin-top: 3px;
+}
+
+.tasks-timeline-dot-done {
+  background: #22c55e;
+}
+
+.tasks-timeline-dot-running {
+  background: #facc15;
+}
+
+.tasks-timeline-dot-pending {
+  background: #f97316;
+}
+
+.tasks-timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tasks-timeline-title {
+  font-size: 6px;
+  color: #e5e7f5;
+}
+
+.tasks-timeline-meta {
+  font-size: 5px;
+  color: #9ca3c0;
+}
+
+.tasks-load-row {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.tasks-load-day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.tasks-load-bar {
+  width: 100%;
+  height: 28px;
+  border-radius: 6px;
+  background: #111827;
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: hidden;
+}
+
+.tasks-load-segment {
+  width: 100%;
+}
+
+.tasks-load-segment-done {
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+}
+
+.tasks-load-segment-running {
+  background: linear-gradient(180deg, #facc15, #eab308);
+}
+
+.tasks-load-segment-pending {
+  background: linear-gradient(180deg, #f97316, #ea580c);
+}
+
+.tasks-load-label {
+  font-size: 7px;
+  color: #9ca3c0;
 }
 
 .hero-charts {
@@ -915,8 +1068,8 @@ body {
 }
 
 .hero-chart-badge.soft {
-  background: rgba(192, 230, 65, 0.12);
-  color: #e8ffb8;
+  background:rgba(115, 111, 255, 0.16);
+  color: #c4c2ff;
 }
 
 .hero-chart-bars {

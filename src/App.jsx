@@ -348,24 +348,94 @@ function App() {
             <section className="hero-section">
               <div className="hero-dashboard">
                 <div className="hero-summary">
-                  <h2 className="hero-summary-title">Panel de tu bodega</h2>
-                  <p className="hero-summary-text">
-                    Revisa de un vistazo cómo se mueve el vino: qué días vendes más, qué meses destacan y qué
-                    referencias están tirando del stock.
-                  </p>
-                  <div className="hero-summary-stats">
-                    <div className="hero-summary-pill">
-                      <span className="pill-label">Ventas hoy</span>
-                      <span className="pill-value">+38 botellas</span>
+                  <div className="tasks-header-row">
+                    <div>
+                      <h2 className="tasks-title">Centro de tareas</h2>
                     </div>
-                    <div className="hero-summary-pill">
-                      <span className="pill-label">Vinos en stock</span>
-                      <span className="pill-value">124</span>
+                  </div>
+
+                  <div className="tasks-kpi-row">
+                    <div className="tasks-kpi">
+                      <div className="tasks-kpi-label">Pendientes</div>
+                      <div className="tasks-kpi-value">5</div>
+                      <div className="tasks-kpi-bar tasks-kpi-bar-pending" />
                     </div>
-                    <div className="hero-summary-pill">
-                      <span className="pill-label">Alertas de agotado</span>
-                      <span className="pill-value pill-value-warn">3</span>
+                    <div className="tasks-kpi">
+                      <div className="tasks-kpi-label">En curso</div>
+                      <div className="tasks-kpi-value">3</div>
+                      <div className="tasks-kpi-bar tasks-kpi-bar-running" />
                     </div>
+                    <div className="tasks-kpi">
+                      <div className="tasks-kpi-label">Completadas</div>
+                      <div className="tasks-kpi-value">18</div>
+                      <div className="tasks-kpi-bar tasks-kpi-bar-done" />
+                    </div>
+                  </div>
+
+                  <div className="tasks-quick-row">
+                    <button type="button" className="tasks-quick-btn primary">
+                      Añadir tarea rápida
+                    </button>
+                    <button type="button" className="tasks-quick-btn">
+                      Ver pendientes de hoy
+                    </button>
+                    <button type="button" className="tasks-quick-btn">
+                      Ver tareas resueltas
+                    </button>
+                  </div>
+
+                  <div className="tasks-timeline">
+                    <div className="tasks-timeline-item">
+                      <div className="tasks-timeline-dot tasks-timeline-dot-done" />
+                      <div className="tasks-timeline-content">
+                        <span className="tasks-timeline-title">Reponer vinos tintos</span>
+                        <span className="tasks-timeline-meta">Completada · Hace 2 h</span>
+                      </div>
+                    </div>
+                    <div className="tasks-timeline-item">
+                      <div className="tasks-timeline-dot tasks-timeline-dot-running" />
+                      <div className="tasks-timeline-content">
+                        <span className="tasks-timeline-title">Revisar caducidades</span>
+                        <span className="tasks-timeline-meta">En curso · Hoy</span>
+                      </div>
+                    </div>
+                    <div className="tasks-timeline-item">
+                      <div className="tasks-timeline-dot tasks-timeline-dot-pending" />
+                      <div className="tasks-timeline-content">
+                        <span className="tasks-timeline-title">Actualizar precios de carta</span>
+                        <span className="tasks-timeline-meta">Pendiente · Mañana</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="tasks-load-row">
+                    {[
+                      { label: 'Lun', done: 80, running: 10, pending: 10 },
+                      { label: 'Mar', done: 60, running: 20, pending: 20 },
+                      { label: 'Mié', done: 40, running: 40, pending: 20 },
+                      { label: 'Jue', done: 70, running: 20, pending: 10 },
+                      { label: 'Vie', done: 90, running: 5, pending: 5 },
+                      { label: 'Sáb', done: 50, running: 30, pending: 20 },
+                      { label: 'Dom', done: 30, running: 20, pending: 50 },
+                    ].map(({ label, done, running, pending }) => (
+                      <div key={label} className="tasks-load-day">
+                        <div className="tasks-load-bar">
+                          <div
+                            className="tasks-load-segment tasks-load-segment-done"
+                            style={{ height: `${done}%` }}
+                          />
+                          <div
+                            className="tasks-load-segment tasks-load-segment-running"
+                            style={{ height: `${running}%` }}
+                          />
+                          <div
+                            className="tasks-load-segment tasks-load-segment-pending"
+                            style={{ height: `${pending}%` }}
+                          />
+                        </div>
+                        <span className="tasks-load-label">{label}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
