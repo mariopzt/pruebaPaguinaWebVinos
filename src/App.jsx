@@ -346,216 +346,161 @@ function App() {
         {currentView === 'home' && (
           <div key="home-view" className="content view-enter">
             <section className="hero-section">
-              <div className="hero-card">
-                <div className="hero-bg" />
-                <div className="hero-content">
-                  <h2 className="hero-title">
-                    Las Uvas de Nuestra Bodega: Tradición y Sabor
-                  </h2>
-                  <p className="hero-subtitle">
-                    Bienvenido a nuestra bodega, un espacio donde tradición y pasión se unen para crear vinos únicos.
-                    Explora una selección cuidada, llena de carácter, aroma y sabor incomparable. Sumérgete en una
-                    experiencia pensada para quienes disfrutan cada detalle del buen vino.
+              <div className="hero-dashboard">
+                <div className="hero-summary">
+                  <h2 className="hero-summary-title">Panel de tu bodega</h2>
+                  <p className="hero-summary-text">
+                    Revisa de un vistazo cómo se mueve el vino: qué días vendes más, qué meses destacan y qué
+                    referencias están tirando del stock.
                   </p>
-                  <div className="hero-grape-grid">
-                    <div className="hero-grape-card">
-                      <h3 className="hero-grape-title">Monastrell</h3>
-                      <ul className="hero-grape-list">
-                        <li>Regiones: Murcia, Alicante, Yecla.</li>
-                        <li>Potente, frutos negros, cuerpo intenso.</li>
-                        <li>Perfecta para vinos robustos.</li>
-                      </ul>
+                  <div className="hero-summary-stats">
+                    <div className="hero-summary-pill">
+                      <span className="pill-label">Ventas hoy</span>
+                      <span className="pill-value">+38 botellas</span>
                     </div>
-                    <div className="hero-grape-card">
-                      <h3 className="hero-grape-title">Garnacha</h3>
-                      <ul className="hero-grape-list">
-                        <li>Regiones: Aragón, Navarra, Priorat.</li>
-                        <li>Dulce, afrutada, notas de fresa y especias.</li>
-                        <li>Ideal para vinos jóvenes y rosados.</li>
-                      </ul>
+                    <div className="hero-summary-pill">
+                      <span className="pill-label">Vinos en stock</span>
+                      <span className="pill-value">124</span>
                     </div>
-                    <div className="hero-grape-card">
-                      <h3 className="hero-grape-title">Tempranillo</h3>
-                      <ul className="hero-grape-list">
-                        <li>Regiones: Rioja, Ribera del Duero, La Mancha.</li>
-                        <li>Frutos rojos, tabaco, cuero.</li>
-                        <li>Versátil para crianza en barrica.</li>
-                      </ul>
-                    </div>
-                    <div className="hero-grape-card">
-                      <h3 className="hero-grape-title">Mencía</h3>
-                      <ul className="hero-grape-list">
-                        <li>Regiones: Bierzo, Galicia.</li>
-                        <li>Elegante, frutos rojos y florales.</li>
-                        <li>Vinos frescos, aromáticos y suaves.</li>
-                      </ul>
+                    <div className="hero-summary-pill">
+                      <span className="pill-label">Alertas de agotado</span>
+                      <span className="pill-value pill-value-warn">3</span>
                     </div>
                   </div>
                 </div>
-              </div>
-            </section>
 
-            {/* Sección de métricas de la bodega */}
-            <section className="heritage-section">
-              <div className="heritage-left">
-                <h3 className="heritage-title">De nuestra tierra al mundo</h3>
-                
-
-                <div className="heritage-grid">
-                  <div className="heritage-card">
-                    <div className="heritage-number">120+</div>
-                    <div className="heritage-label">Referencias en bodega</div>
-                    <p className="heritage-description">
-                      Desde blancos jóvenes hasta tintos de guarda y espumosos de celebración.
-                    </p>
-                  </div>
-                  <div className="heritage-card accent">
-                    <div className="heritage-number">15+</div>
-                    <div className="heritage-label">Denominaciones de origen</div>
-                    <p className="heritage-description">
-                      Trabajamos con zonas clave para ofrecer variedad sin perder identidad.
-                    </p>
-                  </div>
-                  <div className="heritage-card">
-                    <div className="heritage-number">3000+</div>
-                    <div className="heritage-label">Botellas gestionadas al año</div>
-                    <p className="heritage-description">
-                      Controladas desde este panel: stock, rotación y momentos de consumo.
-                    </p>
-                  </div>
-                  <div className="heritage-card">
-                    <div className="heritage-number">50+</div>
-                    <div className="heritage-label">Cartas personalizadas</div>
-                    <p className="heritage-description">
-                      Configuradas para restaurantes, eventos y experiencias a medida.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="heritage-right">
-                <div className="heritage-image-card">
-                  <div className="heritage-image" />
-                  <div className="heritage-text">
-                    <div className="heritage-text-col">
-                      <p>
-                        VinosStK nace con una idea sencilla: que la gestión de tu bodega sea tan cuidada como el vino
-                        que sirves cada día. Aquí conectas stock, cartas y experiencia en un solo lugar.
-                      </p>
+                <div className="hero-charts">
+                  <article className="hero-chart-card large">
+                    <div className="hero-chart-header">
+                      <span>Días con más ventas</span>
+                      <span className="hero-chart-badge">Últimos 7 días</span>
                     </div>
-                    <div className="heritage-text-col">
-                      <p>
-                        Desde un pequeño local hasta una carta amplia, puedes ver qué se vende, qué falta y qué
-                        recomendar, manteniendo siempre la esencia de tu proyecto y lo que tus clientes esperan.
-                      </p>
+                    <div className="hero-chart-bars">
+                      {[40, 70, 55, 90, 65, 50, 80].map((height, idx) => (
+                        <div key={idx} className="hero-chart-bar-wrapper">
+                          <div
+                            className="hero-chart-bar"
+                            style={{ height: `${height}%` }}
+                          />
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Nuestros mejores puntos */}
-            <section className="gallery-section">
-              <div className="gallery-header">
-                <h3 className="gallery-title">Nuestros mejores puntos</h3>
-                <p className="gallery-subtitle">
-                  Lo que nos diferencia: una bodega pensada para que disfrutes siempre el mejor vino, al mejor precio.
-                </p>
-              </div>
-              <div className="gallery-grid">
-                {[
-                  {
-                    title: 'Gestión de stock',
-                    description: 'Controla el inventario de tu bodega, vinos disponibles y agotados desde un solo panel.',
-                  },
-                  {
-                    title: 'Pedidos rápidos',
-                    description: 'Visualiza y organiza tus pedidos para reponer stock sin perder de vista ninguna referencia.',
-                  },
-                  {
-                    title: 'Vista de bodega',
-                    description: 'Explora tu catálogo completo con fichas, detalles y estados de cada vino.',
-                  },
-                  {
-                    title: 'Panel de tareas',
-                    description: 'Organiza tareas pendientes, completadas y generales para el día a día de la bodega.',
-                  },
-                  {
-                    title: 'Alertas y avisos',
-                    description: 'Recibe notificaciones sobre vinos agotados, movimientos clave y recordatorios.',
-                  },
-                  {
-                    title: 'IA y recomendaciones',
-                    description: 'Consulta a la IA para descubrir vinos, tendencias y sugerencias basadas en tu stock.',
-                  },
-                ].map((item, index) => (
-                  <figure key={index} className="gallery-card">
-                    <div className="gallery-icon">
-                      {index === 0 && <FiStar size={18} />}
-                      {index === 1 && <FiTrendingUp size={18} />}
-                      {index === 2 && <FiBox size={18} />}
-                      {index === 3 && <FiUser size={18} />}
-                      {index === 4 && <FiShoppingBag size={18} />}
-                      {index === 5 && <FiCpu size={18} />}
+                    <div className="hero-chart-axis">
+                      {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => (
+                        <span key={d}>{d}</span>
+                      ))}
                     </div>
-                    <figcaption className="gallery-caption">
-                      <div className="gallery-caption-title">{item.title}</div>
-                      <div className="gallery-caption-text">{item.description}</div>
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-            </section>
+                  </article>
 
-            {/* Carrusel de vinos destacados */}
-            <section className="wine-carousel-section">
-              <div className="wine-carousel-header">
-                <h3 className="wine-carousel-title">Vinos que no te puedes perder</h3>
-                <p className="wine-carousel-subtitle">
-                  Una selección rápida de botellas clave de tu bodega: ideales para destacar en promociones o recomendaciones.
-                </p>
-              </div>
-              <div className="wine-carousel">
-                <div className="wine-carousel-track">
-                  {[
-                    {
-                      name: 'Casal de Armán',
-                      type: 'Blanco · Ribeiro',
-                      note: 'Perfecto para iniciar la carta con un blanco fresco y aromático.',
-                      image: 'https://images.pexels.com/photos/1407855/pexels-photo-1407855.jpeg?auto=compress&cs=tinysrgb&w=640',
-                    },
-                    {
-                      name: 'Mencía Atlántica',
-                      type: 'Tinto · Bierzo',
-                      note: 'Ideal para maridar con carnes y platos de cuchara en temporada.',
-                      image: 'https://images.pexels.com/photos/5947021/pexels-photo-5947021.jpeg?auto=compress&cs=tinysrgb&w=640',
-                    },
-                    {
-                      name: 'Selección Barrica',
-                      type: 'Tinto · Crianza',
-                      note: 'Vino de carta para ofrecer experiencias más complejas y estructuradas.',
-                      image: 'https://images.pexels.com/photos/3952042/pexels-photo-3952042.jpeg?auto=compress&cs=tinysrgb&w=640',
-                    },
-                    {
-                      name: 'Espumoso Brut',
-                      type: 'Espumoso · Celebración',
-                      note: 'La opción perfecta para brindar en eventos y momentos especiales.',
-                      image: 'https://images.pexels.com/photos/3171768/pexels-photo-3171768.jpeg?auto=compress&cs=tinysrgb&w=640',
-                    },
-                  ].map((wine, index) => (
-                    <article key={index} className="wine-feature-card">
-                      <div
-                        className="wine-feature-image"
-                        style={{ backgroundImage: `url(${wine.image})` }}
-                      />
-                      <div className="wine-feature-content">
-                        <span className="wine-feature-type">{wine.type}</span>
-                        <h4 className="wine-feature-name">{wine.name}</h4>
-                        <p className="wine-feature-note">{wine.note}</p>
+                  <article className="hero-chart-card">
+                    <div className="hero-chart-header">
+                      <span>Meses fuertes</span>
+                      <span className="hero-chart-badge soft">Año actual</span>
+                    </div>
+                    <div className="hero-chart-grid">
+                      {['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'].map(
+                        (m, idx) => (
+                          <div
+                            key={m}
+                            className={`hero-chart-cell ${idx % 3 === 0 ? 'high' : idx % 2 === 0 ? 'mid' : 'low'
+                              }`}
+                          >
+                            <span>{m}</span>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </article>
+
+                  <article className="hero-chart-card">
+                    <div className="hero-chart-header">
+                      <span>Categorías clave</span>
+                    </div>
+                    <div className="hero-chart-pie">
+                      <div className="hero-pie-inner" />
+                      <div className="hero-pie-legend">
+                        <div className="legend-row">
+                          <span className="legend-dot verde" />
+                          <span>Blancos &nbsp; · &nbsp; 35%</span>
+                        </div>
+                        <div className="legend-row">
+                          <span className="legend-dot violeta" />
+                          <span>Tintos &nbsp; · &nbsp; 45%</span>
+                        </div>
+                        <div className="legend-row">
+                          <span className="legend-dot rosa" />
+                          <span>Espumosos &nbsp; · &nbsp; 20%</span>
+                        </div>
                       </div>
-                    </article>
-                  ))}
+                    </div>
+                  </article>
                 </div>
+              </div>
+            </section>
+
+            {/* Zona extra de gráficas bajo el hero */}
+            <section className="home-analytics-section">
+              <div className="home-analytics-main">
+                <div className="home-analytics-header">
+                  <span className="home-analytics-title">Evolución de ventas</span>
+                  <span className="home-analytics-subtitle">Últimos 30 días</span>
+                </div>
+                <div className="home-analytics-chart">
+                  <div className="home-analytics-yaxis">
+                    {[70, 60, 50, 40].map((tick) => (
+                      <span key={tick}>{tick}</span>
+                    ))}
+                  </div>
+                  <div className="home-analytics-bars">
+                    {[
+                      { day: 'Lun', value: 60, tone: 'neutral' },
+                      { day: 'Mar', value: 68, tone: 'neutral-strong' },
+                      { day: 'Mié', value: 60, tone: 'neutral' },
+                      { day: 'Jue', value: 56, tone: 'neutral-soft' },
+                      { day: 'Vie', value: 72, tone: 'positive-strong' },
+                      { day: 'Sáb', value: 66, tone: 'positive' },
+                      { day: 'Dom', value: 48, tone: 'low' },
+                    ].map(({ day, value, tone }) => (
+                      <div key={day} className="home-analytics-bar-wrapper">
+                        <div
+                          className={`home-analytics-bar ${tone}`}
+                          style={{ height: `${Math.max(0, Math.min(1, (value - 40) / 30)) * 100}%` }}
+                        />
+                        <span className="home-analytics-day">{day}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="home-analytics-side">
+                <article className="home-mini-card">
+                  <div className="home-mini-header">
+                    <span>Rotación por sesión</span>
+                  </div>
+                  <div className="home-mini-body">
+                    <div className="home-mini-ring">
+                      <div className="home-mini-ring-inner">3.2x</div>
+                    </div>
+                    <div className="home-mini-legend">
+                      <span>Media de botellas por servicio</span>
+                    </div>
+                  </div>
+                </article>
+
+                <article className="home-mini-card">
+                  <div className="home-mini-header">
+                    <span>Ocupación</span>
+                  </div>
+                  <div className="home-mini-body">
+                    <div className="home-mini-gauge">
+                      <div className="home-mini-gauge-fill" />
+                    </div>
+                    <div className="home-mini-legend">
+                      <span>85% mesas activas en las horas punta</span>
+                    </div>
+                  </div>
+                </article>
               </div>
             </section>
           </div>
