@@ -447,7 +447,7 @@ function App() {
                 </div>
                 <div className="home-analytics-chart">
                   <div className="home-analytics-yaxis">
-                    {[70, 60, 50, 40].map((tick) => (
+                    {['300k', '290k', '280k', '270k'].map((tick) => (
                       <span key={tick}>{tick}</span>
                     ))}
                   </div>
@@ -501,6 +501,44 @@ function App() {
                     </div>
                   </div>
                 </article>
+              </div>
+            </section>
+
+            {/* Tira de métricas de resumen de vinos */}
+            <section className="home-metrics-section">
+              <div className="home-metrics-row">
+                <div className="home-metric">
+                  <span className="home-metric-label">Vinos vendidos</span>
+                  <span className="home-metric-value">5.097</span>
+                  <div className="home-metric-trend home-metric-trend-positive">
+                    <span className="home-metric-trend-icon">▲</span>
+                    <span>+12,4%</span>
+                  </div>
+                </div>
+                <div className="home-metric">
+                  <span className="home-metric-label">Tintos vendidos</span>
+                  <span className="home-metric-value">2.843</span>
+                  <div className="home-metric-trend home-metric-trend-positive">
+                    <span className="home-metric-trend-icon">▲</span>
+                    <span>+8,9%</span>
+                  </div>
+                </div>
+                <div className="home-metric">
+                  <span className="home-metric-label">Blancos vendidos</span>
+                  <span className="home-metric-value">1.562</span>
+                  <div className="home-metric-trend home-metric-trend-negative">
+                    <span className="home-metric-trend-icon">▼</span>
+                    <span>-3,1%</span>
+                  </div>
+                </div>
+                <div className="home-metric">
+                  <span className="home-metric-label">Espumosos vendidos</span>
+                  <span className="home-metric-value">692</span>
+                  <div className="home-metric-trend home-metric-trend-positive">
+                    <span className="home-metric-trend-icon">▲</span>
+                    <span>+4,6%</span>
+                  </div>
+                </div>
               </div>
             </section>
           </div>

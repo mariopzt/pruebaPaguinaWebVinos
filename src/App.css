@@ -809,7 +809,7 @@ body {
 
 /* Hero Home - dashboard de gráficas */
 .hero-section {
-  padding: 8px 12px 24px 12px;
+  padding: 0px 12px 14px 12px;
 }
 
 .hero-dashboard {
@@ -1034,7 +1034,7 @@ body {
 
 /* Extra gráficas bajo el hero */
 .home-analytics-section {
-  padding: 4px 12px 12px 12px;
+  padding: 4px 12px 2px 12px;
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.7fr);
   gap: 14px;
@@ -1070,7 +1070,13 @@ body {
 .home-analytics-chart {
   height: 120px;
   margin-top: 4px;
-  background: radial-gradient(circle at top, #1a1f2f 0, #111118 40%);
+  background: #15171f;
+  background-image: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.04) 0.1px,
+      transparent 0.3px
+    );
+  background-size: 100% 18px;
   border-radius: 10px;
   padding: 6px 10px 8px 10px;
   display: flex;
@@ -1086,6 +1092,7 @@ body {
   color: #666a80;
   margin-right: 6px;
   height: 100%;
+  padding-bottom: 18px;
 }
 
 .home-analytics-bars {
@@ -1107,11 +1114,11 @@ body {
 }
 
 .home-analytics-bar {
-  width: 60%;
+  width: 32%;
   margin: 0 auto;
-  border-radius: 4px 4px 2px 2px;
-  background: linear-gradient(180deg, #e0e0e0, #6b6b6b);
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+  border-radius: 6px;
+  background: #00e676;
+  box-shadow: 0 0 10px rgba(0, 230, 118, 0.28);
 }
 
 .home-analytics-day {
@@ -1119,25 +1126,7 @@ body {
   color: #7f7f99;
 }
 
-.home-analytics-bar.neutral-strong {
-  background: linear-gradient(180deg, #ffffff, #b3b3b3);
-}
-
-.home-analytics-bar.neutral-soft {
-  background: linear-gradient(180deg, #d9d9d9, #8c8c8c);
-}
-
-.home-analytics-bar.positive {
-  background: linear-gradient(180deg, #00e676, #00c853);
-}
-
-.home-analytics-bar.positive-strong {
-  background: linear-gradient(180deg, #00ff95, #00c853);
-}
-
-.home-analytics-bar.low {
-  background: linear-gradient(180deg, #4caf50, #1b5e20);
-}
+/* variantes comparten el mismo estilo base de barra - sin overrides extra */
 
 .home-analytics-axis {
   display: flex;
@@ -1151,6 +1140,79 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.home-metrics-section {
+  padding: 12px 12px 0px 12px;
+}
+
+.home-metrics-row {
+  background: #15151d;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.home-metric {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.home-metric + .home-metric {
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  padding-left: 18px;
+}
+
+.home-metric-label {
+  font-size: 9px;
+  color: #7f8199;
+}
+
+.home-metric-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.home-metric-trend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+}
+
+.home-metric-trend-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  font-size: 8px;
+}
+
+.home-metric-trend-positive {
+  color: #18c77a;
+}
+
+.home-metric-trend-positive .home-metric-trend-icon {
+  background: rgba(24, 199, 122, 0.08);
+}
+
+.home-metric-trend-negative {
+  color: #ff4d4f;
+}
+
+.home-metric-trend-negative .home-metric-trend-icon {
+  background: rgba(255, 77, 79, 0.08);
 }
 
 .home-mini-card {
