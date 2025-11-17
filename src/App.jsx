@@ -2,7 +2,7 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
-import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings } from 'react-icons/fi'
+import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings, FiBell } from 'react-icons/fi'
 import { FaArrowAltCircleLeft } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
@@ -266,8 +266,8 @@ function App() {
               onClick={() => setCurrentView('ayuda')}
             >
               <div className="nav-item-content">
-                <span className="nav-icon"><FiHelpCircle size={10} /></span>
-                <span className="nav-text">Ayuda</span>
+                <span className="nav-icon"><FiBell size={10} /></span>
+                <span className="nav-text">Notificaciones</span>
               </div>
             </div>
             <div 
@@ -342,162 +342,59 @@ function App() {
 
       {/* Main Content */}
       <div className="main-content">
-        {/* Header */}
-        <header className="header">
-          <div className="hamburger-menu mobile-only" onClick={navigateToHome} style={{ cursor: 'pointer' }}>
-            <div className="hamburger-line"></div>
-            <div className="hamburger-line"></div>
-            <div className="hamburger-line"></div>
-          </div>
-          <div className="header-title" onClick={navigateToHome} style={{ cursor: 'pointer' }}>
-            <h1 className="app-title">
-              {currentView === 'home' && 'Inicio'}
-              {currentView === 'bodega' && 'Bodega'}
-              {currentView === 'agotados' && 'Agotados'}
-              {currentView === 'tareas' && 'Tareas'}
-              {currentView === 'tareas-completadas' && 'Tareas Completadas'}
-              {currentView === 'tareas-pendientes' && 'Tareas Pendientes'}
-              {currentView === 'pedidos' && 'Pedidos'}
-              {currentView === 'ajustes' && 'Ajustes'}
-              {currentView === 'ayuda' && 'Ayuda'}
-              {currentView === 'ia' && 'IA'}
-              {currentView === 'valoraciones' && 'Valoraciones'}
-              {currentView === 'top-vinos' && 'Top Vinos'}
-            </h1>
-            { (currentView === 'home') && (
-              <span className="app-subtitle">Mira nuestro stock de vinos y dejanos tu comentario &gt;</span>
-            )}
-          </div>
-          <div className="header-icons">
-            <div className="icon bell-icon" onClick={handleOpenNotifications}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-              </svg>
-              {notifications.filter(n => !n.read).length > 0 && settings.showUnreadBadge && !showNotifications && <span className="notification-badge">{notifications.filter(n => !n.read).length}</span>}
-            </div>
-          </div>
-        </header>
-
         {/* Vista Home */}
         {currentView === 'home' && (
-        <div key="home-view" className="content view-enter">
-          {/* Mas vendidos Section */}
-          <section className="section">
-            <div className="section-header">
-              <h2 className="section-title">Mas vendidos</h2>
-              <span className="arrow-icon">→</span>
-            </div>
-            <div className="horizontal-scroll">
-              {['Casal de arman', 'Arman doce', 'Amorodos', 'Revelde', 'Valdecontina', 'Almanova', 'Komakabras', 'Attis', 'Mix'].map((wine, index) => (
-                <div key={index} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
-                  <div className="wine-image">
-                    <img 
-                      src={`https://images.pexels.com/photos/${['1053914', '708777', '1267320', '1407855', '1283219', '1267320', '1407855', '1283219', '1053914'][index]}/pexels-photo-${['1053914', '708777', '1267320', '1407855', '1283219', '1267320', '1407855', '1283219', '1053914'][index]}.jpeg?auto=compress&cs=tinysrgb&w=640`}
-                      alt={`Botella de vino ${wine}`}
-                      className="wine-photo"
-                      loading="lazy"
-                      decoding="async"
-                    />
+          <div key="home-view" className="content view-enter">
+            <section className="hero-section">
+              <div className="hero-card">
+                <div className="hero-bg" />
+                <div className="hero-content">
+                  <h2 className="hero-title">
+                    Las Uvas de Nuestra Bodega: Tradición y Sabor
+                  </h2>
+                  <p className="hero-subtitle">
+                    Bienvenido a nuestra bodega, un espacio donde tradición y pasión se unen para crear vinos únicos.
+                    Explora una selección cuidada, llena de carácter, aroma y sabor incomparable. Sumérgete en una
+                    experiencia pensada para quienes disfrutan cada detalle del buen vino.
+                  </p>
+                  <div className="hero-grape-grid">
+                    <div className="hero-grape-card">
+                      <h3 className="hero-grape-title">Monastrell</h3>
+                      <ul className="hero-grape-list">
+                        <li>Regiones: Murcia, Alicante, Yecla.</li>
+                        <li>Potente, frutos negros, cuerpo intenso.</li>
+                        <li>Perfecta para vinos robustos.</li>
+                      </ul>
+                    </div>
+                    <div className="hero-grape-card">
+                      <h3 className="hero-grape-title">Garnacha</h3>
+                      <ul className="hero-grape-list">
+                        <li>Regiones: Aragón, Navarra, Priorat.</li>
+                        <li>Dulce, afrutada, notas de fresa y especias.</li>
+                        <li>Ideal para vinos jóvenes y rosados.</li>
+                      </ul>
+                    </div>
+                    <div className="hero-grape-card">
+                      <h3 className="hero-grape-title">Tempranillo</h3>
+                      <ul className="hero-grape-list">
+                        <li>Regiones: Rioja, Ribera del Duero, La Mancha.</li>
+                        <li>Frutos rojos, tabaco, cuero.</li>
+                        <li>Versátil para crianza en barrica.</li>
+                      </ul>
+                    </div>
+                    <div className="hero-grape-card">
+                      <h3 className="hero-grape-title">Mencía</h3>
+                      <ul className="hero-grape-list">
+                        <li>Regiones: Bierzo, Galicia.</li>
+                        <li>Elegante, frutos rojos y florales.</li>
+                        <li>Vinos frescos, aromáticos y suaves.</li>
+                      </ul>
+                    </div>
                   </div>
-                  <span className="wine-name">{wine}</span>
                 </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Tipos de Uvas Section */}
-          <section className="section">
-            <div className="section-header">
-              <h2 className="section-title">Tipos de Uvas</h2>
-              <span className="arrow-icon">→</span>
-            </div>
-            <div className="grape-grid">
-              {['Tempranillo', 'Garnacha'].map((grape, index) => (
-                <div key={index} className="grape-card rectangular">
-                  <div className="grape-image">
-                    <img 
-                      src={index === 0 
-                        ? "https://images.pexels.com/photos/1053914/pexels-photo-1053914.jpeg?auto=compress&cs=tinysrgb&w=640"
-                        : "https://images.pexels.com/photos/708777/pexels-photo-708777.jpeg?auto=compress&cs=tinysrgb&w=640"
-                      }
-                      alt="Uvas de vino" 
-                      className="grape-photo"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                  <span className="grape-name">{grape}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Nuestros vinos Section */}
-          <section className="section">
-            <div className="section-header">
-              <h2 className="section-title">Nuestros vinos</h2>
-              <span className="star-icon">★</span>
-            </div>
-            <div className={`horizontal-scroll-viewport`}>
-              <div className={`horizontal-scroll ${settings.autoScrollCarousel ? 'auto-scroll' : ''}`}>
-                {['Casal de arman', 'Arman doce', 'Amorodos', 'Revelde', 'Valdecontina', 'Almanova', 'Attis', 'Albariño', 'Tempranillo', 'Garnacha', 'Mencía', 'Godello', 'Treixadura', 'Loureiro', 'Caiño', 'Brancellao', 'Espadeiro', 'Sousón'].map((wine, index) => (
-                  <div key={index} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
-                    <div className="wine-image">
-                      <img 
-                        src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?auto=compress&cs=tinysrgb&w=640" 
-                        alt="Tres copas de vino" 
-                        className="wine-photo"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </div>
-                    <div className="wine-info">
-                      <span className="wine-artist">{wine}</span>
-                      <span className="wine-song">Ribeiro</span>
-                    </div>
-                  </div>
-                ))}
-                {/* Duplicado para animación continua */}
-                {['Casal de arman', 'Arman doce', 'Amorodos', 'Revelde', 'Valdecontina', 'Almanova', 'Attis', 'Albariño', 'Tempranillo', 'Garnacha', 'Mencía', 'Godello', 'Treixadura', 'Loureiro', 'Caiño', 'Brancellao', 'Espadeiro', 'Sousón'].map((wine, index) => (
-                  <div key={`duplicate-${index}`} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
-                    <div className="wine-image">
-                      <img 
-                        src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?auto=compress&cs=tinysrgb&w=640" 
-                        alt="Tres copas de vino" 
-                        className="wine-photo"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </div>
-                    <div className="wine-info">
-                      <span className="wine-artist">{wine}</span>
-                      <span className="wine-song">Ribeiro</span>
-                    </div>
-                  </div>
-                ))}
-                {/* Tercer duplicado para animación ultra suave */}
-                {['Casal de arman', 'Arman doce', 'Amorodos', 'Revelde', 'Valdecontina', 'Almanova', 'Attis', 'Albariño', 'Tempranillo', 'Garnacha', 'Mencía', 'Godello', 'Treixadura', 'Loureiro', 'Caiño', 'Brancellao', 'Espadeiro', 'Sousón'].map((wine, index) => (
-                  <div key={`duplicate-3-${index}`} className="wine-item rectangular" onClick={() => handleWineClick(wine)}>
-                    <div className="wine-image">
-                      <img 
-                        src="https://images.pexels.com/photos/7270303/pexels-photo-7270303.jpeg?auto=compress&cs=tinysrgb&w=640" 
-                        alt="Tres copas de vino" 
-                        className="wine-photo"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </div>
-                    <div className="wine-info">
-                      <span className="wine-artist">{wine}</span>
-                      <span className="wine-song">Ribeiro</span>
-                    </div>
-                  </div>
-                ))}
               </div>
-            </div>
-          </section>
-        </div>
+            </section>
+          </div>
         )}
 
         {/* Vista Bodega */}
@@ -703,14 +600,16 @@ function App() {
           </div>
         )}
 
-        {/* Vista Ayuda */}
+        {/* Vista Notificaciones (antes Ayuda) */}
         {currentView === 'ayuda' && (
-          <div key="ayuda-view" className="content view-enter">
+          <div key="notificaciones-view" className="content view-enter">
             <div className="section section-full">
               <div className="section-header">
-                <h2 className="section-title">Ayuda</h2>
+                <h2 className="section-title">Notificaciones</h2>
               </div>
-              <p className="settings-placeholder">Centro de ayuda provisional. Aquí podrás consultar FAQs y soporte.</p>
+              <p className="settings-placeholder">
+                Aquí verás tus alertas recientes sobre vinos agotados, novedades y recordatorios importantes.
+              </p>
             </div>
           </div>
         )}

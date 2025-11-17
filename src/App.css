@@ -632,9 +632,9 @@ body {
   display: flex;
   flex-direction: column; /* permite que .content crezca hasta el máximo */
   border-radius: 14px;
-  margin: 16px 0 0 -7px;
+  margin: 0 0 0 -7px;
   min-height: 95%;   /* ocupa casi todo el alto disponible */
-  height: auto;
+  height: 95%;
   position: relative;
   z-index: 1;
   overflow-x: hidden;
@@ -804,6 +804,124 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+/* Hero Home */
+.hero-section {
+  padding: 0px 24px 64px 24px; /* espacio extra abajo para las cards flotando */
+}
+
+.hero-card {
+  position: relative;
+  border-radius: 16px;
+  min-height: 200px;
+  display: flex;
+  align-items: stretch;
+  padding-bottom: 40px; /* deja aire entre texto y cards */
+}
+
+.hero-bg {
+  position: absolute;
+  filter: brightness(70%); /* Baja el brillo al 50% */
+  border-radius: 6px;
+  inset: 0;
+  background-image: url('./fotos/pexels-pixabay-39511 1.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.28;
+}
+
+
+.hero-content {
+  display: flex;
+
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 24px 32px;
+  flex: 1.2;
+}
+
+.hero-title {
+  font-size: 25px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+}
+
+.hero-subtitle {
+  text-align: center;
+  max-width: 600px;
+  font-size: 8px;
+  color: #ffffff;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+}
+
+
+
+.hero-grape-grid {
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  bottom: -84px; /* mitad dentro, mitad fuera del banner */
+  display: flex;
+  gap: 36px;
+  justify-content: center;
+}
+
+.hero-grape-card {
+  flex: 1;
+  max-width: 130px;
+  height: 95px;
+  background: #1c1c1cdf;
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #f5f5f5;
+  font-size: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-grape-title {
+  font-size: 11px;
+  font-weight: 500;
+  margin: 0 0 6px 0;
+}
+
+.hero-grape-list {
+  margin: 0;
+  padding-left: 14px;
+  font-size: 7px;
+  list-style: disc;
+  opacity: 0.9;
+}
+
+.hero-image-wrap {
+  display: none;
+}
+
+.hero-image {
+  display: none;
+}
+
+.hero-button {
+  padding: 8px 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #111111;
+  color: #f5f5f5;
+  font-size: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.hero-button:hover {
+  background: #181818;
+  transform: translateY(-1px);
 }
 
 .section:nth-child(1) { animation-delay: 0.1s; }
@@ -1723,6 +1841,9 @@ body {
 }
 
 .bell-icon {
+  position: absolute;
+  top: -8px;
+  right: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1734,8 +1855,8 @@ body {
 }
 
 .bell-icon svg {
-  stroke: #333;
-  stroke-width: 2;
+  stroke: #ffffff;
+  stroke-width: 1.5;
 }
 
 @media (max-width: 480px) {
