@@ -348,117 +348,185 @@ function App() {
             <section className="hero-section">
               <div className="hero-dashboard">
                 <div className="hero-summary">
-                  <div className="tasks-header-row">
-                    <div>
-                      <h2 className="tasks-title">Centro de tareas</h2>
-                    </div>
+                  {/* Header con título y badge */}
+                  <div className="tasks-card-header">
+                    <h3 className="tasks-card-title">Resumen de Tareas</h3>
+                    <span className="tasks-card-badge">Ver todas</span>
                   </div>
 
-                  <div className="tasks-kpi-row">
-                    <div className="tasks-kpi">
-                      <div className="tasks-kpi-label">Pendientes</div>
-                      <div className="tasks-kpi-value">5</div>
-                      <div className="tasks-kpi-bar tasks-kpi-bar-pending" />
-                    </div>
-                    <div className="tasks-kpi">
-                      <div className="tasks-kpi-label">En curso</div>
-                      <div className="tasks-kpi-value">3</div>
-                      <div className="tasks-kpi-bar tasks-kpi-bar-running" />
-                    </div>
-                    <div className="tasks-kpi">
-                      <div className="tasks-kpi-label">Completadas</div>
-                      <div className="tasks-kpi-value">18</div>
-                      <div className="tasks-kpi-bar tasks-kpi-bar-done" />
-                    </div>
-                  </div>
-
-                  <div className="tasks-quick-row">
-                    <button type="button" className="tasks-quick-btn primary">
-                      Añadir tarea rápida
-                    </button>
-                    <button type="button" className="tasks-quick-btn">
-                      Ver pendientes de hoy
-                    </button>
-                    <button type="button" className="tasks-quick-btn">
-                      Ver tareas resueltas
-                    </button>
-                  </div>
-
-                  <div className="tasks-timeline">
-                    <div className="tasks-timeline-item">
-                      <div className="tasks-timeline-dot tasks-timeline-dot-done" />
-                      <div className="tasks-timeline-content">
-                        <span className="tasks-timeline-title">Reponer vinos tintos</span>
-                        <span className="tasks-timeline-meta">Completada · Hace 2 h</span>
+                  {/* Métricas principales en grid */}
+                  <div className="tasks-metrics-grid">
+                    <div className="tasks-metric-box">
+                      <div className="tasks-metric-icon pending">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                      </div>
+                      <div className="tasks-metric-content">
+                        <span className="tasks-metric-label">Pendientes</span>
+                        <span className="tasks-metric-value">8</span>
                       </div>
                     </div>
-                    <div className="tasks-timeline-item">
-                      <div className="tasks-timeline-dot tasks-timeline-dot-running" />
-                      <div className="tasks-timeline-content">
-                        <span className="tasks-timeline-title">Revisar caducidades</span>
-                        <span className="tasks-timeline-meta">En curso · Hoy</span>
+
+                    <div className="tasks-metric-box">
+                      <div className="tasks-metric-icon progress">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                          <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                      </div>
+                      <div className="tasks-metric-content">
+                        <span className="tasks-metric-label">En curso</span>
+                        <span className="tasks-metric-value">3</span>
                       </div>
                     </div>
-                    <div className="tasks-timeline-item">
-                      <div className="tasks-timeline-dot tasks-timeline-dot-pending" />
-                      <div className="tasks-timeline-content">
-                        <span className="tasks-timeline-title">Actualizar precios de carta</span>
-                        <span className="tasks-timeline-meta">Pendiente · Mañana</span>
+
+                    <div className="tasks-metric-box">
+                      <div className="tasks-metric-icon done">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                          <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                      </div>
+                      <div className="tasks-metric-content">
+                        <span className="tasks-metric-label">Completadas</span>
+                        <span className="tasks-metric-value">24</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="tasks-load-row">
-                    {[
-                      { label: 'Lun', done: 80, running: 10, pending: 10 },
-                      { label: 'Mar', done: 60, running: 20, pending: 20 },
-                      { label: 'Mié', done: 40, running: 40, pending: 20 },
-                      { label: 'Jue', done: 70, running: 20, pending: 10 },
-                      { label: 'Vie', done: 90, running: 5, pending: 5 },
-                      { label: 'Sáb', done: 50, running: 30, pending: 20 },
-                      { label: 'Dom', done: 30, running: 20, pending: 50 },
-                    ].map(({ label, done, running, pending }) => (
-                      <div key={label} className="tasks-load-day">
-                        <div className="tasks-load-bar">
-                          <div
-                            className="tasks-load-segment tasks-load-segment-done"
-                            style={{ height: `${done}%` }}
-                          />
-                          <div
-                            className="tasks-load-segment tasks-load-segment-running"
-                            style={{ height: `${running}%` }}
-                          />
-                          <div
-                            className="tasks-load-segment tasks-load-segment-pending"
-                            style={{ height: `${pending}%` }}
+                  {/* Barra de progreso */}
+                  <div className="tasks-progress-section">
+                    <div className="tasks-progress-header">
+                      <span className="tasks-progress-label">Progreso diario</span>
+                      <span className="tasks-progress-percent">75%</span>
+                    </div>
+                    <div className="tasks-progress-bar">
+                      <div className="tasks-progress-fill" style={{ width: '75%' }} />
+                    </div>
+                  </div>
+
+                  {/* Mini gráfico de actividad semanal */}
+                  <div className="tasks-activity-section">
+                    <span className="tasks-activity-label">Actividad de la semana</span>
+                    <div className="tasks-activity-bars">
+                      {[
+                        { day: 'L', value: 60 },
+                        { day: 'M', value: 85 },
+                        { day: 'X', value: 45 },
+                        { day: 'J', value: 90 },
+                        { day: 'V', value: 70 },
+                        { day: 'S', value: 30 },
+                        { day: 'D', value: 20 },
+                      ].map(({ day, value }) => (
+                        <div key={day} className="tasks-activity-bar-wrapper">
+                          <span className="tasks-activity-day">{day}</span>
+                          <div 
+                            className="tasks-activity-bar" 
+                            style={{ height: `${value}%` }}
+                            title={`${day}: ${value}%`}
                           />
                         </div>
-                        <span className="tasks-load-label">{label}</span>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
 
                 <div className="hero-charts">
-                  <article className="hero-chart-card large">
-                    <div className="hero-chart-header">
-                      <span>Días con más ventas</span>
-                      <span className="hero-chart-badge">Últimos 7 días</span>
-                    </div>
-                    <div className="hero-chart-bars">
-                      {[40, 70, 55, 90, 65, 50, 80].map((height, idx) => (
-                        <div key={idx} className="hero-chart-bar-wrapper">
-                          <div
-                            className="hero-chart-bar"
-                            style={{ height: `${height}%` }}
-                          />
+                  <article className="hero-chart-card large ai-showcase-card">
+                    <div className="ai-showcase-header">
+                      <div className="ai-header-content">
+                        <div className="ai-header-icon-wrapper">
+                          <div className="ai-header-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                              <path d="M2 17l10 5 10-5"/>
+                              <path d="M2 12l10 5 10-5"/>
+                            </svg>
+                          </div>
+                          <div className="ai-header-glow" />
                         </div>
-                      ))}
+                        <div className="ai-header-text">
+                          <h3 className="ai-showcase-title">Asistente IA</h3>
+                          <p className="ai-showcase-subtitle">Potencia tu gestión con inteligencia artificial</p>
+                        </div>
+                      </div>
+                      <div className="ai-status-badge">
+                        <span className="ai-status-pulse" />
+                        <span className="ai-status-text">En línea</span>
+                      </div>
                     </div>
-                    <div className="hero-chart-axis">
-                      {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => (
-                        <span key={d}>{d}</span>
-                      ))}
+
+                    <div className="ai-showcase-body">
+                      <div className="ai-features-grid">
+                        <div className="ai-feature-item">
+                          <div className="ai-feature-icon purple">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                          </div>
+                          <div className="ai-feature-content">
+                            <span className="ai-feature-title">Consultas instantáneas</span>
+                          </div>
+                        </div>
+
+                        <div className="ai-feature-item">
+                          <div className="ai-feature-icon blue">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                            </svg>
+                          </div>
+                          <div className="ai-feature-content">
+                            <span className="ai-feature-title">Análisis predictivo</span>
+                          </div>
+                        </div>
+
+                        <div className="ai-feature-item">
+                          <div className="ai-feature-icon green">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M12 20v-6M6 20V10M18 20V4"/>
+                            </svg>
+                          </div>
+                          <div className="ai-feature-content">
+                            <span className="ai-feature-title">Optimización automática</span>
+                          </div>
+                        </div>
+
+                        <div className="ai-feature-item">
+                          <div className="ai-feature-icon orange">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10"/>
+                              <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                          </div>
+                          <div className="ai-feature-content">
+                            <span className="ai-feature-title">Alertas inteligentes</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="ai-showcase-cta">
+                        <button type="button" className="ai-cta-btn primary">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                          </svg>
+                          Abrir chat IA
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="ai-showcase-footer">
+                      <div className="ai-stats-mini">
+                        <div className="ai-stat-mini">
+                          <span className="ai-stat-mini-value">1,247</span>
+                          <span className="ai-stat-mini-label">Consultas</span>
+                        </div>
+                        <div className="ai-stat-mini">
+                          <span className="ai-stat-mini-value">98%</span>
+                          <span className="ai-stat-mini-label">Precisión</span>
+                        </div>
+                      </div>
                     </div>
                   </article>
 
