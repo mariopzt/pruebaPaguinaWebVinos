@@ -3,15 +3,26 @@
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   display: flex;
   flex-direction: column;
   height: 240px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
-.wine-card:hover {
+.wine-card.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.wine-card.is-visible:hover {
   transform: translateY(-3px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
   border-color: rgba(99, 102, 241, 0.3);

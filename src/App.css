@@ -636,7 +636,7 @@ body {
   flex-direction: column; /* permite que .content crezca hasta el máximo */
   border-radius: 14px;
   margin: 0 0 0 -7px;
-  min-height: 95%;   /* ocupa casi todo el alto disponible */
+  min-height: 100%;   /* ocupa casi todo el alto disponible */
   height: 95%;
   position: relative;
   z-index: 1;

@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { getTimeAgo } from '../../data/winesData';
 import './WineCard.css';
 
@@ -16,9 +17,36 @@ const getOptimizedImageUrl = (url) => {
 };
 
 function WineCard({ wine, onClick, isHighlighted }) {
+  const cardRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return undefined;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      {
+        threshold: 0.2,
+      }
+    );
+
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div
-      className={`wine-card ${isHighlighted ? 'highlighted' : ''}`}
+      ref={cardRef}
+      className={`wine-card ${isHighlighted ? 'highlighted' : ''} ${
+        isVisible ? 'is-visible' : ''
+      }`}
       onClick={() => onClick(wine)}
     >
       <div className="wine-card-image">
