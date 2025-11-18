@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { winesData, isWineOutOfStock } from '../../data/winesData';
+import { useState, useMemo, useCallback } from 'react';
+import { winesData } from '../../data/winesData';
 import WineCard from './WineCard';
 import './Bodega.css';
 
@@ -8,38 +8,45 @@ function Bodega({ onNavigateHome, onSelectWine }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const itemsPerPage = 30;
+  const itemsPerPage = 18;
 
-  // Filtrar vinos según el tipo seleccionado y término de búsqueda
-  let filteredWines = activeFilter === 'Todos' 
-    ? winesData.filter(wine => wine.stock > 0)
-    : winesData.filter(wine => wine.type === activeFilter && wine.stock > 0);
+  // Filtrar vinos según el tipo seleccionado y término de búsqueda (memorizado)
+  const filteredWines = useMemo(() => {
+    const baseList =
+      activeFilter === 'Todos'
+        ? winesData.filter((wine) => wine.stock > 0)
+        : winesData.filter((wine) => wine.type === activeFilter && wine.stock > 0);
 
-  // Aplicar búsqueda por nombre
-  if (searchTerm.trim()) {
-    filteredWines = filteredWines.filter(wine => 
-      wine.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }
+    if (!searchTerm.trim()) return baseList;
 
-  // Calcular la paginación
-  const totalPages = Math.ceil(filteredWines.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentWines = filteredWines.slice(startIndex, endIndex);
+    const lowered = searchTerm.toLowerCase();
+    return baseList.filter((wine) => wine.name.toLowerCase().includes(lowered));
+  }, [activeFilter, searchTerm]);
+
+  // Calcular la paginación (memorizado)
+  const totalPages = useMemo(
+    () => Math.ceil(filteredWines.length / itemsPerPage) || 1,
+    [filteredWines.length]
+  );
+
+  const currentWines = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredWines.slice(startIndex, endIndex);
+  }, [filteredWines, currentPage]);
 
   // Manejar cambio de filtro
-  const handleFilterChange = (filter) => {
+  const handleFilterChange = useCallback((filter) => {
     setActiveFilter(filter);
     setCurrentPage(1); // Reset a la primera página al cambiar filtro
-  };
+  }, []);
 
   // Manejar cambio de página
-  const handlePageChange = (page) => {
+  const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
-    // Scroll al inicio de la sección
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+    // Scroll al inicio de la sección (sin animación para evitar tirones)
+    window.scrollTo(0, 0);
+  }, []);
 
   // Manejar tecla ESC para cerrar búsqueda
   const handleKeyDown = (e) => {
@@ -67,41 +74,39 @@ function Bodega({ onNavigateHome, onSelectWine }) {
     setSearchTerm('');
   };
 
-  // Generar números de páginas para mostrar
-  const getPageNumbers = () => {
+  // Generar números de páginas para mostrar (memorizado)
+  const pageNumbers = useMemo(() => {
     const pages = [];
     const maxVisible = 6;
-    
+
     if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
+      for (let i = 1; i <= totalPages; i += 1) {
+        pages.push(i);
+      }
+    } else if (currentPage <= 3) {
+      for (let i = 1; i <= 5; i += 1) {
+        pages.push(i);
+      }
+      pages.push('...');
+      pages.push(totalPages);
+    } else if (currentPage >= totalPages - 2) {
+      pages.push(1);
+      pages.push('...');
+      for (let i = totalPages - 4; i <= totalPages; i += 1) {
         pages.push(i);
       }
     } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 5; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = totalPages - 4; i <= totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        pages.push(1);
-        pages.push('...');
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
+      pages.push(1);
+      pages.push('...');
+      for (let i = currentPage - 1; i <= currentPage + 1; i += 1) {
+        pages.push(i);
       }
+      pages.push('...');
+      pages.push(totalPages);
     }
-    
+
     return pages;
-  };
+  }, [totalPages, currentPage]);
 
   // Navegar al Home
   const handleNavigateHome = () => {
@@ -171,7 +176,7 @@ function Bodega({ onNavigateHome, onSelectWine }) {
 
       {totalPages > 1 && (
         <div className="bodega-pagination">
-          {getPageNumbers().map((page, index) => (
+          {pageNumbers.map((page, index) => (
             page === '...' ? (
               <span key={`ellipsis-${index}`} className="pagination-ellipsis">
                 {page}
