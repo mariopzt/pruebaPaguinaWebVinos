@@ -15,6 +15,11 @@ body {
   height: 100vh;              /* referencia para los porcentajes de alto */
 }
 
+:root {
+  --sidebar-width: 140px;
+  --sidebar-gap: 20px;
+}
+
 #root {
   position: relative;
   overflow-x: hidden;
@@ -24,8 +29,7 @@ body {
 
 /* Main App Layout */
 .app {
-  background-color: rgb(115 111 255 / 2%)
-  ;
+  
   display: flex;
   width: 100%;                 /* 95% del ancho, más grande que antes */
   min-height: 100%;            /* 95% del alto del #root (que es 100vh) */
@@ -39,23 +43,24 @@ body {
   background-color: transparent;
   display: flex;
   flex-direction: row;
-  align-items: center;  /* centra verticalmente el contenido principal */
-  width: 95%;
+  align-items: stretch;  /* mantener contenido alineado con el sidebar */
+  width: 100%;
   min-height: 100%;   /* se ajusta al alto de .app */
-  margin: 0 auto;     /* centra el contenedor dentro de .app */
-  padding-left: 160px;/* deja espacio para el sidebar fijo a la izquierda */
+  margin: 0;
+  padding-left: calc(var(--sidebar-width) + var(--sidebar-gap));
+  padding-right: clamp(16px, 4vw, 48px);
 }
 /* Sidebar */
 .sidebar {
   border: 1px solid rgba(255, 255, 255, 0.06);
   background-color: rgb(115 111 255 / 5%);
-  width: 140px;
+  width: var(--sidebar-width);
   justify-content: flex-start;
   display: flex;
   flex-direction: column;
   align-items: start;
   padding: 15px 0;
-  left: 20px;
+  left: var(--sidebar-gap);
   top: 50%;                 /* centrado vertical respecto a la ventana */
  border-radius: 10px;
   z-index: 10;
@@ -65,6 +70,35 @@ body {
   overflow: hidden;
   color: #d9d9de;
   box-shadow: none;
+}
+
+.floating-menu-button {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 7px;
+  background: rgba(14, 14, 22, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f6f7ff;
+  cursor: pointer;
+  z-index: 1100;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.floating-menu-button svg {
+  font-size: 20px;
+}
+
+.floating-menu-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
 .sidebar-bottom {
@@ -632,12 +666,11 @@ body {
   width: 92%;
   flex: 1;
   margin-left: 0;
+  margin: auto;
   display: flex;
   flex-direction: column; /* permite que .content crezca hasta el máximo */
-  
   border-radius: 14px;
-  margin: 0 0 0 -7px;
-  height: 95%;
+  height: 98%;
   position: relative;
   z-index: 1;
 }
@@ -2450,12 +2483,41 @@ body {
 }
 
 /* Responsive adjustments */
+@media (max-width: 1440px) {
+  :root {
+    --sidebar-width: 130px;
+    --sidebar-gap: 18px;
+  }
+}
+
+@media (max-width: 1200px) {
+  :root {
+    --sidebar-width: 120px;
+    --sidebar-gap: 16px;
+  }
+}
+
+@media (max-width: 992px) {
+  :root {
+    --sidebar-width: 100px;
+    --sidebar-gap: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 86px;
+    --sidebar-gap: 12px;
+  }
+}
+
 @media (max-width: 1024px) {
   .Padre-container {
-    padding-left: 80px;
+    height: 90vh;
+    padding-left: calc(var(--sidebar-width) + var(--sidebar-gap));
   }
   .sidebar {
-    width: 80px;
+    width: var(--sidebar-width);
   }
   
   .main-content {
@@ -2473,6 +2535,21 @@ body {
   
   .content {
     padding: 0 ;
+  }
+
+  .guides-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .home-metrics-row {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .home-metric {
+    width: calc(50% - 12px);
+    padding-top: 8px;
   }
   
   .wine-card.circular {
@@ -2502,10 +2579,10 @@ body {
 
 @media (max-width: 768px) {
   .Padre-container {
-    padding-left: 72px;
+    padding-left: calc(var(--sidebar-width) + var(--sidebar-gap));
   }
   .sidebar {
-    width: 72px;
+    width: var(--sidebar-width);
   }
   
   .main-content {
@@ -2527,6 +2604,40 @@ body {
   
   .section-title {
     font-size: 1rem;
+  }
+
+  .section-full {
+    height: auto;
+  }
+
+  .guides-section {
+    padding: 8px;
+  }
+
+  .guides-container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .guide-card {
+    padding: 16px;
+  }
+
+  .home-metrics-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .home-metric {
+    width: 100%;
+    border-left: none;
+    padding: 8px 0 0 0;
+  }
+
+  .home-metric + .home-metric {
+    padding-left: 0;
+    margin-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
   
   .wine-card.circular {
@@ -2570,6 +2681,8 @@ body {
 @media (max-width: 480px) {
   .app {
     flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   
   .Padre-container {
@@ -2578,6 +2691,10 @@ body {
     flex-direction: column;
     width: 100%;
     padding-left: 0;
+    padding-right: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
   }
   
   .sidebar {
@@ -2585,9 +2702,10 @@ body {
   }
   
   .main-content {
-    margin: 70px 10px 10px;
+    margin: 7px 10px 0px 10px;
     width: auto;
     padding: 10px;
+    overflow: visible;
   }
   
   .header {
@@ -2620,6 +2738,33 @@ body {
     padding: 15px;
     margin: 0;
   }
+
+  .guides-container {
+    gap: 12px;
+  }
+
+  .guide-card {
+    padding: 14px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .guide-description,
+  .guide-steps {
+    font-size: 12px;
+  }
+
+  .home-metrics-row {
+    display: none;
+  }
+
+  .home-metric {
+    gap: 6px;
+  }
+
+  .floating-menu-button {
+    display: flex;
+  }
 }
 
 /* Hide mobile hamburger on desktop */
@@ -2634,8 +2779,9 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 2000;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 100000000;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -2643,14 +2789,15 @@ body {
 }
 
 .mobile-menu {
-  background: linear-gradient(135deg, #f8f4ff 0%, #e8d5ff 100%);
+  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 30px;
   max-width: 90%;
   width: 400px;
   max-height: 80%;
   overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
   animation: slideIn 0.3s ease-out;
 }
 
@@ -2660,21 +2807,21 @@ body {
   align-items: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 2px solid #d4c5ff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mobile-menu-header h2 {
-  color: #4A4459;
+  color: #ffffff;
   font-size: 24px;
   font-weight: 700;
   margin: 0;
 }
 
 .close-menu {
-  background: none;
-  border: none;
+  background: rgba(20, 20, 30, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 30px;
-  color: #4A4459;
+  color: #ffffff;
   cursor: pointer;
   padding: 5px;
   border-radius: 50%;
@@ -2683,46 +2830,55 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .close-menu:hover {
-  background-color: rgba(74, 68, 89, 0.1);
+  background: rgba(99, 102, 241, 0.9);
+  border-color: rgba(99, 102, 241, 0.5);
+  transform: rotate(90deg);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
 }
 
 .mobile-menu-content {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
 .mobile-nav-item {
   display: flex;
   align-items: center;
   gap: 15px;
-  padding: 15px 20px;
-  background-color: rgba(255, 255, 255, 0.7);
-  border-radius: 15px;
+  padding: 16px 20px;
+  background: rgba(20, 20, 30, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
 }
 
 .mobile-nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-color: #d4c5ff;
+  background: rgba(30, 30, 45, 0.8);
+  border-color: rgba(99, 102, 241, 0.4);
   transform: translateX(5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
 }
 
 .mobile-nav-item.active {
-  background-color: #EADDFF;
-  border-color: #6b5ce7;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
 }
 
 .mobile-nav-item.active .mobile-nav-text {
-  color: #6b5ce7;
+  color: #ffffff;
   font-weight: 600;
+}
+
+.mobile-nav-item.active .mobile-nav-icon {
+  color: #ffffff;
 }
 
 .mobile-nav-icon {
@@ -2732,6 +2888,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #9ca3c0;
+  transition: color 0.3s ease;
 }
 
 .mobile-nav-icon svg {
@@ -2740,9 +2898,47 @@ body {
 }
 
 .mobile-nav-text {
-  color: #4A4459;
-  font-size: 18px;
+  color: #d9d9de;
+  font-size: 16px;
   font-weight: 600;
+}
+
+/* Etiquetas de sección en el menú móvil */
+.mobile-menu-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7d7d92;
+  margin-top: 20px;
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+.mobile-menu-section-label:first-child {
+  margin-top: 0;
+}
+
+/* Divisor en el menú móvil */
+.mobile-menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 16px 0;
+}
+
+/* Estilo especial para cerrar sesión */
+.mobile-nav-logout {
+  border: 1px solid rgba(255, 77, 79, 0.3);
+}
+
+.mobile-nav-logout:hover {
+  background: rgba(255, 77, 79, 0.15);
+  border-color: rgba(255, 77, 79, 0.5);
+}
+
+.mobile-nav-logout .mobile-nav-icon,
+.mobile-nav-logout .mobile-nav-text {
+  color: #ff6b6b;
 }
 
 @keyframes fadeIn {
@@ -3186,60 +3382,62 @@ body {
 
 /* Chat embebido en la vista IA */
 .ia-chat-container {
-  margin-top: 12px;
-  border-radius: 14px;
+  margin-top: 16px;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   background: transparent;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.06);
   width: 100%;
-  flex: 1;          /* ocupa el espacio restante dentro de .section-full */
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  flex: 1;
   min-height: 0;
-  overflow: hidden; /* el scroll vertical solo ocurre dentro de ia-chat-messages */
+  overflow: hidden;
 }
 
 .ia-chat-header {
-  padding: 10px 16px 6px 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid rgba(107, 92, 231, 0.05);
 }
 
 .ia-hero {
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .ia-hero-title {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   color: #f5f5f5;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .ia-hero-subtitle {
-  font-size: 11px;
+  font-size: 12px;
   color: #9fa1b8;
+  line-height: 1.4;
 }
 
 .ia-quick-actions {
-  width: 400px;
-  margin: 12px auto 0 auto;
+  margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
-  max-width: 880px; /* un poco más estrecho que el ancho total */
+  max-width: 600px;
 }
 
 .ia-quick-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 4px;
+  padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
   color: #f5f5f5;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
@@ -3261,7 +3459,7 @@ body {
 /* Wrapper para hero + chips: se oculta cuando hay mensajes en el chat */
 .ia-quick-wrapper {
   transition: opacity 0.2s ease, max-height 0.2s ease, transform 0.2s ease;
-  max-height: 260px;
+  max-height: 200px;
 }
 
 .ia-quick-wrapper.ia-quick-hide {

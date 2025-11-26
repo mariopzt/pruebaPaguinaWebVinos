@@ -2,8 +2,8 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
-import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings, FiBell } from 'react-icons/fi'
-import { FaArrowAltCircleLeft } from 'react-icons/fa'
+import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings, FiBell, FiMenu, FiPackage } from 'react-icons/fi'
+import { FaArrowAltCircleLeft, FaWineBottle } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
@@ -370,6 +370,16 @@ function App() {
 
         </div>
 
+        {/* Botón flotante para abrir menú en móviles */}
+        <button
+          type="button"
+          className="floating-menu-button"
+          onClick={toggleMenu}
+          aria-label="Abrir menú"
+        >
+          <FiMenu />
+        </button>
+
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
         <div className="mobile-menu-overlay" onClick={toggleMenu}>
@@ -379,6 +389,8 @@ function App() {
               <button className="close-menu" onClick={toggleMenu}>×</button>
             </div>
             <div className="mobile-menu-content">
+              {/* Sección MENÚ */}
+              <div className="mobile-menu-section-label">MENÚ</div>
               <div 
                 className="mobile-nav-item" 
                 onClick={() => { navigateToHome(); setIsMenuOpen(false); }}
@@ -390,29 +402,80 @@ function App() {
                 className="mobile-nav-item" 
                 onClick={() => { navigateToBodega(); setIsMenuOpen(false); }}
               >
-                <span className="mobile-nav-icon"><TbWine /></span>
+                <span className="mobile-nav-icon"><FaWineBottle /></span>
                 <span className="mobile-nav-text">Bodega</span>
               </div>
               <div 
                 className="mobile-nav-item" 
                 onClick={() => { navigateToAgotados(); setIsMenuOpen(false); }}
               >
-                <span className="mobile-nav-icon"><TbCircleX /></span>
+                <span className="mobile-nav-icon"><FiSlash /></span>
                 <span className="mobile-nav-text">Agotados</span>
               </div>
               <div 
                 className="mobile-nav-item" 
                 onClick={() => { setCurrentView('tareas'); setIsMenuOpen(false); }}
               >
-                <span className="mobile-nav-icon"><TbChecklist /></span>
+                <span className="mobile-nav-icon"><FiCheckSquare /></span>
                 <span className="mobile-nav-text">Tareas</span>
               </div>
               <div 
                 className="mobile-nav-item" 
                 onClick={() => { setCurrentView('pedidos'); setIsMenuOpen(false); }}
               >
-                <span className="mobile-nav-icon"><TbReceipt2 /></span>
+                <span className="mobile-nav-icon"><FiPackage /></span>
                 <span className="mobile-nav-text">Pedidos</span>
+              </div>
+
+              {/* Sección OPINIONES */}
+              <div className="mobile-menu-section-label">OPINIONES</div>
+              <div 
+                className="mobile-nav-item" 
+                onClick={() => { setCurrentView('valoraciones'); setIsMenuOpen(false); }}
+              >
+                <span className="mobile-nav-icon"><FiStar /></span>
+                <span className="mobile-nav-text">Valoraciones</span>
+              </div>
+              <div 
+                className="mobile-nav-item" 
+                onClick={() => { setCurrentView('top-vinos'); setIsMenuOpen(false); }}
+              >
+                <span className="mobile-nav-icon"><FiTrendingUp /></span>
+                <span className="mobile-nav-text">Top Vinos</span>
+              </div>
+
+              {/* Sección ACERCA DE */}
+              <div className="mobile-menu-section-label">ACERCA DE</div>
+              <div 
+                className="mobile-nav-item" 
+                onClick={() => { setCurrentView('ajustes'); setIsMenuOpen(false); }}
+              >
+                <span className="mobile-nav-icon"><FiSettings /></span>
+                <span className="mobile-nav-text">Ajustes</span>
+              </div>
+              <div 
+                className="mobile-nav-item" 
+                onClick={() => { setCurrentView('ayuda'); setIsMenuOpen(false); }}
+              >
+                <span className="mobile-nav-icon"><FiBell /></span>
+                <span className="mobile-nav-text">Notificaciones</span>
+              </div>
+              <div 
+                className="mobile-nav-item" 
+                onClick={() => { setCurrentView('ia'); setIsMenuOpen(false); }}
+              >
+                <span className="mobile-nav-icon"><FiCpu /></span>
+                <span className="mobile-nav-text">IA</span>
+              </div>
+
+              {/* Cerrar sesión */}
+              <div className="mobile-menu-divider"></div>
+              <div 
+                className="mobile-nav-item mobile-nav-logout" 
+                onClick={() => { setIsMenuOpen(false); }}
+              >
+                <span className="mobile-nav-icon"><FiLogOut /></span>
+                <span className="mobile-nav-text">Cerrar sesión</span>
               </div>
             </div>
           </div>
@@ -874,8 +937,8 @@ function App() {
 
         {/* Vista IA con chat embebido */}
         {currentView === 'ia' && (
-          <div key="ia-view" className="content view-enter">
-            <div className="section section-full">
+          <div key="ia-view" className="content view-enter" style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100%'}}>
+            <div className="section section-full" style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
               {/* Hero + chips de acciones rápidas: visibles solo antes del primer mensaje */}
               <div className={`ia-quick-wrapper ${chatMessages.length > 0 ? 'ia-quick-hide' : ''}`}>
                 <div className="ia-hero">

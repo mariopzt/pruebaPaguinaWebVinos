@@ -746,3 +746,92 @@ select.wine-editable-input {
   box-shadow: 0 2px 8px rgba(107, 92, 231, 0.3);
 }
 
+/* Responsive modal layout */
+@media (max-width: 1024px) {
+  .wine-modal {
+    max-height: none;
+  }
+
+  .wine-modal-content {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 32px;
+    max-height: none;
+  }
+
+  .wine-modal-image {
+    height: 320px;
+    position: relative;
+  }
+
+  .wine-modal-details {
+    max-height: none;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .wine-modal-overlay {
+    padding: 24px;
+  }
+
+  .wine-modal {
+    border-radius: 18px;
+  }
+
+  .wine-modal-title {
+    font-size: 26px;
+  }
+
+  .wine-modal-content {
+    padding: 24px;
+  }
+
+  .wine-form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .wine-modal-actions {
+    flex-direction: column;
+  }
+
+  .wine-cancel-button,
+  .wine-save-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .wine-modal-overlay {
+    padding: 16px;
+  }
+
+  .wine-modal-content {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .wine-modal-image {
+    height: 240px;
+  }
+
+  .wine-image-edit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .wine-modal-title {
+    font-size: 22px;
+  }
+
+  .wine-tag {
+    width: 100%;
+    text-align: center;
+  }
+
+  .wine-form-group {
+    margin-bottom: 12px;
+  }
+}
+
