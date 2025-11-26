@@ -6,7 +6,8 @@ function WineModal({ wine, onClose, onWineOutOfStock }) {
   const [editedWine, setEditedWine] = useState({
     price: wine?.price || 0,
     stock: wine?.stock || 0,
-    location: wine?.location || ''
+    location: wine?.location || '',
+    grapeVariety: Array.isArray(wine?.grapeVariety) ? [...wine.grapeVariety] : []
   });
 
   if (!wine) return null;
@@ -19,12 +20,43 @@ function WineModal({ wine, onClose, onWineOutOfStock }) {
     });
   };
 
+  // Manejar cambios en variedades
+  const handleVarietyChange = (index, field, value) => {
+    const newVarieties = [...editedWine.grapeVariety];
+    newVarieties[index] = {
+      ...newVarieties[index],
+      [field]: field === 'percentage' ? parseFloat(value) || 0 : value
+    };
+    setEditedWine({
+      ...editedWine,
+      grapeVariety: newVarieties
+    });
+  };
+
+  // Agregar nueva variedad
+  const handleAddVariety = () => {
+    setEditedWine({
+      ...editedWine,
+      grapeVariety: [...editedWine.grapeVariety, { name: '', percentage: 0 }]
+    });
+  };
+
+  // Eliminar variedad
+  const handleRemoveVariety = (index) => {
+    const newVarieties = editedWine.grapeVariety.filter((_, i) => i !== index);
+    setEditedWine({
+      ...editedWine,
+      grapeVariety: newVarieties
+    });
+  };
+
   // Guardar cambios en el objeto wine
   const handleSave = () => {
     const wasOutOfStock = wine.stock === 0;
     wine.price = editedWine.price;
     wine.stock = editedWine.stock;
     wine.location = editedWine.location;
+    wine.grapeVariety = editedWine.grapeVariety;
     
     // Si el vino pasa a stock 0, crear notificación
     if (!wasOutOfStock && editedWine.stock === 0 && onWineOutOfStock) {
@@ -40,7 +72,8 @@ function WineModal({ wine, onClose, onWineOutOfStock }) {
     setEditedWine({
       price: wine.price,
       stock: wine.stock,
-      location: wine.location
+      location: wine.location,
+      grapeVariety: Array.isArray(wine.grapeVariety) ? [...wine.grapeVariety] : []
     });
     setIsEditMode(false);
   };
@@ -122,19 +155,60 @@ function WineModal({ wine, onClose, onWineOutOfStock }) {
             </div>
 
             <div className="wine-varieties-section">
-              <h3 className="wine-varieties-title">Variedad:</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 className="wine-varieties-title" style={{ margin: 0 }}>Variedad:</h3>
+                {isEditMode && (
+                  <button 
+                    className="wine-add-variety-btn"
+                    onClick={handleAddVariety}
+                    title="Agregar variedad"
+                  >
+                    + Agregar
+                  </button>
+                )}
+              </div>
               <div className="wine-varieties-list">
-                {Array.isArray(wine.grapeVariety) ? (
-                  wine.grapeVariety.map((grape, index) => (
-                    <div key={index} className="wine-variety-item">
-                      <span className="wine-variety-name">{grape.name}</span>
-                      <span className="wine-variety-percentage">{grape.percentage}%</span>
+                {isEditMode ? (
+                  editedWine.grapeVariety.map((grape, index) => (
+                    <div key={index} className="wine-variety-item-edit">
+                      <input
+                        type="text"
+                        className="wine-editable-input variety-name-input"
+                        value={grape.name}
+                        onChange={(e) => handleVarietyChange(index, 'name', e.target.value)}
+                        placeholder="Nombre variedad"
+                      />
+                      <input
+                        type="number"
+                        className="wine-editable-input variety-percentage-input"
+                        value={grape.percentage}
+                        onChange={(e) => handleVarietyChange(index, 'percentage', e.target.value)}
+                        placeholder="%"
+                        min="0"
+                        max="100"
+                      />
+                      <button
+                        className="wine-remove-variety-btn"
+                        onClick={() => handleRemoveVariety(index)}
+                        title="Eliminar"
+                      >
+                        ✕
+                      </button>
                     </div>
                   ))
                 ) : (
-                  <div className="wine-variety-item">
-                    <span className="wine-variety-name">{wine.grapeVariety}</span>
-                  </div>
+                  Array.isArray(wine.grapeVariety) ? (
+                    wine.grapeVariety.map((grape, index) => (
+                      <div key={index} className="wine-variety-item">
+                        <span className="wine-variety-name">{grape.name}</span>
+                        <span className="wine-variety-percentage">{grape.percentage}%</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="wine-variety-item">
+                      <span className="wine-variety-name">{wine.grapeVariety}</span>
+                    </div>
+                  )
                 )}
               </div>
             </div>
