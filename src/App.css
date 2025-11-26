@@ -29,14 +29,14 @@ body {
 
 /* Main App Layout */
 .app {
-  
   display: flex;
   width: 100%;                 /* 95% del ancho, más grande que antes */
-  min-height: 100%;            /* 95% del alto del #root (que es 100vh) */
+  min-height: 100vh;           /* que pueda crecer y hacer scroll */
   margin: 0 auto;             /* centra horizontalmente todo el layout */
   position: relative;
   transform: none;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;           /* permite scroll vertical del contenido */
 }
 
 .Padre-container {
@@ -670,13 +670,14 @@ body {
   display: flex;
   flex-direction: column; /* permite que .content crezca hasta el máximo */
   border-radius: 14px;
-  height: 98%;
+  height: auto;           /* que crezca libremente */
   position: relative;
   z-index: 1;
 }
 
 /* Animaciones de transición de vistas */
 .view-enter {
+  margin-left: 10px;
   animation: slideInFade 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
@@ -821,13 +822,13 @@ body {
 
 /* Content */
 .content {
-  padding:  0 0;
+  padding: 0 0;
   border-radius: 0 0 12px 12px;
-  flex: 1;          /* llena el máximo alto del padre (.main-content) */
-  min-height: 0;    /* permite que el contenido interno haga scroll si se pasa */
+  flex: 1;
+  min-height: auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;  /* que Inicio comience arriba */
 }
 
 .section {
@@ -838,8 +839,8 @@ body {
 /* Variante para vistas de una sola sección que debe ocupar todo el alto */
 .section-full {
   width: 100%;
-  height: 497px;
-  min-height: 100%;
+  height: auto;
+  min-height: auto;
   display: flex;
   flex-direction: column;
 }
@@ -2497,17 +2498,104 @@ body {
   }
 }
 
+@media (max-width: 1000px) {
+  :root {
+    --sidebar-width: 95px;
+    --sidebar-gap: 10px;
+  }
+
+  .sidebar {
+    padding: 8px 0;
+    height: 96vh;
+
+  }
+
+  .sidebar-header {
+    margin-bottom: 10px;
+    padding-top: 8px;
+  }
+
+  .user-avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .user-name {
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+
+  .user-role {
+    font-size: 9px;
+  }
+
+  .sidebar-section-title {
+    font-size: 8px;
+    padding: 6px 10px 3px;
+    margin-top: 10px;
+  }
+
+  .sidebar-nav-item {
+    padding: 4px 8px;
+    margin: 2px 6px;
+    font-size: 10px;
+    gap: 6px;
+  }
+
+  .sidebar-nav-icon {
+    font-size: 14px;
+  }
+
+  .sidebar-bottom {
+    padding: 6px 0;
+  }
+
+  .logout-button {
+    padding: 6px 10px;
+    margin: 0 6px;
+    font-size: 10px;
+    gap: 8px;
+  }
+
+  .logout-icon {
+    font-size: 14px;
+  }
+
+  /* Ajustes directos de los items del menú para que no se salgan */
+  .nav-item {
+    padding: 4px 0px;
+  }
+
+  .nav-icon {
+    font-size: 11px;
+  }
+
+  .nav-item-content {
+    margin-left: 10px;
+  }
+
+  .nav-item-content .nav-text {
+    padding-left: 6px;
+  }
+
+  .nav-text {
+    font-size: 7px;
+    line-height: 1.1;
+    white-space: normal; /* permite que 'Notificaciones' y textos largos salten a segunda línea */
+  }
+}
+
 @media (max-width: 992px) {
   :root {
-    --sidebar-width: 100px;
-    --sidebar-gap: 14px;
+    --sidebar-width: 95px;
+    --sidebar-gap: 10px;
   }
 }
 
 @media (max-width: 768px) {
   :root {
-    --sidebar-width: 86px;
-    --sidebar-gap: 12px;
+    --sidebar-width: 95px;
+    --sidebar-gap: 10px;
   }
 }
 
@@ -2516,9 +2604,7 @@ body {
     height: 90vh;
     padding-left: calc(var(--sidebar-width) + var(--sidebar-gap));
   }
-  .sidebar {
-    width: var(--sidebar-width);
-  }
+  
   
   .main-content {
     margin-left: 0;
@@ -2581,9 +2667,7 @@ body {
   .Padre-container {
     padding-left: calc(var(--sidebar-width) + var(--sidebar-gap));
   }
-  .sidebar {
-    width: var(--sidebar-width);
-  }
+  
   
   .main-content {
     margin-left: 0;
