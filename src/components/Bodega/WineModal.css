@@ -349,6 +349,149 @@
   transform: scale(1.05);
 }
 
+/* Estilos para agregar nuevo vino */
+.wine-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #7f8199;
+}
+
+.wine-image-placeholder svg {
+  opacity: 0.5;
+}
+
+.wine-image-placeholder p {
+  font-size: 14px;
+  margin: 0;
+}
+
+.add-wine-header {
+  margin-bottom: 24px;
+}
+
+.add-wine-subtitle {
+  font-size: 14px;
+  color: #9ca3c0;
+  margin: 8px 0 0 0;
+}
+
+.wine-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.wine-form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ca3c0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.wine-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.wine-editable-input[type="text"],
+.wine-editable-input[type="number"],
+.wine-editable-input select,
+.wine-editable-textarea {
+  width: 100%;
+}
+
+select.wine-editable-input {
+  cursor: pointer;
+}
+
+.wine-variety-item-edit {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.variety-name-input {
+  flex: 1;
+}
+
+.variety-percentage-input {
+  width: 80px;
+}
+
+.wine-varieties-section {
+  margin-bottom: 20px;
+}
+
+.wine-varieties-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #9ca3c0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.wine-varieties-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wine-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wine-cancel-button,
+.wine-save-button {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.wine-cancel-button {
+  background: rgba(255, 255, 255, 0.05);
+  color: #9ca3c0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wine-cancel-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.wine-save-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.wine-save-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.wine-save-button:active {
+  transform: translateY(0);
+}
+
 .wine-modal-location h3 {
   font-size: 18px;
   font-weight: 600;

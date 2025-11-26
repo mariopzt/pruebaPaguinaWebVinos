@@ -284,3 +284,41 @@
   }
 }
 
+/* Botón agregar vino */
+.add-wine-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 04px;
+  padding: 5px 10px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: auto;
+  letter-spacing: 0.3px;
+}
+
+.add-wine-button:hover {
+  transform: translateY(-3px);
+}
+
+.add-wine-button:active {
+  transform: translateY(-1px);
+}
+
+.add-wine-button svg {
+  transition: transform 0.3s ease;
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
+}
+
+.add-wine-button:hover svg {
+  transform: rotate(90deg);
+}
+

@@ -3,7 +3,7 @@ import { winesData } from '../../data/winesData';
 import WineCard from './WineCard';
 import './Bodega.css';
 
-function Bodega({ onNavigateHome, onSelectWine }) {
+function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine }) {
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -162,6 +162,18 @@ function Bodega({ onNavigateHome, onSelectWine }) {
             </button>
           )}
         </div>
+
+        {/* Botón agregar vino */}
+        <button 
+          className="add-wine-button"
+          onClick={onOpenAddWine}
+          title="Agregar nuevo vino"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Nuevo Vino
+        </button>
       </div>
 
       <div className="bodega-grid">

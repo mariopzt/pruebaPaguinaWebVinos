@@ -7,12 +7,15 @@ import { FaArrowAltCircleLeft } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
+import AddWineModal from './components/Bodega/AddWineModal'
 import { winesData } from './data/winesData'
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [currentView, setCurrentView] = useState('home') // 'home', 'bodega', o 'agotados'
   const [selectedWine, setSelectedWine] = useState(null)
+  const [showAddWineModal, setShowAddWineModal] = useState(false)
+  const [wineListVersion, setWineListVersion] = useState(0)
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
   const [highlightedWineId, setHighlightedWineId] = useState(null)
@@ -181,6 +184,14 @@ function App() {
       wine = winesData[0]
     }
     setSelectedWine(wine)
+  }
+
+  // Agregar nuevo vino
+  const handleAddWine = (newWine) => {
+    winesData.push(newWine)
+    setShowAddWineModal(false)
+    // Incrementar versión para forzar re-render
+    setWineListVersion(prev => prev + 1)
   }
 
   useEffect(() => {
@@ -598,8 +609,12 @@ function App() {
 
         {/* Vista Bodega */}
                 {currentView === 'bodega' && (
-                  <div key="bodega-view" className="view-enter">
-                    <Bodega onNavigateHome={navigateToHome} onSelectWine={setSelectedWine} />
+                  <div key={`bodega-view-${wineListVersion}`} className="view-enter">
+                    <Bodega 
+                      onNavigateHome={navigateToHome} 
+                      onSelectWine={setSelectedWine}
+                      onOpenAddWine={() => setShowAddWineModal(true)}
+                    />
                   </div>
                 )}
 
@@ -1159,6 +1174,14 @@ function App() {
         wine={selectedWine}
         onClose={() => setSelectedWine(null)}
         onWineOutOfStock={addNotification}
+      />
+    )}
+
+    {/* Modal de agregar vino - fuera del contenedor principal */}
+    {showAddWineModal && (
+      <AddWineModal
+        onClose={() => setShowAddWineModal(false)}
+        onAddWine={handleAddWine}
       />
     )}
     </>
