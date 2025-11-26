@@ -7,6 +7,7 @@ function WineModal({ wine, onClose, onWineOutOfStock }) {
     price: wine?.price || 0,
     stock: wine?.stock || 0,
     location: wine?.location || '',
+    image: wine?.image || '',
     grapeVariety: Array.isArray(wine?.grapeVariety) ? [...wine.grapeVariety] : []
   });
 
@@ -50,12 +51,28 @@ function WineModal({ wine, onClose, onWineOutOfStock }) {
     });
   };
 
+  // Manejar cambio de imagen
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditedWine({
+          ...editedWine,
+          image: reader.result
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Guardar cambios en el objeto wine
   const handleSave = () => {
     const wasOutOfStock = wine.stock === 0;
     wine.price = editedWine.price;
     wine.stock = editedWine.stock;
     wine.location = editedWine.location;
+    wine.image = editedWine.image;
     wine.grapeVariety = editedWine.grapeVariety;
     
     // Si el vino pasa a stock 0, crear notificación
@@ -73,6 +90,7 @@ function WineModal({ wine, onClose, onWineOutOfStock }) {
       price: wine.price,
       stock: wine.stock,
       location: wine.location,
+      image: wine.image,
       grapeVariety: Array.isArray(wine.grapeVariety) ? [...wine.grapeVariety] : []
     });
     setIsEditMode(false);
@@ -96,7 +114,25 @@ function WineModal({ wine, onClose, onWineOutOfStock }) {
         
         <div className="wine-modal-content">
           <div className="wine-modal-image">
-            <img src={wine.image} alt={wine.name} />
+            <img src={editedWine.image} alt={wine.name} />
+            {isEditMode && (
+              <div className="wine-image-edit-overlay">
+                <label htmlFor="wine-image-input" className="wine-image-edit-btn">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                  Cambiar foto
+                </label>
+                <input
+                  id="wine-image-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  style={{ display: 'none' }}
+                />
+              </div>
+            )}
           </div>
           
           <div className="wine-modal-details">
