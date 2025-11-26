@@ -291,6 +291,18 @@
   color: #7f7f99;
 }
 
+/* Ocultar placeholder en móvil y asegurar texto visible */
+@media (max-width: 768px) {
+  .search-input::placeholder {
+    color: transparent;
+  }
+  
+  .search-input {
+    color: #ffffff !important;
+    font-weight: 600;
+  }
+}
+
 .search-button {
   display: flex;
   align-items: center;
@@ -561,6 +573,21 @@
 @media (max-width: 360px) {
   .bodega-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 250px) {
+  .search-container.open .search-button {
+    display: none;
+  }
+  
+  .search-container.open .close-search-button {
+    display: none;
+  }
+  
+  .search-container.open {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 }
 
