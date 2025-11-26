@@ -28,6 +28,66 @@ function App() {
   })
   const [settingsView, setSettingsView] = useState('menu')
   const [settingsTransition, setSettingsTransition] = useState('forward')
+  const [tasksFilter, setTasksFilter] = useState('hoy')
+  const [currentGuideSet, setCurrentGuideSet] = useState(0)
+
+  const taskFilters = [
+    { id: 'hoy', label: 'Hoy' },
+    { id: 'ayer', label: 'Ayer' },
+    { id: 'semana', label: 'Semana' },
+    { id: 'mes', label: 'Mes' },
+    { id: 'nueva', label: '+ Nueva tarea' },
+  ]
+
+  const sampleTasks = [
+    {
+      id: 1,
+      title: 'Revisar stock de tintos',
+      description: 'Comprueba las referencias con menos de 10 botellas y prepara una propuesta de reposición.',
+      group: 'hoy',
+      comments: 3,
+      attachments: 1,
+      initials: 'ST',
+      timeLabel: 'Hace 10 min',
+    },
+    {
+      id: 2,
+      title: 'Actualizar carta de vinos por copa',
+      description: 'Añadir las nuevas referencias sugeridas por la IA y retirar las de rotación lenta.',
+      group: 'hoy',
+      comments: 1,
+      attachments: 0,
+      initials: 'CV',
+      timeLabel: 'Hace 25 min',
+    },
+    {
+      id: 3,
+      title: 'Analizar ventas del fin de semana',
+      description: 'Revisar qué vinos han tenido mejor salida para ajustar recomendaciones.',
+      group: 'ayer',
+      comments: 2,
+      attachments: 2,
+      initials: 'VS',
+      timeLabel: 'Ayer',
+    },
+    {
+      id: 4,
+      title: 'Planificar cata interna del equipo',
+      description: 'Seleccionar 6 vinos y preparar una mini ficha para el personal de sala.',
+      group: 'semana',
+      comments: 0,
+      attachments: 1,
+      initials: 'CE',
+      timeLabel: 'Esta semana',
+    },
+  ]
+
+  const filteredTasks =
+    tasksFilter === 'hoy'
+      ? sampleTasks.filter((t) => t.group === 'hoy')
+      : tasksFilter === 'ayer'
+        ? sampleTasks.filter((t) => t.group === 'ayer')
+        : sampleTasks
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -151,6 +211,14 @@ function App() {
       ]);
     }
   }, [currentView])
+
+  // Rotar guías cada 10 minutos (600000 ms)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentGuideSet(prev => (prev + 1) % 2)
+    }, 600000) // 10 minutos
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <>
@@ -345,300 +413,146 @@ function App() {
         {/* Vista Home */}
         {currentView === 'home' && (
           <div key="home-view" className="content view-enter">
-            <section className="hero-section">
-              <div className="hero-dashboard">
-                <div className="hero-summary">
-                  {/* Header con título y badge */}
-                  <div className="tasks-card-header">
-                    <h3 className="tasks-card-title">Resumen de Tareas</h3>
-                    <span className="tasks-card-badge">Ver todas</span>
-                  </div>
-
-                  {/* Métricas principales en grid */}
-                  <div className="tasks-metrics-grid">
-                    <div className="tasks-metric-box">
-                      <div className="tasks-metric-icon pending">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10"/>
-                          <polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                      </div>
-                      <div className="tasks-metric-content">
-                        <span className="tasks-metric-label">Pendientes</span>
-                        <span className="tasks-metric-value">8</span>
-                      </div>
-                    </div>
-
-                    <div className="tasks-metric-box">
-                      <div className="tasks-metric-icon progress">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                          <polyline points="22 4 12 14.01 9 11.01"/>
-                        </svg>
-                      </div>
-                      <div className="tasks-metric-content">
-                        <span className="tasks-metric-label">En curso</span>
-                        <span className="tasks-metric-value">3</span>
-                      </div>
-                    </div>
-
-                    <div className="tasks-metric-box">
-                      <div className="tasks-metric-icon done">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                          <polyline points="22 4 12 14.01 9 11.01"/>
-                        </svg>
-                      </div>
-                      <div className="tasks-metric-content">
-                        <span className="tasks-metric-label">Completadas</span>
-                        <span className="tasks-metric-value">24</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Barra de progreso */}
-                  <div className="tasks-progress-section">
-                    <div className="tasks-progress-header">
-                      <span className="tasks-progress-label">Progreso diario</span>
-                      <span className="tasks-progress-percent">75%</span>
-                    </div>
-                    <div className="tasks-progress-bar">
-                      <div className="tasks-progress-fill" style={{ width: '75%' }} />
-                    </div>
-                  </div>
-
-                  {/* Mini gráfico de actividad semanal */}
-                  <div className="tasks-activity-section">
-                    <span className="tasks-activity-label">Actividad de la semana</span>
-                    <div className="tasks-activity-bars">
-                      {[
-                        { day: 'L', value: 60 },
-                        { day: 'M', value: 85 },
-                        { day: 'X', value: 45 },
-                        { day: 'J', value: 90 },
-                        { day: 'V', value: 70 },
-                        { day: 'S', value: 30 },
-                        { day: 'D', value: 20 },
-                      ].map(({ day, value }) => (
-                        <div key={day} className="tasks-activity-bar-wrapper">
-                          <span className="tasks-activity-day">{day}</span>
-                          <div 
-                            className="tasks-activity-bar" 
-                            style={{ height: `${value}%` }}
-                            title={`${day}: ${value}%`}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="hero-charts">
-                  <article className="hero-chart-card large ai-showcase-card">
-                    <div className="ai-showcase-header">
-                      <div className="ai-header-content">
-                        <div className="ai-header-icon-wrapper">
-                          <div className="ai-header-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                              <path d="M2 17l10 5 10-5"/>
-                              <path d="M2 12l10 5 10-5"/>
-                            </svg>
-                          </div>
-                          <div className="ai-header-glow" />
-                        </div>
-                        <div className="ai-header-text">
-                          <h3 className="ai-showcase-title">Asistente IA</h3>
-                          <p className="ai-showcase-subtitle">Potencia tu gestión con inteligencia artificial</p>
-                        </div>
-                      </div>
-                      <div className="ai-status-badge">
-                        <span className="ai-status-pulse" />
-                        <span className="ai-status-text">En línea</span>
-                      </div>
-                    </div>
-
-                    <div className="ai-showcase-body">
-                      <div className="ai-features-grid">
-                        <div className="ai-feature-item">
-                          <div className="ai-feature-icon purple">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            </svg>
-                          </div>
-                          <div className="ai-feature-content">
-                            <span className="ai-feature-title">Consultas instantáneas</span>
-                          </div>
-                        </div>
-
-                        <div className="ai-feature-item">
-                          <div className="ai-feature-icon blue">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                            </svg>
-                          </div>
-                          <div className="ai-feature-content">
-                            <span className="ai-feature-title">Análisis predictivo</span>
-                          </div>
-                        </div>
-
-                        <div className="ai-feature-item">
-                          <div className="ai-feature-icon green">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M12 20v-6M6 20V10M18 20V4"/>
-                            </svg>
-                          </div>
-                          <div className="ai-feature-content">
-                            <span className="ai-feature-title">Optimización automática</span>
-                          </div>
-                        </div>
-
-                        <div className="ai-feature-item">
-                          <div className="ai-feature-icon orange">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="12" cy="12" r="10"/>
-                              <polyline points="12 6 12 12 16 14"/>
-                            </svg>
-                          </div>
-                          <div className="ai-feature-content">
-                            <span className="ai-feature-title">Alertas inteligentes</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="ai-showcase-cta">
-                        <button type="button" className="ai-cta-btn primary">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            {/* Sección de Guías de Uso */}
+            <section className="guides-section">
+              <div className="guides-container">
+                {currentGuideSet === 0 ? (
+                  <>
+                    {/* Primer set de guías */}
+                    <article className="guide-card">
+                      <div className="guide-icon-wrapper">
+                        <div className="guide-icon blue">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
                           </svg>
-                          Abrir chat IA
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="ai-showcase-footer">
-                      <div className="ai-stats-mini">
-                        <div className="ai-stat-mini">
-                          <span className="ai-stat-mini-value">1,247</span>
-                          <span className="ai-stat-mini-label">Consultas</span>
-                        </div>
-                        <div className="ai-stat-mini">
-                          <span className="ai-stat-mini-value">98%</span>
-                          <span className="ai-stat-mini-label">Precisión</span>
                         </div>
                       </div>
-                    </div>
-                  </article>
-
-                  <article className="hero-chart-card">
-                    <div className="hero-chart-header">
-                      <span>Meses fuertes</span>
-                      <span className="hero-chart-badge soft">Año actual</span>
-                    </div>
-                    <div className="hero-chart-grid">
-                      {['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'].map(
-                        (m, idx) => (
-                          <div
-                            key={m}
-                            className={`hero-chart-cell ${idx % 3 === 0 ? 'high' : idx % 2 === 0 ? 'mid' : 'low'
-                              }`}
-                          >
-                            <span>{m}</span>
+                      <div className="guide-content">
+                        <h3 className="guide-title">Navegación Principal</h3>
+                        <p className="guide-description">
+                          Utiliza el menú lateral para acceder a las diferentes secciones: <strong>Bodega</strong> para ver todos tus vinos disponibles, 
+                          <strong> Agotados</strong> para gestionar el stock, y <strong>Tareas</strong> para organizar tu trabajo diario.
+                        </p>
+                        <div className="guide-steps">
+                          <div className="guide-step">
+                            <span className="step-number">1</span>
+                            <span className="step-text">Haz clic en cualquier sección del menú lateral</span>
                           </div>
-                        )
-                      )}
-                    </div>
-                  </article>
-
-                  <article className="hero-chart-card">
-                    <div className="hero-chart-header">
-                      <span>Categorías clave</span>
-                    </div>
-                    <div className="hero-chart-pie">
-                      <div className="hero-pie-inner" />
-                      <div className="hero-pie-legend">
-                        <div className="legend-row">
-                          <span className="legend-dot verde" />
-                          <span>Blancos &nbsp; · &nbsp; 35%</span>
-                        </div>
-                        <div className="legend-row">
-                          <span className="legend-dot violeta" />
-                          <span>Tintos &nbsp; · &nbsp; 45%</span>
-                        </div>
-                        <div className="legend-row">
-                          <span className="legend-dot rosa" />
-                          <span>Espumosos &nbsp; · &nbsp; 20%</span>
+                          <div className="guide-step">
+                            <span className="step-number">2</span>
+                            <span className="step-text">Explora el contenido de cada vista</span>
+                          </div>
+                          <div className="guide-step">
+                            <span className="step-number">3</span>
+                            <span className="step-text">Regresa a Inicio cuando quieras</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </article>
-                </div>
-              </div>
-            </section>
+                    </article>
 
-            {/* Zona extra de gráficas bajo el hero */}
-            <section className="home-analytics-section">
-              <div className="home-analytics-main">
-                <div className="home-analytics-header">
-                  <span className="home-analytics-title">Evolución de ventas</span>
-                  <span className="home-analytics-subtitle">Últimos 30 días</span>
-                </div>
-                <div className="home-analytics-chart">
-                  <div className="home-analytics-yaxis">
-                    {['300k', '290k', '280k', '270k'].map((tick) => (
-                      <span key={tick}>{tick}</span>
-                    ))}
-                  </div>
-                  <div className="home-analytics-bars">
-                    {[
-                      { day: 'Lun', value: 60, tone: 'neutral' },
-                      { day: 'Mar', value: 68, tone: 'neutral-strong' },
-                      { day: 'Mié', value: 60, tone: 'neutral' },
-                      { day: 'Jue', value: 56, tone: 'neutral-soft' },
-                      { day: 'Vie', value: 72, tone: 'positive-strong' },
-                      { day: 'Sáb', value: 66, tone: 'positive' },
-                      { day: 'Dom', value: 48, tone: 'low' },
-                    ].map(({ day, value, tone }) => (
-                      <div key={day} className="home-analytics-bar-wrapper">
-                        <div
-                          className={`home-analytics-bar ${tone}`}
-                          style={{ height: `${Math.max(0, Math.min(1, (value - 40) / 30)) * 100}%` }}
-                        />
-                        <span className="home-analytics-day">{day}</span>
+                    <article className="guide-card">
+                      <div className="guide-icon-wrapper">
+                        <div className="guide-icon purple">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12"/>
+                          </svg>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                      <div className="guide-content">
+                        <h3 className="guide-title">Gestión de Bodega</h3>
+                        <p className="guide-description">
+                          En la sección <strong>Bodega</strong>, puedes ver todos tus vinos, filtrarlos por tipo y acceder a información detallada. 
+                          Haz clic en cualquier vino para ver su ficha completa con precio, origen y características.
+                        </p>
+                        <div className="guide-steps">
+                          <div className="guide-step">
+                            <span className="step-number">1</span>
+                            <span className="step-text">Accede a la sección Bodega desde el menú</span>
+                          </div>
+                          <div className="guide-step">
+                            <span className="step-number">2</span>
+                            <span className="step-text">Usa los filtros para encontrar vinos específicos</span>
+                          </div>
+                          <div className="guide-step">
+                            <span className="step-number">3</span>
+                            <span className="step-text">Haz clic en un vino para ver todos sus detalles</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  </>
+                ) : (
+                  <>
+                    {/* Segundo set de guías */}
+                    <article className="guide-card">
+                      <div className="guide-icon-wrapper">
+                        <div className="guide-icon green">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="guide-content">
+                        <h3 className="guide-title">Asistente IA</h3>
+                        <p className="guide-description">
+                          El <strong>Asistente IA</strong> te ayuda a gestionar tu bodega de forma inteligente. Pregúntale sobre disponibilidad, 
+                          recomendaciones, análisis de ventas y mucho más. Está disponible 24/7 para responder tus consultas.
+                        </p>
+                        <div className="guide-steps">
+                          <div className="guide-step">
+                            <span className="step-number">1</span>
+                            <span className="step-text">Accede a la sección IA desde el menú</span>
+                          </div>
+                          <div className="guide-step">
+                            <span className="step-number">2</span>
+                            <span className="step-text">Escribe tu pregunta o usa las opciones rápidas</span>
+                          </div>
+                          <div className="guide-step">
+                            <span className="step-number">3</span>
+                            <span className="step-text">Recibe respuestas instantáneas y precisas</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
 
-              <div className="home-analytics-side">
-                <article className="home-mini-card">
-                  <div className="home-mini-header">
-                    <span>Rotación por sesión</span>
-                  </div>
-                  <div className="home-mini-body">
-                    <div className="home-mini-ring">
-                      <div className="home-mini-ring-inner">3.2x</div>
-                    </div>
-                    <div className="home-mini-legend">
-                      <span>Media de botellas por servicio</span>
-                    </div>
-                  </div>
-                </article>
-
-                <article className="home-mini-card">
-                  <div className="home-mini-header">
-                    <span>Ocupación</span>
-                  </div>
-                  <div className="home-mini-body">
-                    <div className="home-mini-gauge">
-                      <div className="home-mini-gauge-fill" />
-                    </div>
-                    <div className="home-mini-legend">
-                      <span>85% mesas activas en las horas punta</span>
-                    </div>
-                  </div>
-                </article>
+                    <article className="guide-card">
+                      <div className="guide-icon-wrapper">
+                        <div className="guide-icon orange">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="guide-content">
+                        <h3 className="guide-title">Notificaciones y Alertas</h3>
+                        <p className="guide-description">
+                          Mantente informado con el sistema de <strong>Notificaciones</strong>. Recibe alertas cuando un vino se agota, 
+                          cuando hay nuevas tareas pendientes o cuando necesitas realizar acciones importantes en tu bodega.
+                        </p>
+                        <div className="guide-steps">
+                          <div className="guide-step">
+                            <span className="step-number">1</span>
+                            <span className="step-text">Revisa el icono de campana en el menú</span>
+                          </div>
+                          <div className="guide-step">
+                            <span className="step-number">2</span>
+                            <span className="step-text">Haz clic en las notificaciones para más detalles</span>
+                          </div>
+                          <div className="guide-step">
+                            <span className="step-number">3</span>
+                            <span className="step-text">Configura tus preferencias en Ajustes</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  </>
+                )}
               </div>
             </section>
 
@@ -710,7 +624,21 @@ function App() {
                 <div className="tareas-header-badge">HOY</div>
               </div>
 
-              {/* Botones de sesión de tareas (provisional) */}
+              {/* Barra de filtros tipo chips */}
+              <div className="tareas-filter-bar">
+                {taskFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    className={`tareas-filter-chip ${tasksFilter === filter.id ? 'active' : ''}`}
+                    onClick={() => setTasksFilter(filter.id)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Botones de sesión de tareas (pendientes / completadas / todas) */}
               <div className="tareas-actions-row">
                 <button
                   className="tareas-action-btn primary"
@@ -748,9 +676,39 @@ function App() {
                 </div>
               </div>
 
-              <p className="settings-placeholder tareas-placeholder">
-                Diseño provisional de la vista de tareas. Aquí luego podrás listar y gestionar tus tareas reales.
-              </p>
+              {/* Lista de tareas estilo cards */}
+              <div className="tareas-list">
+                {filteredTasks.map((task) => (
+                  <article key={task.id} className="tarea-item-card">
+                    <header className="tarea-item-header">
+                      <div className="tarea-item-header-left">
+                        <span className="tarea-item-initial-pill">{task.initials}</span>
+                        <h3 className="tarea-item-title">{task.title}</h3>
+                      </div>
+                      <span className="tarea-item-time">{task.timeLabel}</span>
+                    </header>
+                    <p className="tarea-item-description">{task.description}</p>
+                    <footer className="tarea-item-footer">
+                      <div className="tarea-item-meta">
+                        <span className="tarea-item-pill">
+                          {task.group === 'hoy' && 'Hoy'}
+                          {task.group === 'ayer' && 'Ayer'}
+                          {task.group === 'semana' && 'Esta semana'}
+                        </span>
+                        <span className="tarea-item-meta-text">
+                          {task.attachments > 0 && `${task.attachments} adj.`}
+                          {task.attachments > 0 && task.comments > 0 && ' · '}
+                          {task.comments > 0 && `${task.comments} comentarios`}
+                        </span>
+                      </div>
+                      <div className="tarea-item-avatars">
+                        <span className="tarea-avatar-circle" />
+                        <span className="tarea-avatar-circle secondary" />
+                      </div>
+                    </footer>
+                  </article>
+                ))}
+              </div>
             </div>
           </div>
         )}
