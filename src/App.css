@@ -59,7 +59,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: start;
-  padding: 15px 0;
+  /* un poco más de aire arriba y abajo para que el contenido no toque las esquinas */
+  padding: 18px 0 24px 0;
   left: var(--sidebar-gap);
   top: 50%;                 /* centrado vertical respecto a la ventana */
  border-radius: 10px;
@@ -67,9 +68,31 @@ body {
   position: fixed;          /* sidebar fijo */
   height: 95vh;             /* 90% del alto: mismo margen arriba/abajo */
   transform: translateY(-50%);
-  overflow: hidden;
+  /* Permitir scroll interno cuando el contenido es más alto que la pantalla */
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Scrollbar fino y discreto en Firefox */
+  scrollbar-width: thin;                  /* ancho reducido */
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
   color: #d9d9de;
   box-shadow: none;
+}
+
+/* Scrollbar personalizado en navegadores WebKit (Chrome, Edge, Safari) */
+.sidebar::-webkit-scrollbar {
+  width: 6px;                    /* más fino */
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;       /* sin fondo, solo el thumb */
+  margin: 15px 0;                /* margen arriba y abajo para que no llegue al borde */
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;          /* bordes redondeados */
+  border: 2px solid transparent; /* crea un pequeño espacio interior */
+  background-clip: padding-box;  /* hace que el “borde” se vea como margen */
 }
 
 .floating-menu-button {
