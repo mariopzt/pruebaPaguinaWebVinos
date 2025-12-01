@@ -33,6 +33,75 @@ function App() {
   const [settingsTransition, setSettingsTransition] = useState('forward')
   const [tasksFilter, setTasksFilter] = useState('hoy')
   const [currentGuideSet, setCurrentGuideSet] = useState(0)
+  const [selectedTask, setSelectedTask] = useState(null)
+  const [showTaskModal, setShowTaskModal] = useState(false)
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false)
+  const [tasks, setTasks] = useState([
+    {
+      id: 1,
+      title: 'Revisar stock de tintos',
+      description: 'Comprueba las referencias con menos de 10 botellas y prepara una propuesta de reposición.',
+      group: 'hoy',
+      date: '4 July',
+      dateValue: '2025-07-04',
+      avatars: [
+        'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120',
+        'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120',
+        'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=120'
+      ],
+      extraCount: 3,
+      color: 'purple',
+      status: 'pending',
+      priority: 'high'
+    },
+    {
+      id: 2,
+      title: 'Actualizar carta de vinos por copa',
+      description: 'Añadir las nuevas referencias sugeridas por la IA y retirar las de rotación lenta.',
+      group: 'hoy',
+      date: '5 July',
+      dateValue: '2025-07-05',
+      avatars: [
+        'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=120',
+        'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120'
+      ],
+      extraCount: 1,
+      color: 'blue',
+      status: 'pending',
+      priority: 'medium'
+    },
+    {
+      id: 3,
+      title: 'Analizar ventas del fin de semana',
+      description: 'Revisar qué vinos han tenido mejor salida para ajustar recomendaciones.',
+      group: 'ayer',
+      date: '3 July',
+      dateValue: '2025-07-03',
+      avatars: [
+        'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120'
+      ],
+      extraCount: 2,
+      color: 'green',
+      status: 'pending',
+      priority: 'low'
+    },
+    {
+      id: 4,
+      title: 'Planificar cata interna del equipo',
+      description: 'Seleccionar 6 vinos y preparar una mini ficha para el personal de sala.',
+      group: 'semana',
+      date: '8 July',
+      dateValue: '2025-07-08',
+      avatars: [
+        'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120',
+        'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120'
+      ],
+      extraCount: 0,
+      color: 'orange',
+      status: 'pending',
+      priority: 'medium'
+    },
+  ])
 
   const taskFilters = [
     { id: 'hoy', label: 'Hoy' },
@@ -42,55 +111,44 @@ function App() {
     { id: 'nueva', label: '+ Nueva tarea' },
   ]
 
-  const sampleTasks = [
-    {
-      id: 1,
-      title: 'Revisar stock de tintos',
-      description: 'Comprueba las referencias con menos de 10 botellas y prepara una propuesta de reposición.',
-      group: 'hoy',
-      comments: 3,
-      attachments: 1,
-      initials: 'ST',
-      timeLabel: 'Hace 10 min',
-    },
-    {
-      id: 2,
-      title: 'Actualizar carta de vinos por copa',
-      description: 'Añadir las nuevas referencias sugeridas por la IA y retirar las de rotación lenta.',
-      group: 'hoy',
-      comments: 1,
-      attachments: 0,
-      initials: 'CV',
-      timeLabel: 'Hace 25 min',
-    },
-    {
-      id: 3,
-      title: 'Analizar ventas del fin de semana',
-      description: 'Revisar qué vinos han tenido mejor salida para ajustar recomendaciones.',
-      group: 'ayer',
-      comments: 2,
-      attachments: 2,
-      initials: 'VS',
-      timeLabel: 'Ayer',
-    },
-    {
-      id: 4,
-      title: 'Planificar cata interna del equipo',
-      description: 'Seleccionar 6 vinos y preparar una mini ficha para el personal de sala.',
-      group: 'semana',
-      comments: 0,
-      attachments: 1,
-      initials: 'CE',
-      timeLabel: 'Esta semana',
-    },
-  ]
-
   const filteredTasks =
     tasksFilter === 'hoy'
-      ? sampleTasks.filter((t) => t.group === 'hoy')
+      ? tasks.filter((t) => t.group === 'hoy')
       : tasksFilter === 'ayer'
-        ? sampleTasks.filter((t) => t.group === 'ayer')
-        : sampleTasks
+        ? tasks.filter((t) => t.group === 'ayer')
+        : tasks
+
+  const handleTaskClick = (task) => {
+    setSelectedTask(task)
+    setShowTaskModal(true)
+  }
+
+  const handleAddTask = () => {
+    setShowAddTaskModal(true)
+  }
+
+  const handleSaveTask = (taskData) => {
+    if (taskData.id) {
+      // Editar tarea existente
+      setTasks(tasks.map(t => t.id === taskData.id ? taskData : t))
+    } else {
+      // Agregar nueva tarea
+      const newTask = {
+        ...taskData,
+        id: Date.now(),
+        avatars: ['https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120'],
+        extraCount: 0
+      }
+      setTasks([...tasks, newTask])
+    }
+    setShowTaskModal(false)
+    setShowAddTaskModal(false)
+  }
+
+  const handleDeleteTask = (taskId) => {
+    setTasks(tasks.filter(t => t.id !== taskId))
+    setShowTaskModal(false)
+  }
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -697,9 +755,14 @@ function App() {
         {currentView === 'tareas' && (
           <div key="tareas-view" className="content view-enter">
             <div className="section section-full tareas-section">
-              <div className="section-header tareas-header">
-                <h2 className="section-title">Tareas</h2>
-                <div className="tareas-header-badge">HOY</div>
+              <div className="tareas-header-new">
+                <h2 className="tareas-title-new">Mis Tareas</h2>
+                <button className="tareas-add-btn" onClick={handleAddTask}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 5v14M5 12h14"/>
+                  </svg>
+                  Nueva Tarea
+                </button>
               </div>
 
               {/* Barra de filtros tipo chips */}
@@ -716,74 +779,58 @@ function App() {
                 ))}
               </div>
 
-              {/* Botones de sesión de tareas (pendientes / completadas / todas) */}
-              <div className="tareas-actions-row">
-                <button
-                  className="tareas-action-btn primary"
-                  onClick={() => setCurrentView('tareas-pendientes')}
-                >
-                  Pendientes
-                </button>
-                <button
-                  className="tareas-action-btn"
-                  onClick={() => setCurrentView('tareas-completadas')}
-                >
-                  Completadas
-                </button>
-                <button
-                  className="tareas-action-btn"
-                  onClick={() => setCurrentView('tareas')}
-                >
-                  Todas
-                </button>
-              </div>
-
-              {/* Resumen rápido de tareas */}
-              <div className="tareas-summary">
-                <div className="tarea-card pendientes">
-                  <span className="tarea-card-label">Pendientes</span>
-                  <span className="tarea-card-value">8</span>
-                </div>
-                <div className="tarea-card en-progreso">
-                  <span className="tarea-card-label">En progreso</span>
-                  <span className="tarea-card-value">3</span>
-                </div>
-                <div className="tarea-card completadas">
-                  <span className="tarea-card-label">Completadas</span>
-                  <span className="tarea-card-value">21</span>
-                </div>
-              </div>
-
-              {/* Lista de tareas estilo cards */}
-              <div className="tareas-list">
+              {/* Lista de tareas estilo cards moderno */}
+              <div className="tareas-grid-new">
                 {filteredTasks.map((task) => (
-                  <article key={task.id} className="tarea-item-card">
-                    <header className="tarea-item-header">
-                      <div className="tarea-item-header-left">
-                        <span className="tarea-item-initial-pill">{task.initials}</span>
-                        <h3 className="tarea-item-title">{task.title}</h3>
+                  <article 
+                    key={task.id} 
+                    className={`tarea-card-new tarea-card-${task.color}`}
+                    onClick={() => handleTaskClick(task)}
+                  >
+                    <div className="tarea-card-header-new">
+                      <button 
+                        className="tarea-card-menu"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleTaskClick(task)
+                        }}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="5" r="1"/>
+                          <circle cx="12" cy="12" r="1"/>
+                          <circle cx="12" cy="19" r="1"/>
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    <h3 className="tarea-card-title-new">{task.title}</h3>
+                    <p className="tarea-card-description-new">{task.description}</p>
+                    
+                    <div className="tarea-card-footer-new">
+                      <div className="tarea-card-avatars-new">
+                        {task.avatars.map((avatar, index) => (
+                          <img 
+                            key={index}
+                            src={avatar} 
+                            alt="Avatar" 
+                            className="tarea-avatar-img"
+                          />
+                        ))}
+                        {task.extraCount > 0 && (
+                          <span className="tarea-avatar-extra">+{task.extraCount}</span>
+                        )}
                       </div>
-                      <span className="tarea-item-time">{task.timeLabel}</span>
-                    </header>
-                    <p className="tarea-item-description">{task.description}</p>
-                    <footer className="tarea-item-footer">
-                      <div className="tarea-item-meta">
-                        <span className="tarea-item-pill">
-                          {task.group === 'hoy' && 'Hoy'}
-                          {task.group === 'ayer' && 'Ayer'}
-                          {task.group === 'semana' && 'Esta semana'}
-                        </span>
-                        <span className="tarea-item-meta-text">
-                          {task.attachments > 0 && `${task.attachments} adj.`}
-                          {task.attachments > 0 && task.comments > 0 && ' · '}
-                          {task.comments > 0 && `${task.comments} comentarios`}
-                        </span>
+                      
+                      <div className="tarea-card-date-new">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                          <line x1="16" y1="2" x2="16" y2="6"/>
+                          <line x1="8" y1="2" x2="8" y2="6"/>
+                          <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        {task.date}
                       </div>
-                      <div className="tarea-item-avatars">
-                        <span className="tarea-avatar-circle" />
-                        <span className="tarea-avatar-circle secondary" />
-                      </div>
-                    </footer>
+                    </div>
                   </article>
                 ))}
               </div>
@@ -1247,7 +1294,494 @@ function App() {
         onAddWine={handleAddWine}
       />
     )}
+
+    {/* Modal de detalles/edición de tarea */}
+    {showTaskModal && selectedTask && (
+      <TaskModal
+        task={selectedTask}
+        onClose={() => {
+          setShowTaskModal(false)
+          setSelectedTask(null)
+        }}
+        onSave={handleSaveTask}
+        onDelete={handleDeleteTask}
+      />
+    )}
+
+    {/* Modal de agregar tarea */}
+    {showAddTaskModal && (
+      <AddTaskModal
+        onClose={() => setShowAddTaskModal(false)}
+        onSave={handleSaveTask}
+      />
+    )}
     </>
+  )
+}
+
+// Componente Select personalizado para usar el mismo estilo de la página
+function CustomSelect({ value, options, onChange }) {
+  const [open, setOpen] = useState(false)
+  const selectRef = useRef(null)
+
+  const selectedOption = options.find((opt) => opt.value === value)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (selectRef.current && !selectRef.current.contains(event.target)) {
+        setOpen(false)
+      }
+    }
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [open])
+
+  return (
+    <div className={`custom-select ${open ? 'open' : ''}`} ref={selectRef}>
+      <button
+        type="button"
+        className="custom-select-trigger"
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <span>{selectedOption ? selectedOption.label : 'Seleccionar'}</span>
+        <svg width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="currentColor" strokeWidth="2">
+          <polyline points="1 1 6 6 11 1" />
+        </svg>
+      </button>
+      {open && (
+        <div className="custom-select-options">
+          {options.map((opt) => (
+            <button
+              type="button"
+              key={opt.value}
+              className={`custom-select-option ${opt.value === value ? 'selected' : ''}`}
+              onClick={() => {
+                onChange(opt.value)
+                setOpen(false)
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Componente de Calendario Personalizado
+function CustomCalendar({ selectedDate, onDateSelect, onClose }) {
+  // Inicializar currentMonth correctamente desde selectedDate
+  const initMonth = () => {
+    if (selectedDate) {
+      const [year, month] = selectedDate.split('-').map(Number)
+      return new Date(year, month - 1, 1)
+    }
+    return new Date()
+  }
+  const [currentMonth, setCurrentMonth] = useState(initMonth())
+  
+  const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  
+  const daysOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+  
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const daysInMonth = lastDay.getDate()
+    const startingDayOfWeek = firstDay.getDay()
+    
+    const days = []
+    
+    // Días del mes anterior
+    const prevMonthLastDay = new Date(year, month, 0).getDate()
+    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+      days.push({ day: prevMonthLastDay - i, isCurrentMonth: false })
+    }
+    
+    // Días del mes actual
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({ day: i, isCurrentMonth: true })
+    }
+    
+    // Días del siguiente mes
+    const remainingDays = 42 - days.length // 6 semanas * 7 días
+    for (let i = 1; i <= remainingDays; i++) {
+      days.push({ day: i, isCurrentMonth: false })
+    }
+    
+    return days
+  }
+  
+  const handlePrevMonth = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))
+  }
+  
+  const handleNextMonth = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))
+  }
+  
+  const handleDayClick = (e, day) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (day.isCurrentMonth) {
+      const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day.day)
+      onDateSelect(newDate)
+      onClose()
+    }
+  }
+  
+  const isSelectedDay = (day) => {
+    if (!selectedDate || !day.isCurrentMonth) return false
+    // Usar split para evitar problemas de zona horaria
+    const [year, month, dayNum] = selectedDate.split('-').map(Number)
+    return (
+      dayNum === day.day &&
+      (month - 1) === currentMonth.getMonth() &&
+      year === currentMonth.getFullYear()
+    )
+  }
+  
+  const isToday = (day) => {
+    if (!day.isCurrentMonth) return false
+    const today = new Date()
+    return (
+      today.getDate() === day.day &&
+      today.getMonth() === currentMonth.getMonth() &&
+      today.getFullYear() === currentMonth.getFullYear()
+    )
+  }
+  
+  const days = getDaysInMonth(currentMonth)
+  
+  return (
+    <div className="calendar-overlay" onClick={onClose}>
+      <div className="calendar-popup" onClick={(e) => e.stopPropagation()}>
+        <div className="calendar-header">
+          <button type="button" className="calendar-nav-btn" onClick={handlePrevMonth}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <h3 className="calendar-month-title">
+            {monthNames[currentMonth.getMonth()]}
+          </h3>
+          <button type="button" className="calendar-nav-btn" onClick={handleNextMonth}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div className="calendar-weekdays">
+          {daysOfWeek.map((day) => (
+            <div key={day} className="calendar-weekday">{day}</div>
+          ))}
+        </div>
+        
+        <div className="calendar-days">
+          {days.map((day, index) => (
+            <button
+              key={index}
+              type="button"
+              className={`calendar-day ${!day.isCurrentMonth ? 'calendar-day-other' : ''} ${
+                isSelectedDay(day) ? 'calendar-day-selected' : ''
+              } ${isToday(day) ? 'calendar-day-today' : ''}`}
+              onClick={(e) => handleDayClick(e, day)}
+            >
+              {day.day}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Componente Modal de Tarea
+function TaskModal({ task, onClose, onSave, onDelete }) {
+  const [editedTask, setEditedTask] = useState(task)
+  const [showCalendar, setShowCalendar] = useState(false)
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    onSave(editedTask)
+  }
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="task-modal-header">
+          <h3>Detalles de la Tarea</h3>
+          <button className="task-modal-close" onClick={onClose}>✕</button>
+        </div>
+        
+        <form className="task-modal-content" onSubmit={handleSubmit}>
+          <div className="task-modal-field">
+            <label>Título</label>
+            <input
+              type="text"
+              value={editedTask.title}
+              onChange={(e) => setEditedTask({...editedTask, title: e.target.value})}
+              required
+            />
+          </div>
+
+          <div className="task-modal-field">
+            <label>Descripción</label>
+            <textarea
+              value={editedTask.description}
+              onChange={(e) => setEditedTask({...editedTask, description: e.target.value})}
+              rows="4"
+              required
+            />
+          </div>
+
+          <div className="task-modal-row">
+            <div className="task-modal-field">
+              <label>Fecha</label>
+              <div 
+                className="date-display-field"
+                onClick={() => setShowCalendar(true)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span>{editedTask.date}</span>
+              </div>
+              {showCalendar && (
+                <CustomCalendar
+                  selectedDate={editedTask.dateValue}
+                  onDateSelect={(date) => {
+                    const year = date.getFullYear()
+                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                    const day = String(date.getDate()).padStart(2, '0')
+                    const dateValue = `${year}-${month}-${day}`
+                    
+                    const formattedDate = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
+                    setEditedTask({
+                      ...editedTask,
+                      date: formattedDate,
+                      dateValue: dateValue
+                    })
+                  }}
+                  onClose={() => setShowCalendar(false)}
+                />
+              )}
+            </div>
+
+            <div className="task-modal-field">
+              <label>Estado</label>
+              <div className="task-status-inline">
+                <span className="task-status-text">
+                  {editedTask.status === 'completed' ? 'Completada' : 'Pendiente'}
+                </span>
+                <label className="task-status-toggle">
+                  <input
+                    type="checkbox"
+                    checked={editedTask.status === 'completed'}
+                    onChange={(e) =>
+                      setEditedTask({
+                        ...editedTask,
+                        status: e.target.checked ? 'completed' : 'pending',
+                      })
+                    }
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="task-modal-actions">
+            <button
+              type="button"
+              className="task-modal-btn task-modal-btn-delete"
+              onClick={() => {
+                if (confirm('¿Estás seguro de eliminar esta tarea?')) {
+                  onDelete(task.id)
+                }
+              }}
+            >
+              Eliminar
+            </button>
+            <div className="task-modal-actions-right">
+              <button
+                type="button"
+                className="task-modal-btn task-modal-btn-cancel"
+                onClick={onClose}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="task-modal-btn task-modal-btn-save"
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Componente Modal de Agregar Tarea
+function AddTaskModal({ onClose, onSave }) {
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [newTask, setNewTask] = useState({
+    title: '',
+    description: '',
+    date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long' }),
+    dateValue: new Date().toISOString().split('T')[0],
+    color: 'purple',
+    status: 'pending',
+    priority: 'medium',
+    group: 'hoy'
+  })
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    onSave(newTask)
+  }
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="task-modal-header">
+          <h3>Nueva Tarea</h3>
+          <button className="task-modal-close" onClick={onClose}>✕</button>
+        </div>
+        
+        <form className="task-modal-content" onSubmit={handleSubmit}>
+          <div className="task-modal-field">
+            <label>Título</label>
+            <input
+              type="text"
+              value={newTask.title}
+              onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+              placeholder="Ej: Revisar inventario"
+              required
+            />
+          </div>
+
+          <div className="task-modal-field">
+            <label>Descripción</label>
+            <textarea
+              value={newTask.description}
+              onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+              placeholder="Describe la tarea..."
+              rows="4"
+              required
+            />
+          </div>
+
+          <div className="task-modal-row">
+            <div className="task-modal-field">
+              <label>Fecha</label>
+              <div 
+                className="date-display-field"
+                onClick={() => setShowCalendar(true)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span>{newTask.date}</span>
+              </div>
+              {showCalendar && (
+                <CustomCalendar
+                  selectedDate={newTask.dateValue}
+                  onDateSelect={(date) => {
+                    const year = date.getFullYear()
+                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                    const day = String(date.getDate()).padStart(2, '0')
+                    const dateValue = `${year}-${month}-${day}`
+                    
+                    const formattedDate = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
+                    setNewTask({
+                      ...newTask,
+                      date: formattedDate,
+                      dateValue: dateValue
+                    })
+                  }}
+                  onClose={() => setShowCalendar(false)}
+                />
+              )}
+            </div>
+
+            <div className="task-modal-field">
+              <label>Estado</label>
+              <div className="task-status-inline">
+                <span className="task-status-text">
+                  {newTask.status === 'completed' ? 'Completada' : 'Pendiente'}
+                </span>
+                <label className="task-status-toggle">
+                  <input
+                    type="checkbox"
+                    checked={newTask.status === 'completed'}
+                    onChange={(e) =>
+                      setNewTask({
+                        ...newTask,
+                        status: e.target.checked ? 'completed' : 'pending',
+                      })
+                    }
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="task-modal-row">
+            <div className="task-modal-field">
+              <label>Grupo</label>
+              <select
+                value={newTask.group}
+                onChange={(e) => setNewTask({...newTask, group: e.target.value})}
+              >
+                <option value="hoy">Hoy</option>
+                <option value="ayer">Ayer</option>
+                <option value="semana">Esta semana</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="task-modal-actions">
+            <div className="task-modal-actions-right">
+              <button
+                type="button"
+                className="task-modal-btn task-modal-btn-cancel"
+                onClick={onClose}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="task-modal-btn task-modal-btn-save"
+              >
+                Crear Tarea
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
   )
 }
 

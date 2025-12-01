@@ -4027,11 +4027,1081 @@ flex-direction: column;
   margin: 0;
 }
 
-/* --- Vista Tareas (diseño provisional) --- */
+/* --- Vista Tareas (diseño moderno) --- */
 .tareas-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
+  padding: 20px;
+}
+
+/* Nuevo header de tareas */
+.tareas-header-new {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.tareas-title-new {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.tareas-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+}
+
+.tareas-add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.45);
+}
+
+/* Grid de tarjetas de tareas */
+.tareas-grid-new {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 10px;
+}
+
+/* Tarjeta de tarea moderna */
+.tarea-card-new {
+  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tarea-card-new::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(232, 255, 106, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.tarea-card-new:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  border-color: rgba(232, 255, 106, 0.3);
+}
+
+/* Variantes de color - acorde con el estilo de la app */
+.tarea-card-purple {
+  background: radial-gradient(circle at top left, #2a2347 0, #111118 60%);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.tarea-card-purple::before {
+  background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+}
+
+.tarea-card-purple:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.tarea-card-blue {
+  background: radial-gradient(circle at top left, #1a2847 0, #111118 60%);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.tarea-card-blue::before {
+  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+}
+
+.tarea-card-blue:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.tarea-card-green {
+  background: radial-gradient(circle at top left, #1a2e26 0, #111118 60%);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.tarea-card-green::before {
+  background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+}
+
+.tarea-card-green:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.tarea-card-orange {
+  background: radial-gradient(circle at top left, #2e2419 0, #111118 60%);
+  border-color: rgba(249, 115, 22, 0.2);
+}
+
+.tarea-card-orange::before {
+  background: radial-gradient(circle at top right, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+}
+
+.tarea-card-orange:hover {
+  border-color: rgba(249, 115, 22, 0.4);
+}
+
+/* Header de la tarjeta */
+.tarea-card-header-new {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.tarea-card-menu {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #9ca3c0;
+}
+
+.tarea-card-menu:hover {
+  background: rgba(232, 255, 106, 0.12);
+  border-color: rgba(232, 255, 106, 0.3);
+  color: #e8ff6a;
+  transform: scale(1.05);
+}
+
+/* Título y descripción */
+.tarea-card-title-new {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.tarea-card-description-new {
+  font-size: 13px;
+  color: #c0c2d8;
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+/* Footer de la tarjeta */
+.tarea-card-footer-new {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+/* Avatares */
+.tarea-card-avatars-new {
+  display: flex;
+  align-items: center;
+}
+
+.tarea-avatar-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(17, 17, 24, 0.8);
+  margin-left: -8px;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.tarea-avatar-img:first-child {
+  margin-left: 0;
+}
+
+.tarea-avatar-img:hover {
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+.tarea-avatar-extra {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(17, 17, 24, 0.8);
+  margin-left: -8px;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e8ff6a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Fecha */
+.tarea-card-date-new {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3c0;
+}
+
+.tarea-card-date-new svg {
+  flex-shrink: 0;
+  color: #e8ff6a;
+}
+
+/* Modal de Tareas */
+.task-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+.task-modal {
+  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  animation: slideIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.task-modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.task-modal-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #9ca3c0;
+  transition: all 0.2s ease;
+}
+
+.task-modal-close:hover {
+  background: rgba(255, 77, 79, 0.15);
+  border-color: rgba(255, 77, 79, 0.3);
+  color: #ff6b6b;
+}
+
+.task-modal-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.task-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.task-modal-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
+
+.task-modal-field {
+  margin-bottom: 20px;
+}
+
+.task-modal-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ca3c0;
+}
+
+/* Label específico para el toggle de estado (sin margen abajo) */
+.task-modal-field .task-status-toggle {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+}
+
+.task-modal-field input,
+.task-modal-field textarea,
+.task-modal-field select {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  font-size: 14px;
+  color: #ffffff;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.task-modal-field input:focus,
+.task-modal-field textarea:focus,
+.task-modal-field select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+
+.task-modal-field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.task-modal-field select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%239ca3c0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+  color-scheme: dark;
+}
+
+/* Estilos para las opciones del select */
+.task-modal-field select option {
+  background-color: #1e1e2e !important;
+  color: #ffffff !important;
+  padding: 10px !important;
+}
+
+/* Firefox - opción seleccionada */
+.task-modal-field select option:checked {
+  background: #2a2a3e !important;
+  color: #ffffff !important;
+}
+
+/* Webkit (Chrome, Safari, Edge) - opción seleccionada */
+.task-modal-field select:focus option:checked {
+  background: #2a2a3e !important;
+  color: #ffffff !important;
+}
+
+/* Hover en opciones */
+.task-modal-field select option:hover {
+  background: #2a2a3e !important;
+}
+
+/* Campo de fecha visual mejorado */
+.date-display-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  font-size: 14px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.date-display-field:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.date-display-field svg {
+  color: #9ca3c0;
+  flex-shrink: 0;
+}
+
+.date-display-field span {
+  flex: 1;
+}
+
+/* Input date oculto pero funcional */
+.hidden-date-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Estilos para el calendario nativo cuando se abre */
+.hidden-date-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Mejorar el aspecto del calendario emergente */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  color-scheme: dark;
+}
+
+/* Estilos adicionales para navegadores que soportan color-scheme */
+.task-modal-field {
+  position: relative;
+  color-scheme: dark;
+}
+
+/* Calendario Personalizado */
+.calendar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  animation: fadeIn 0.2s ease;
+}
+
+.calendar-popup {
+  /* Fondo alineado con el diseño del modal principal */
+  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 20px;
+  width: 320px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  animation: slideIn 0.3s ease-out;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.calendar-nav-btn {
+  background: transparent;
+  border: none;
+  color: #8b8fa8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+}
+
+.calendar-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #a5a8c5;
+}
+
+.calendar-month-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #8b8fc9;
+  text-align: center;
+  flex: 1;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b6f88;
+  padding: 8px 0;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border: none;
+  background: transparent;
+  color: #e4e6f0;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-day:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.calendar-day-other {
+  color: #4a4d5e;
+}
+
+.calendar-day-today {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.calendar-day-selected {
+  background: linear-gradient(135deg, #d67ee0 0%, #d14a5e 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.calendar-day-selected.calendar-day-today {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* Diferentes colores para días seleccionados (como en la imagen) */
+.calendar-day:nth-child(7n+3).calendar-day-selected {
+  background: linear-gradient(135deg, #d67ee0 0%, #d14a5e 100%);
+}
+
+.calendar-day:nth-child(7n+6).calendar-day-selected {
+  background: linear-gradient(135deg, #5a6dd8 0%, #6842a0 100%);
+}
+
+.calendar-day:nth-child(7n+2).calendar-day-selected {
+  background: linear-gradient(135deg, #e89445 0%, #e8ca4a 100%);
+}
+
+.calendar-day:nth-child(7n+4).calendar-day-selected {
+  background: linear-gradient(135deg, #4a9ae6 0%, #00d8e6 100%);
+}
+
+.task-modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.task-status-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.task-status-text {
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.task-status-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.task-status-toggle input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: #6366f1;
+}
+
+.task-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.task-modal-actions-right {
+  display: flex;
+  gap: 10px;
+}
+
+.task-modal-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.task-modal-btn-cancel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #9ca3c0;
+}
+
+.task-modal-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.task-modal-btn-save {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+}
+
+.task-modal-btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.45);
+}
+
+.task-modal-btn-delete {
+  background: rgba(255, 77, 79, 0.15);
+  border: 1px solid rgba(255, 77, 79, 0.3);
+  color: #ff6b6b;
+}
+
+.task-modal-btn-delete:hover {
+  background: rgba(255, 77, 79, 0.25);
+  border-color: rgba(255, 77, 79, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Responsive para modales de tareas */
+@media (max-width: 768px) {
+  .task-modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .task-modal-header {
+    padding: 16px 20px;
+  }
+
+  .task-modal-content {
+    padding: 20px;
+  }
+
+  .task-modal-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .task-modal-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .task-modal-actions-right {
+    width: 100%;
+  }
+
+  .task-modal-btn {
+    width: 100%;
+  }
+}
+
+/* --- Vista Pedidos --- */
+.pedidos-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.pedidos-header-new {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.pedidos-title-new {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.pedidos-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+}
+
+.pedidos-add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.45);
+}
+
+/* Resumen de estadísticas */
+.pedidos-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.pedido-stat-card {
+  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.3s ease;
+}
+
+.pedido-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.pedido-stat-card.pendiente {
+  border-color: rgba(249, 115, 22, 0.2);
+}
+
+.pedido-stat-card.en-proceso {
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.pedido-stat-card.completado {
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.pedido-stat-card.total {
+  border-color: rgba(232, 255, 106, 0.2);
+}
+
+.pedido-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pedido-stat-card.pendiente .pedido-stat-icon {
+  background: rgba(249, 115, 22, 0.15);
+  color: #fb923c;
+}
+
+.pedido-stat-card.en-proceso .pedido-stat-icon {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.pedido-stat-card.completado .pedido-stat-icon {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.pedido-stat-card.total .pedido-stat-icon {
+  background: rgba(232, 255, 106, 0.15);
+  color: #e8ff6a;
+}
+
+.pedido-stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pedido-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.pedido-stat-label {
+  font-size: 12px;
+  color: #9ca3c0;
+  font-weight: 500;
+}
+
+/* Grid de pedidos */
+.pedidos-grid-new {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* Tarjeta de pedido */
+.pedido-card-new {
+  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.pedido-card-new::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(232, 255, 106, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.pedido-card-new:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  border-color: rgba(232, 255, 106, 0.3);
+}
+
+/* Variantes de color para pedidos */
+.pedido-card-orange {
+  border-color: rgba(249, 115, 22, 0.2);
+}
+
+.pedido-card-orange::before {
+  background: radial-gradient(circle at top right, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+}
+
+.pedido-card-blue {
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.pedido-card-blue::before {
+  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+}
+
+.pedido-card-green {
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.pedido-card-green::before {
+  background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+}
+
+.pedido-card-purple {
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.pedido-card-purple::before {
+  background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+}
+
+/* Header de la tarjeta de pedido */
+.pedido-card-header-new {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.pedido-card-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.08);
+  color: #9ca3c0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pedido-card-menu {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #9ca3c0;
+}
+
+.pedido-card-menu:hover {
+  background: rgba(232, 255, 106, 0.12);
+  border-color: rgba(232, 255, 106, 0.3);
+  color: #e8ff6a;
+  transform: scale(1.05);
+}
+
+/* Título del pedido */
+.pedido-card-title-new {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+  line-height: 1.3;
+}
+
+/* Tags de vinos */
+.pedido-card-vinos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.pedido-vino-tag {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  color: #c0c2d8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pedido-vino-more {
+  background: rgba(232, 255, 106, 0.12);
+  border-color: rgba(232, 255, 106, 0.3);
+  color: #e8ff6a;
+}
+
+/* Footer de la tarjeta de pedido */
+.pedido-card-footer-new {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pedido-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pedido-info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #9ca3c0;
+}
+
+.pedido-info-item svg {
+  flex-shrink: 0;
+  color: #e8ff6a;
+}
+
+.pedido-card-total {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e8ff6a;
+}
+
+/* Responsive para pedidos */
+@media (max-width: 768px) {
+  .pedidos-section {
+    padding: 16px;
+  }
+
+  .pedidos-summary {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .pedidos-grid-new {
+    grid-template-columns: 1fr;
+  }
+
+  .pedido-stat-card {
+    padding: 12px;
+  }
+
+  .pedido-stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .pedido-stat-value {
+    font-size: 18px;
+  }
 }
 
 .tareas-header {
