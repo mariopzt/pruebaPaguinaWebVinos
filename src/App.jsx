@@ -31,7 +31,7 @@ function App() {
   })
   const [settingsView, setSettingsView] = useState('menu')
   const [settingsTransition, setSettingsTransition] = useState('forward')
-  const [tasksFilter, setTasksFilter] = useState('hoy')
+  const [tasksFilter, setTasksFilter] = useState('todas')
   const [currentGuideSet, setCurrentGuideSet] = useState(0)
   const [selectedTask, setSelectedTask] = useState(null)
   const [showTaskModal, setShowTaskModal] = useState(false)
@@ -104,19 +104,25 @@ function App() {
   ])
 
   const taskFilters = [
+    { id: 'todas', label: 'Todas' },
     { id: 'hoy', label: 'Hoy' },
     { id: 'ayer', label: 'Ayer' },
     { id: 'semana', label: 'Semana' },
     { id: 'mes', label: 'Mes' },
-    { id: 'nueva', label: '+ Nueva tarea' },
   ]
 
   const filteredTasks =
-    tasksFilter === 'hoy'
-      ? tasks.filter((t) => t.group === 'hoy')
-      : tasksFilter === 'ayer'
-        ? tasks.filter((t) => t.group === 'ayer')
-        : tasks
+    tasksFilter === 'todas'
+      ? tasks
+      : tasksFilter === 'hoy'
+        ? tasks.filter((t) => t.group === 'hoy')
+        : tasksFilter === 'ayer'
+          ? tasks.filter((t) => t.group === 'ayer')
+          : tasksFilter === 'semana'
+            ? tasks.filter((t) => t.group === 'semana')
+            : tasksFilter === 'mes'
+              ? tasks.filter((t) => t.group === 'mes')
+              : tasks
 
   const handleTaskClick = (task) => {
     setSelectedTask(task)
@@ -755,28 +761,30 @@ function App() {
         {currentView === 'tareas' && (
           <div key="tareas-view" className="content view-enter">
             <div className="section section-full tareas-section">
-              <div className="tareas-header-new">
-                <h2 className="tareas-title-new">Mis Tareas</h2>
-                <button className="tareas-add-btn" onClick={handleAddTask}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 5v14M5 12h14"/>
-                  </svg>
-                  Nueva Tarea
-                </button>
-              </div>
-
-              {/* Barra de filtros tipo chips */}
-              <div className="tareas-filter-bar">
-                {taskFilters.map((filter) => (
-                  <button
-                    key={filter.id}
-                    type="button"
-                    className={`tareas-filter-chip ${tasksFilter === filter.id ? 'active' : ''}`}
-                    onClick={() => setTasksFilter(filter.id)}
-                  >
-                    {filter.label}
+              <div className="tareas-top-section">
+                <div className="tareas-header-new">
+                  <h2 className="tareas-title-new">Mis Tareas</h2>
+                  <button className="tareas-add-btn" onClick={handleAddTask}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Nueva Tarea
                   </button>
-                ))}
+                </div>
+
+                {/* Barra de filtros tipo chips */}
+                <div className="tareas-filter-bar">
+                  {taskFilters.map((filter) => (
+                    <button
+                      key={filter.id}
+                      type="button"
+                      className={`tareas-filter-chip ${tasksFilter === filter.id ? 'active' : ''}`}
+                      onClick={() => setTasksFilter(filter.id)}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Lista de tareas estilo cards moderno */}

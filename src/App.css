@@ -4029,6 +4029,7 @@ flex-direction: column;
 
 /* --- Vista Tareas (diseño moderno) --- */
 .tareas-section {
+  height: 95vh;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -4664,10 +4665,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: #ffffff;
 }
 
-.task-status-toggle {
-  display: flex;
-  align-items: center;
-}
 
 .task-status-toggle input[type='checkbox'] {
   width: 16px;
