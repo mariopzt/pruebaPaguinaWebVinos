@@ -32,6 +32,7 @@ function App() {
   const [settingsView, setSettingsView] = useState('menu')
   const [settingsTransition, setSettingsTransition] = useState('forward')
   const [tasksFilter, setTasksFilter] = useState('todas')
+  const [tasksAnimating, setTasksAnimating] = useState(false)
   const [currentGuideSet, setCurrentGuideSet] = useState(0)
   const [selectedTask, setSelectedTask] = useState(null)
   const [showTaskModal, setShowTaskModal] = useState(false)
@@ -762,34 +763,40 @@ function App() {
           <div key="tareas-view" className="content view-enter">
             <div className="section section-full tareas-section">
               <div className="tareas-top-section">
-                <div className="tareas-header-new">
-                  <h2 className="tareas-title-new">Mis Tareas</h2>
+                <div className="tareas-filters-row">
+                  {/* Barra de filtros */}
+                  <div className="tareas-filter-bar">
+                    {taskFilters.map((filter) => (
+                      <button
+                        key={filter.id}
+                        type="button"
+                        className={`tareas-filter-chip ${tasksFilter === filter.id ? 'active' : ''}`}
+                        onClick={() => {
+                          setTasksAnimating(true)
+                          setTimeout(() => {
+                            setTasksFilter(filter.id)
+                            setTasksAnimating(false)
+                          }, 300)
+                        }}
+                      >
+                        {filter.label}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Botón nueva tarea */}
                   <button className="tareas-add-btn" onClick={handleAddTask}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 5v14M5 12h14"/>
                     </svg>
-                    Nueva Tarea
+                    Nuevo
                   </button>
-                </div>
-
-                {/* Barra de filtros tipo chips */}
-                <div className="tareas-filter-bar">
-                  {taskFilters.map((filter) => (
-                    <button
-                      key={filter.id}
-                      type="button"
-                      className={`tareas-filter-chip ${tasksFilter === filter.id ? 'active' : ''}`}
-                      onClick={() => setTasksFilter(filter.id)}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
                 </div>
               </div>
 
               {/* Lista de tareas estilo cards moderno */}
-              <div className="tareas-grid-new">
-                {filteredTasks.map((task) => (
+              <div className={`tareas-grid-new ${tasksAnimating ? 'animating-out' : ''}`}>
+                {!tasksAnimating && filteredTasks.map((task) => (
                   <article 
                     key={task.id} 
                     className={`tarea-card-new tarea-card-blue ${task.removing ? 'removing' : ''}`}

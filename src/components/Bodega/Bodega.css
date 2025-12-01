@@ -607,7 +607,6 @@
   cursor: pointer;
   transition: all 0.3s ease;
   letter-spacing: 0.3px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -623,7 +622,6 @@
 
 .add-wine-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 14px rgba(102, 126, 234, 0.4);
 }
 
 .add-wine-button:active {

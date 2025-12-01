@@ -4041,7 +4041,7 @@ flex-direction: column;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 
 .tareas-title-new {
@@ -4049,6 +4049,7 @@ flex-direction: column;
   font-weight: 700;
   color: #ffffff;
   margin: 0;
+  display: none;
 }
 
 .tareas-add-btn {
@@ -4072,12 +4073,28 @@ flex-direction: column;
   box-shadow: 0 6px 16px rgba(102, 126, 234, 0.45);
 }
 
+.tareas-add-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.tareas-add-btn:hover svg {
+  transform: rotate(90deg);
+}
+
 /* Grid de tarjetas de tareas */
 .tareas-grid-new {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 12px;
   margin-top: 10px;
+}
+
+/* Fila de filtros y botón */
+.tareas-filters-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 /* Tarjeta de tarea moderna */
@@ -4091,6 +4108,16 @@ flex-direction: column;
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.06);
+  animation: taskFadeIn 0.4s ease forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@keyframes taskFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Animación de desaparición */
@@ -5130,28 +5157,41 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .tareas-filter-bar {
-  margin-top: 10px;
+  margin-top: 0;
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .tareas-filter-chip {
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  background: rgba(12, 12, 18, 0.9);
+  padding: 8px 16px;
+  background: rgba(20, 20, 30, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  height: 30px;
+  font-size: 9px;
+  font-weight: 500;
   color: #9ca3c0;
-  font-size: 8px;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tareas-filter-chip:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #a5b4fc;
+  background: rgba(30, 30, 45, 0.7);
+  transform: translateY(-1px);
 }
 
 .tareas-filter-chip.active {
-  background: rgba(99, 102, 241, 0.18);
-  border-color: rgba(99, 102, 241, 0.5);
-  color: #c7d2fe;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #ffffff;
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .tareas-action-btn {
