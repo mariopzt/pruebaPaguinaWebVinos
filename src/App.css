@@ -4075,22 +4075,46 @@ flex-direction: column;
 /* Grid de tarjetas de tareas */
 .tareas-grid-new {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
   margin-top: 10px;
 }
 
 /* Tarjeta de tarea moderna */
 .tarea-card-new {
-  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  background: radial-gradient(circle at top left, #121218 0, #08080c 60%);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Animación de desaparición */
+.tarea-card-new.removing {
+  animation: taskRemove 0.4s ease forwards;
+}
+
+@keyframes taskRemove {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.95) translateY(-10px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+    height: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+  }
 }
 
 .tarea-card-new::before {
@@ -4105,15 +4129,15 @@ flex-direction: column;
 }
 
 .tarea-card-new:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   border-color: rgba(232, 255, 106, 0.3);
 }
 
 /* Variantes de color - acorde con el estilo de la app */
 .tarea-card-purple {
-  background: radial-gradient(circle at top left, #2a2347 0, #111118 60%);
-  border-color: rgba(99, 102, 241, 0.2);
+  background: radial-gradient(circle at top left, #14141f 0, #08080c 60%);
+  border-color: rgba(99, 102, 241, 0.1);
 }
 
 .tarea-card-purple::before {
@@ -4121,12 +4145,11 @@ flex-direction: column;
 }
 
 .tarea-card-purple:hover {
-  border-color: rgba(99, 102, 241, 0.4);
+  border-color: rgba(99, 102, 241, 0.2);
 }
 
 .tarea-card-blue {
-  background: radial-gradient(circle at top left, #1a2847 0, #111118 60%);
-  border-color: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .tarea-card-blue::before {
@@ -4134,12 +4157,12 @@ flex-direction: column;
 }
 
 .tarea-card-blue:hover {
-  border-color: rgba(59, 130, 246, 0.4);
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
 .tarea-card-green {
-  background: radial-gradient(circle at top left, #1a2e26 0, #111118 60%);
-  border-color: rgba(16, 185, 129, 0.2);
+  background: radial-gradient(circle at top left, #0f1512 0, #08080c 60%);
+  border-color: rgba(16, 185, 129, 0.1);
 }
 
 .tarea-card-green::before {
@@ -4147,64 +4170,71 @@ flex-direction: column;
 }
 
 .tarea-card-green:hover {
-  border-color: rgba(16, 185, 129, 0.4);
+  border-color: rgba(16, 185, 129, 0.2);
 }
 
-.tarea-card-orange {
-  background: radial-gradient(circle at top left, #2e2419 0, #111118 60%);
-  border-color: rgba(249, 115, 22, 0.2);
-}
 
-.tarea-card-orange::before {
-  background: radial-gradient(circle at top right, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
-}
-
-.tarea-card-orange:hover {
-  border-color: rgba(249, 115, 22, 0.4);
-}
 
 /* Header de la tarjeta */
 .tarea-card-header-new {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
-.tarea-card-menu {
+.tarea-card-checkbox {
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
+  border: 0.8px solid rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  width: 12px;
+  height: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #9ca3c0;
+  color: transparent;
 }
 
-.tarea-card-menu:hover {
-  background: rgba(232, 255, 106, 0.12);
-  border-color: rgba(232, 255, 106, 0.3);
-  color: #e8ff6a;
-  transform: scale(1.05);
+.tarea-card-checkbox:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(255, 255, 255, 0.34);
+  transform: scale(1.35);
+}
+
+.tarea-card-checkbox.checked {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.5);
+  color: #a5b4fc;
+}
+
+.tarea-card-checkbox.checked:hover {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.6);
 }
 
 /* Título y descripción */
 .tarea-card-title-new {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   color: #ffffff;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tarea-card-description-new {
-  font-size: 13px;
+  font-size: 7px;
   color: #c0c2d8;
-  margin: 0 0 16px 0;
-  line-height: 1.5;
+  margin: 0 0 18px 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Footer de la tarjeta */
@@ -4215,46 +4245,25 @@ flex-direction: column;
   margin-top: auto;
 }
 
-/* Avatares */
-.tarea-card-avatars-new {
+/* Usuario */
+.tarea-card-user {
   display: flex;
   align-items: center;
 }
 
-.tarea-avatar-img {
+.tarea-user-avatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid rgba(17, 17, 24, 0.8);
-  margin-left: -8px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
   object-fit: cover;
   transition: transform 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.tarea-avatar-img:first-child {
-  margin-left: 0;
-}
-
-.tarea-avatar-img:hover {
+.tarea-user-avatar:hover {
   transform: scale(1.1);
-  z-index: 10;
-}
-
-.tarea-avatar-extra {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid rgba(17, 17, 24, 0.8);
-  margin-left: -8px;
-  background: rgba(255, 255, 255, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 600;
-  color: #e8ff6a;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Fecha */
@@ -4262,18 +4271,16 @@ flex-direction: column;
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 9px;
+  font-weight: 400;
   color: #9ca3c0;
 }
 
 .tarea-card-date-new svg {
   flex-shrink: 0;
-  color: #e8ff6a;
+  color: #7f85a3;
+  opacity: 0.7;
+  width: 10px;
 }
 
 /* Modal de Tareas */

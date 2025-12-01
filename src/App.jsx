@@ -108,20 +108,20 @@ function App() {
     { id: 'hoy', label: 'Hoy' },
     { id: 'ayer', label: 'Ayer' },
     { id: 'semana', label: 'Semana' },
-    { id: 'mes', label: 'Mes' },
+    { id: 'terminadas', label: 'Terminadas' },
   ]
 
   const filteredTasks =
     tasksFilter === 'todas'
-      ? tasks
+      ? tasks.filter((t) => t.status !== 'completed')
       : tasksFilter === 'hoy'
-        ? tasks.filter((t) => t.group === 'hoy')
+        ? tasks.filter((t) => t.group === 'hoy' && t.status !== 'completed')
         : tasksFilter === 'ayer'
-          ? tasks.filter((t) => t.group === 'ayer')
+          ? tasks.filter((t) => t.group === 'ayer' && t.status !== 'completed')
           : tasksFilter === 'semana'
-            ? tasks.filter((t) => t.group === 'semana')
-            : tasksFilter === 'mes'
-              ? tasks.filter((t) => t.group === 'mes')
+            ? tasks.filter((t) => t.group === 'semana' && t.status !== 'completed')
+            : tasksFilter === 'terminadas'
+              ? tasks.filter((t) => t.status === 'completed')
               : tasks
 
   const handleTaskClick = (task) => {
@@ -792,22 +792,36 @@ function App() {
                 {filteredTasks.map((task) => (
                   <article 
                     key={task.id} 
-                    className={`tarea-card-new tarea-card-${task.color}`}
+                    className={`tarea-card-new tarea-card-blue ${task.removing ? 'removing' : ''}`}
                     onClick={() => handleTaskClick(task)}
                   >
                     <div className="tarea-card-header-new">
                       <button 
-                        className="tarea-card-menu"
+                        className={`tarea-card-checkbox ${task.status === 'completed' ? 'checked' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleTaskClick(task)
+                          
+                          // Marcar la tarea como "removing" para activar la animación
+                          setTasks(tasks.map(t => 
+                            t.id === task.id ? { ...t, removing: true } : t
+                          ))
+                          
+                          // Después de la animación, actualizar el estado
+                          setTimeout(() => {
+                            const updatedTask = {
+                              ...task,
+                              status: task.status === 'completed' ? 'pending' : 'completed',
+                              removing: false
+                            }
+                            setTasks(tasks.map(t => t.id === task.id ? updatedTask : t))
+                          }, 400)
                         }}
                       >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="5" r="1"/>
-                          <circle cx="12" cy="12" r="1"/>
-                          <circle cx="12" cy="19" r="1"/>
-                        </svg>
+                        {task.status === 'completed' && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        )}
                       </button>
                     </div>
                     
@@ -815,18 +829,12 @@ function App() {
                     <p className="tarea-card-description-new">{task.description}</p>
                     
                     <div className="tarea-card-footer-new">
-                      <div className="tarea-card-avatars-new">
-                        {task.avatars.map((avatar, index) => (
-                          <img 
-                            key={index}
-                            src={avatar} 
-                            alt="Avatar" 
-                            className="tarea-avatar-img"
-                          />
-                        ))}
-                        {task.extraCount > 0 && (
-                          <span className="tarea-avatar-extra">+{task.extraCount}</span>
-                        )}
+                      <div className="tarea-card-user">
+                        <img 
+                          src={task.avatars[0]} 
+                          alt="User" 
+                          className="tarea-user-avatar"
+                        />
                       </div>
                       
                       <div className="tarea-card-date-new">
@@ -836,7 +844,7 @@ function App() {
                           <line x1="8" y1="2" x2="8" y2="6"/>
                           <line x1="3" y1="10" x2="21" y2="10"/>
                         </svg>
-                        {task.date}
+                        <span>{task.date}</span>
                       </div>
                     </div>
                   </article>
@@ -1592,26 +1600,6 @@ function TaskModal({ task, onClose, onSave, onDelete }) {
               )}
             </div>
 
-            <div className="task-modal-field">
-              <label>Estado</label>
-              <div className="task-status-inline">
-                <span className="task-status-text">
-                  {editedTask.status === 'completed' ? 'Completada' : 'Pendiente'}
-                </span>
-                <label className="task-status-toggle">
-                  <input
-                    type="checkbox"
-                    checked={editedTask.status === 'completed'}
-                    onChange={(e) =>
-                      setEditedTask({
-                        ...editedTask,
-                        status: e.target.checked ? 'completed' : 'pending',
-                      })
-                    }
-                  />
-                </label>
-              </div>
-            </div>
           </div>
 
           <div className="task-modal-actions">
@@ -1734,40 +1722,6 @@ function AddTaskModal({ onClose, onSave }) {
               )}
             </div>
 
-            <div className="task-modal-field">
-              <label>Estado</label>
-              <div className="task-status-inline">
-                <span className="task-status-text">
-                  {newTask.status === 'completed' ? 'Completada' : 'Pendiente'}
-                </span>
-                <label className="task-status-toggle">
-                  <input
-                    type="checkbox"
-                    checked={newTask.status === 'completed'}
-                    onChange={(e) =>
-                      setNewTask({
-                        ...newTask,
-                        status: e.target.checked ? 'completed' : 'pending',
-                      })
-                    }
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div className="task-modal-row">
-            <div className="task-modal-field">
-              <label>Grupo</label>
-              <select
-                value={newTask.group}
-                onChange={(e) => setNewTask({...newTask, group: e.target.value})}
-              >
-                <option value="hoy">Hoy</option>
-                <option value="ayer">Ayer</option>
-                <option value="semana">Esta semana</option>
-              </select>
-            </div>
           </div>
 
           <div className="task-modal-actions">
