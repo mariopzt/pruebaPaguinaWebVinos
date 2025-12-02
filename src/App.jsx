@@ -152,17 +152,27 @@ function App() {
 
   const filteredOrders =
     ordersFilter === 'todos'
-      ? orders.filter((o) => !o.items.every((item) => item.completed))
+      ? orders.filter(
+        (o) =>
+          // Mostrar como pendientes mientras están en animación
+          !o.items.every((item) => item.completed) || o.completing
+      )
       : ordersFilter === 'terminados'
-        ? orders.filter((o) => o.items.every((item) => item.completed))
+        ? orders.filter(
+          (o) =>
+            // Mostrar también mientras se anima su salida de Terminados
+            o.items.every((item) => item.completed) || o.completing
+        )
         : orders
 
   const pendingOrdersCount = orders.filter(
-    (o) => !o.items.every((item) => item.completed)
+    (o) =>
+      !o.items.every((item) => item.completed) || o.completing
   ).length
 
-  const completedOrdersCount = orders.filter((o) =>
-    o.items.every((item) => item.completed)
+  const completedOrdersCount = orders.filter(
+    (o) =>
+      o.items.every((item) => item.completed) && !o.completing
   ).length
 
   const inProgressOrdersCount = orders.filter((o) => {
@@ -253,31 +263,48 @@ function App() {
   }
 
   const handleToggleOrderItem = (orderId, itemId) => {
-    setOrders(orders.map(order => {
-      if (order.id === orderId) {
-        const updatedItems = order.items.map(item =>
+    // Primer update: actualizar items y, si se acaba de completar, activar la animación
+    setOrders((prevOrders) =>
+      prevOrders.map((order) => {
+        if (order.id !== orderId) return order
+
+        const updatedItems = order.items.map((item) =>
           item.id === itemId ? { ...item, completed: !item.completed } : item
         )
-        const allCompleted = updatedItems.every(item => item.completed)
-        
-        // Si todos los items están completados, activar animación
-        if (allCompleted && !order.completing) {
-          setTimeout(() => {
-            setOrders(prevOrders => prevOrders.map(o =>
-              o.id === orderId ? { ...o, completing: true } : o
-            ))
-            setTimeout(() => {
-              setOrders(prevOrders => prevOrders.map(o =>
-                o.id === orderId ? { ...o, completing: false } : o
-              ))
-            }, 600)
-          }, 100)
+
+        const allCompleted = updatedItems.every((item) => item.completed)
+        const wasCompleted = order.items.every((item) => item.completed)
+        const changedCompletionState = allCompleted !== wasCompleted
+
+        return {
+          ...order,
+          items: updatedItems,
+          // Activamos la animación siempre que cambie el estado global de completado
+          completing: changedCompletionState ? true : false,
+          // Estado lógico de completado
+          completed: allCompleted
         }
-        
-        return { ...order, items: updatedItems }
-      }
-      return order
-    }))
+      })
+    )
+
+    // Segundo update: al terminar la animación, quitamos la clase y dejamos solo el estado final
+    setTimeout(() => {
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => {
+          if (order.id !== orderId) return order
+
+          const allCompleted = order.items.every((item) => item.completed)
+
+          // Si sigue completo, lo marcamos como terminado sin la clase de animación
+          if (allCompleted) {
+            return { ...order, completing: false, completed: true }
+          }
+
+          // Si ya no está completo (por haber desmarcado algo), nos aseguramos de limpiar flags
+          return { ...order, completing: false, completed: false }
+        })
+      )
+    }, 450) // un pelín más que la animación CSS (0.4s)
   }
 
   const toggleMenu = () => {
