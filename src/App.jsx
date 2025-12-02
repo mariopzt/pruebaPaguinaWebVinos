@@ -1092,86 +1092,31 @@ function App() {
         {currentView === 'pedidos' && (
           <div key="pedidos-view" className="content view-enter">
             <div className="section section-full pedidos-section">
-              {/* Header pedidos */}
-              <div className="pedidos-header-new">
-                <h2 className="pedidos-title-new">Pedidos</h2>
-                <button className="pedidos-add-btn" onClick={handleAddOrder}>
+              {/* Filtros de pedidos */}
+              <div className="tareas-filters-row" style={{ marginBottom: 16 }}>
+                <div className="tareas-filter-bar">
+                  <button
+                    type="button"
+                    className={`tareas-filter-chip ${ordersFilter === 'todos' ? 'active' : ''}`}
+                    onClick={() => setOrdersFilter('todos')}
+                  >
+                    Pendientes
+                  </button>
+                  <button
+                    type="button"
+                    className={`tareas-filter-chip ${ordersFilter === 'terminados' ? 'active' : ''}`}
+                    onClick={() => setOrdersFilter('terminados')}
+                  >
+                    Terminados
+                  </button>
+                </div>
+                
+                {/* Botón nuevo pedido */}
+                <button className="tareas-add-btn" onClick={handleAddOrder}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 5v14M5 12h14" />
+                    <path d="M12 5v14M5 12h14"/>
                   </svg>
                   Nuevo
-                </button>
-              </div>
-
-              {/* Resumen de estado de pedidos */}
-              <div className="pedidos-summary">
-                <div className="pedido-stat-card pendiente">
-                  <div className="pedido-stat-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="6" x2="12" y2="12" />
-                      <line x1="12" y1="12" x2="16" y2="16" />
-                    </svg>
-                  </div>
-                  <div className="pedido-stat-content">
-                    <div className="pedido-stat-value">{pendingOrdersCount}</div>
-                    <div className="pedido-stat-label">Pendientes</div>
-                  </div>
-                </div>
-
-                <div className="pedido-stat-card en-proceso">
-                  <div className="pedido-stat-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 2v20" />
-                      <path d="M5 9l7-7 7 7" />
-                    </svg>
-                  </div>
-                  <div className="pedido-stat-content">
-                    <div className="pedido-stat-value">{inProgressOrdersCount}</div>
-                    <div className="pedido-stat-label">En proceso</div>
-                  </div>
-                </div>
-
-                <div className="pedido-stat-card completado">
-                  <div className="pedido-stat-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </div>
-                  <div className="pedido-stat-content">
-                    <div className="pedido-stat-value">{completedOrdersCount}</div>
-                    <div className="pedido-stat-label">Completados</div>
-                  </div>
-                </div>
-
-                <div className="pedido-stat-card total">
-                  <div className="pedido-stat-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                    </svg>
-                  </div>
-                  <div className="pedido-stat-content">
-                    <div className="pedido-stat-value">{totalOrdersCount}</div>
-                    <div className="pedido-stat-label">Total</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Filtros de pedidos */}
-              <div className="tareas-filter-bar" style={{ marginBottom: 12 }}>
-                <button
-                  type="button"
-                  className={`tareas-filter-chip ${ordersFilter === 'todos' ? 'active' : ''}`}
-                  onClick={() => setOrdersFilter('todos')}
-                >
-                  Pendientes
-                </button>
-                <button
-                  type="button"
-                  className={`tareas-filter-chip ${ordersFilter === 'terminados' ? 'active' : ''}`}
-                  onClick={() => setOrdersFilter('terminados')}
-                >
-                  Terminados
                 </button>
               </div>
 
@@ -1309,6 +1254,60 @@ function App() {
                       </article>
                     )
                   })}
+              </div>
+
+              {/* Resumen de estado de pedidos al final */}
+              <div className="pedidos-summary" style={{ marginTop: '24px' }}>
+                <div className="pedido-stat-card pendiente">
+                  <div className="pedido-stat-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="6" x2="12" y2="12" />
+                      <line x1="12" y1="12" x2="16" y2="16" />
+                    </svg>
+                  </div>
+                  <div className="pedido-stat-content">
+                    <div className="pedido-stat-value">{pendingOrdersCount}</div>
+                    <div className="pedido-stat-label">Pendientes</div>
+                  </div>
+                </div>
+
+                <div className="pedido-stat-card en-proceso">
+                  <div className="pedido-stat-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2v20" />
+                      <path d="M5 9l7-7 7 7" />
+                    </svg>
+                  </div>
+                  <div className="pedido-stat-content">
+                    <div className="pedido-stat-value">{inProgressOrdersCount}</div>
+                    <div className="pedido-stat-label">En proceso</div>
+                  </div>
+                </div>
+
+                <div className="pedido-stat-card completado">
+                  <div className="pedido-stat-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                  <div className="pedido-stat-content">
+                    <div className="pedido-stat-value">{completedOrdersCount}</div>
+                    <div className="pedido-stat-label">Completados</div>
+                  </div>
+                </div>
+
+                <div className="pedido-stat-card total">
+                  <div className="pedido-stat-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    </svg>
+                  </div>
+                  <div className="pedido-stat-content">
+                    <div className="pedido-stat-value">{totalOrdersCount}</div>
+                    <div className="pedido-stat-label">Total</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
