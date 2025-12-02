@@ -4823,7 +4823,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: white;
   border: none;
   border-radius: 8px;
@@ -4831,12 +4831,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .pedidos-add-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.45);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
 }
 
 /* Resumen de estadísticas */
@@ -4860,23 +4860,23 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .pedido-stat-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(99, 102, 241, 0.3);
 }
 
 .pedido-stat-card.pendiente {
-  border-color: rgba(249, 115, 22, 0.2);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .pedido-stat-card.en-proceso {
-  border-color: rgba(59, 130, 246, 0.2);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .pedido-stat-card.completado {
-  border-color: rgba(16, 185, 129, 0.2);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .pedido-stat-card.total {
-  border-color: rgba(232, 255, 106, 0.2);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .pedido-stat-icon {
@@ -4887,26 +4887,28 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
 }
 
 .pedido-stat-card.pendiente .pedido-stat-icon {
-  background: rgba(249, 115, 22, 0.15);
-  color: #fb923c;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
 }
 
 .pedido-stat-card.en-proceso .pedido-stat-icon {
-  background: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
 }
 
 .pedido-stat-card.completado .pedido-stat-icon {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
 }
 
 .pedido-stat-card.total .pedido-stat-icon {
-  background: rgba(232, 255, 106, 0.15);
-  color: #e8ff6a;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
 }
 
 .pedido-stat-content {
@@ -4954,47 +4956,47 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at top right, rgba(232, 255, 106, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
   pointer-events: none;
 }
 
 .pedido-card-new:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
-  border-color: rgba(232, 255, 106, 0.3);
+  border-color: rgba(99, 102, 241, 0.3);
 }
 
-/* Variantes de color para pedidos */
+/* Variantes de color para pedidos - Todas iguales estilo Tareas */
 .pedido-card-orange {
-  border-color: rgba(249, 115, 22, 0.2);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .pedido-card-orange::before {
-  background: radial-gradient(circle at top right, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
 }
 
 .pedido-card-blue {
-  border-color: rgba(59, 130, 246, 0.2);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .pedido-card-blue::before {
-  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
 }
 
 .pedido-card-green {
-  border-color: rgba(16, 185, 129, 0.2);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .pedido-card-green::before {
-  background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
 }
 
 .pedido-card-purple {
-  border-color: rgba(99, 102, 241, 0.2);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .pedido-card-purple::before {
-  background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
 }
 
 /* Header de la tarjeta de pedido */
@@ -5010,9 +5012,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.08);
-  color: #9ca3c0;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(99, 102, 241, 0.1);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
 .pedido-card-menu {
@@ -5094,13 +5096,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .pedido-info-item svg {
   flex-shrink: 0;
-  color: #e8ff6a;
+  color: #7f85a3;
+  opacity: 0.7;
 }
 
 .pedido-card-total {
   font-size: 20px;
   font-weight: 700;
-  color: #e8ff6a;
+  color: #a5b4fc;
 }
 
 /* Responsive para pedidos */
@@ -5130,6 +5133,27 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .pedido-stat-value {
     font-size: 18px;
   }
+}
+
+/* Animación de completar pedido */
+@keyframes orderComplete {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+  }
+  100% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+.pedido-card-new.completing {
+  animation: orderComplete 0.6s ease-in-out;
 }
 
 .tareas-header {

@@ -104,6 +104,74 @@ function App() {
     },
   ])
 
+  // Estado para Pedidos
+  const [orders, setOrders] = useState([
+    {
+      id: 1,
+      orderNumber: 'PED-2024-001',
+      supplier: 'Bodegas Rioja Premium',
+      orderDate: '2024-12-01',
+      expectedDate: '2024-12-10',
+      items: [
+        { id: 1, name: 'Rioja Reserva 2018', quantity: 12, completed: true },
+        { id: 2, name: 'Rioja Gran Reserva 2015', quantity: 6, completed: true },
+        { id: 3, name: 'Rioja Crianza 2020', quantity: 24, completed: false },
+      ],
+      completing: false
+    },
+    {
+      id: 2,
+      orderNumber: 'PED-2024-002',
+      supplier: 'Vinos del Duero',
+      orderDate: '2024-12-02',
+      expectedDate: '2024-12-12',
+      items: [
+        { id: 1, name: 'Ribera del Duero Crianza', quantity: 18, completed: false },
+        { id: 2, name: 'Verdejo Rueda', quantity: 12, completed: false },
+      ],
+      completing: false
+    },
+    {
+      id: 3,
+      orderNumber: 'PED-2024-003',
+      supplier: 'Cavas Catalanas',
+      orderDate: '2024-11-28',
+      expectedDate: '2024-12-08',
+      items: [
+        { id: 1, name: 'Cava Brut Nature', quantity: 24, completed: true },
+        { id: 2, name: 'Cava Rosé', quantity: 12, completed: true },
+        { id: 3, name: 'Cava Reserva', quantity: 6, completed: true },
+      ],
+      completing: false
+    },
+  ])
+  const [ordersFilter, setOrdersFilter] = useState('todos')
+  const [showAddOrderModal, setShowAddOrderModal] = useState(false)
+  const [showEditOrderModal, setShowEditOrderModal] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState(null)
+
+  const filteredOrders =
+    ordersFilter === 'todos'
+      ? orders.filter((o) => !o.items.every((item) => item.completed))
+      : ordersFilter === 'terminados'
+        ? orders.filter((o) => o.items.every((item) => item.completed))
+        : orders
+
+  const pendingOrdersCount = orders.filter(
+    (o) => !o.items.every((item) => item.completed)
+  ).length
+
+  const completedOrdersCount = orders.filter((o) =>
+    o.items.every((item) => item.completed)
+  ).length
+
+  const inProgressOrdersCount = orders.filter((o) => {
+    const completedItems = o.items.filter((item) => item.completed).length
+    return completedItems > 0 && completedItems < o.items.length
+  }).length
+
+  const totalOrdersCount = orders.length
+
   const taskFilters = [
     { id: 'todas', label: 'Todas' },
     { id: 'hoy', label: 'Hoy' },
@@ -155,6 +223,61 @@ function App() {
   const handleDeleteTask = (taskId) => {
     setTasks(tasks.filter(t => t.id !== taskId))
     setShowTaskModal(false)
+  }
+
+  // Handlers para Pedidos
+  const handleAddOrder = () => {
+    setShowAddOrderModal(true)
+  }
+
+  const handleSaveOrder = (orderData) => {
+    if (orderData.id) {
+      // Editar pedido existente
+      setOrders(orders.map(o => o.id === orderData.id ? orderData : o))
+    } else {
+      // Agregar nuevo pedido
+      const newOrder = {
+        ...orderData,
+        id: Date.now(),
+        completing: false
+      }
+      setOrders([...orders, newOrder])
+    }
+    setShowAddOrderModal(false)
+    setShowEditOrderModal(false)
+  }
+
+  const handleDeleteOrder = (orderId) => {
+    setOrders(orders.filter(o => o.id !== orderId))
+    setShowEditOrderModal(false)
+  }
+
+  const handleToggleOrderItem = (orderId, itemId) => {
+    setOrders(orders.map(order => {
+      if (order.id === orderId) {
+        const updatedItems = order.items.map(item =>
+          item.id === itemId ? { ...item, completed: !item.completed } : item
+        )
+        const allCompleted = updatedItems.every(item => item.completed)
+        
+        // Si todos los items están completados, activar animación
+        if (allCompleted && !order.completing) {
+          setTimeout(() => {
+            setOrders(prevOrders => prevOrders.map(o =>
+              o.id === orderId ? { ...o, completing: true } : o
+            ))
+            setTimeout(() => {
+              setOrders(prevOrders => prevOrders.map(o =>
+                o.id === orderId ? { ...o, completing: false } : o
+              ))
+            }, 600)
+          }, 100)
+        }
+        
+        return { ...order, items: updatedItems }
+      }
+      return order
+    }))
   }
 
   const toggleMenu = () => {
@@ -968,11 +1091,225 @@ function App() {
         {/* Vista Pedidos */}
         {currentView === 'pedidos' && (
           <div key="pedidos-view" className="content view-enter">
-            <div className="section section-full">
-              <div className="section-header">
-                <h2 className="section-title">Pedidos</h2>
+            <div className="section section-full pedidos-section">
+              {/* Header pedidos */}
+              <div className="pedidos-header-new">
+                <h2 className="pedidos-title-new">Pedidos</h2>
+                <button className="pedidos-add-btn" onClick={handleAddOrder}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  Nuevo
+                </button>
               </div>
-              <p className="settings-placeholder">Sección en preparación. Aquí verás y gestionarás pedidos.</p>
+
+              {/* Resumen de estado de pedidos */}
+              <div className="pedidos-summary">
+                <div className="pedido-stat-card pendiente">
+                  <div className="pedido-stat-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="6" x2="12" y2="12" />
+                      <line x1="12" y1="12" x2="16" y2="16" />
+                    </svg>
+                  </div>
+                  <div className="pedido-stat-content">
+                    <div className="pedido-stat-value">{pendingOrdersCount}</div>
+                    <div className="pedido-stat-label">Pendientes</div>
+                  </div>
+                </div>
+
+                <div className="pedido-stat-card en-proceso">
+                  <div className="pedido-stat-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2v20" />
+                      <path d="M5 9l7-7 7 7" />
+                    </svg>
+                  </div>
+                  <div className="pedido-stat-content">
+                    <div className="pedido-stat-value">{inProgressOrdersCount}</div>
+                    <div className="pedido-stat-label">En proceso</div>
+                  </div>
+                </div>
+
+                <div className="pedido-stat-card completado">
+                  <div className="pedido-stat-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                  <div className="pedido-stat-content">
+                    <div className="pedido-stat-value">{completedOrdersCount}</div>
+                    <div className="pedido-stat-label">Completados</div>
+                  </div>
+                </div>
+
+                <div className="pedido-stat-card total">
+                  <div className="pedido-stat-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    </svg>
+                  </div>
+                  <div className="pedido-stat-content">
+                    <div className="pedido-stat-value">{totalOrdersCount}</div>
+                    <div className="pedido-stat-label">Total</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filtros de pedidos */}
+              <div className="tareas-filter-bar" style={{ marginBottom: 12 }}>
+                <button
+                  type="button"
+                  className={`tareas-filter-chip ${ordersFilter === 'todos' ? 'active' : ''}`}
+                  onClick={() => setOrdersFilter('todos')}
+                >
+                  Pendientes
+                </button>
+                <button
+                  type="button"
+                  className={`tareas-filter-chip ${ordersFilter === 'terminados' ? 'active' : ''}`}
+                  onClick={() => setOrdersFilter('terminados')}
+                >
+                  Terminados
+                </button>
+              </div>
+
+              {/* Grid de pedidos */}
+              <div className="pedidos-grid-new">
+                {filteredOrders.map((order) => {
+                    const completedItems = order.items.filter(item => item.completed).length
+                    const totalItems = order.items.length
+                    const progress = (completedItems / totalItems) * 100
+                    const isCompleted = completedItems === totalItems
+
+                    return (
+                      <article
+                        key={order.id}
+                        className={`pedido-card-new ${order.completing ? 'completing' : ''}`}
+                        onClick={() => {
+                          setSelectedOrder(order)
+                          setShowEditOrderModal(true)
+                        }}
+                      >
+                        <div className="pedido-card-header-new">
+                          <div>
+                            <h3 className="pedido-card-title-new">{order.orderNumber}</h3>
+                            <p style={{ fontSize: '13px', color: '#9ca3c0', margin: '4px 0 0 0' }}>
+                              {order.supplier}
+                            </p>
+                          </div>
+                          <div
+                            className="pedido-card-badge"
+                            style={{
+                              background: isCompleted
+                                ? 'rgba(99, 102, 241, 0.15)'
+                                : 'rgba(99, 102, 241, 0.1)',
+                              color: isCompleted ? '#a5b4fc' : '#9ca3c0',
+                              borderColor: isCompleted
+                                ? 'rgba(99, 102, 241, 0.3)'
+                                : 'rgba(99, 102, 241, 0.2)',
+                            }}
+                          >
+                            {isCompleted ? 'Completado' : 'Pendiente'}
+                          </div>
+                        </div>
+
+                        <div style={{ marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <span style={{ fontSize: '12px', color: '#9ca3c0' }}>
+                              Progreso: {completedItems}/{totalItems}
+                            </span>
+                            <span style={{ fontSize: '12px', color: '#9ca3c0', fontWeight: '600' }}>
+                              {Math.round(progress)}%
+                            </span>
+                          </div>
+                          <div
+                            style={{
+                              width: '100%',
+                              height: '6px',
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              borderRadius: '999px',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: `${progress}%`,
+                                height: '100%',
+                                background: isCompleted
+                                  ? 'linear-gradient(90deg, #6366f1, #a5b4fc)'
+                                  : 'linear-gradient(90deg, #6366f1, #4f46e5)',
+                                transition: 'width 0.3s ease',
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{ marginBottom: '16px' }}>
+                          {order.items.map((item) => (
+                            <div
+                              key={item.id}
+                              onClick={(e) => e.stopPropagation()}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                padding: '8px 0',
+                                borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={item.completed}
+                                onChange={() => handleToggleOrderItem(order.id, item.id)}
+                                style={{
+                                  width: '16px',
+                                  height: '16px',
+                                  cursor: 'pointer',
+                                  accentColor: '#6366f1',
+                                }}
+                              />
+                              <div style={{ flex: 1 }}>
+                                <div
+                                  style={{
+                                    fontSize: '13px',
+                                    color: item.completed ? '#7f85a3' : '#ffffff',
+                                    textDecoration: item.completed ? 'line-through' : 'none',
+                                  }}
+                                >
+                                  {item.name}
+                                </div>
+                                <div style={{ fontSize: '11px', color: '#7f85a3' }}>
+                                  Cantidad: {item.quantity}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="pedido-card-footer-new">
+                          <div className="pedido-info-item">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                              <line x1="16" y1="2" x2="16" y2="6"/>
+                              <line x1="8" y1="2" x2="8" y2="6"/>
+                              <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            <span>Pedido: {order.orderDate}</span>
+                          </div>
+                          <div className="pedido-info-item">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10"/>
+                              <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            <span>Llegada: {order.expectedDate}</span>
+                          </div>
+                        </div>
+                      </article>
+                    )
+                  })}
+              </div>
             </div>
           </div>
         )}
@@ -1336,6 +1673,27 @@ function App() {
       <AddTaskModal
         onClose={() => setShowAddTaskModal(false)}
         onSave={handleSaveTask}
+      />
+    )}
+
+    {/* Modal de agregar pedido */}
+    {showAddOrderModal && (
+      <AddOrderModal
+        onClose={() => setShowAddOrderModal(false)}
+        onSave={handleSaveOrder}
+      />
+    )}
+
+    {/* Modal de editar pedido */}
+    {showEditOrderModal && selectedOrder && (
+      <EditOrderModal
+        order={selectedOrder}
+        onClose={() => {
+          setShowEditOrderModal(false)
+          setSelectedOrder(null)
+        }}
+        onSave={handleSaveOrder}
+        onDelete={handleDeleteOrder}
       />
     )}
     </>
@@ -1745,6 +2103,505 @@ function AddTaskModal({ onClose, onSave }) {
                 className="task-modal-btn task-modal-btn-save"
               >
                 Crear Tarea
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Componente Modal de Agregar Pedido
+function AddOrderModal({ onClose, onSave }) {
+  const [showOrderDateCalendar, setShowOrderDateCalendar] = useState(false)
+  const [showExpectedDateCalendar, setShowExpectedDateCalendar] = useState(false)
+  const [newOrder, setNewOrder] = useState({
+    orderNumber: '',
+    supplier: '',
+    orderDate: new Date().toISOString().split('T')[0],
+    expectedDate: new Date().toISOString().split('T')[0],
+    items: []
+  })
+  const [newItemName, setNewItemName] = useState('')
+  const [newItemQuantity, setNewItemQuantity] = useState('')
+
+  const handleAddItem = () => {
+    if (newItemName && newItemQuantity) {
+      const newItem = {
+        id: Date.now(),
+        name: newItemName,
+        quantity: parseInt(newItemQuantity),
+        completed: false
+      }
+      setNewOrder({ ...newOrder, items: [...newOrder.items, newItem] })
+      setNewItemName('')
+      setNewItemQuantity('')
+    }
+  }
+
+  const handleRemoveItem = (itemId) => {
+    setNewOrder({
+      ...newOrder,
+      items: newOrder.items.filter(item => item.id !== itemId)
+    })
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (newOrder.items.length > 0) {
+      onSave(newOrder)
+    } else {
+      alert('Debes agregar al menos un item al pedido')
+    }
+  }
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="task-modal-header">
+          <h3>Nuevo Pedido</h3>
+          <button className="task-modal-close" onClick={onClose}>✕</button>
+        </div>
+        
+        <form className="task-modal-content" onSubmit={handleSubmit}>
+          <div className="task-modal-field">
+            <label>Número de Pedido</label>
+            <input
+              type="text"
+              value={newOrder.orderNumber}
+              onChange={(e) => setNewOrder({...newOrder, orderNumber: e.target.value})}
+              placeholder="Ej: PED-2024-001"
+              required
+            />
+          </div>
+
+          <div className="task-modal-field">
+            <label>Proveedor</label>
+            <input
+              type="text"
+              value={newOrder.supplier}
+              onChange={(e) => setNewOrder({...newOrder, supplier: e.target.value})}
+              placeholder="Ej: Bodegas Rioja Premium"
+              required
+            />
+          </div>
+
+          <div className="task-modal-row">
+            <div className="task-modal-field">
+              <label>Fecha de Pedido</label>
+              <div 
+                className="date-display-field"
+                onClick={() => setShowOrderDateCalendar(true)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span>{newOrder.orderDate}</span>
+              </div>
+              {showOrderDateCalendar && (
+                <CustomCalendar
+                  selectedDate={newOrder.orderDate}
+                  onDateSelect={(date) => {
+                    const year = date.getFullYear()
+                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                    const day = String(date.getDate()).padStart(2, '0')
+                    const dateValue = `${year}-${month}-${day}`
+                    setNewOrder({...newOrder, orderDate: dateValue})
+                  }}
+                  onClose={() => setShowOrderDateCalendar(false)}
+                />
+              )}
+            </div>
+
+            <div className="task-modal-field">
+              <label>Fecha Esperada</label>
+              <div 
+                className="date-display-field"
+                onClick={() => setShowExpectedDateCalendar(true)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span>{newOrder.expectedDate}</span>
+              </div>
+              {showExpectedDateCalendar && (
+                <CustomCalendar
+                  selectedDate={newOrder.expectedDate}
+                  onDateSelect={(date) => {
+                    const year = date.getFullYear()
+                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                    const day = String(date.getDate()).padStart(2, '0')
+                    const dateValue = `${year}-${month}-${day}`
+                    setNewOrder({...newOrder, expectedDate: dateValue})
+                  }}
+                  onClose={() => setShowExpectedDateCalendar(false)}
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="task-modal-field">
+            <label>Items del Pedido</label>
+            <div style={{ marginBottom: '12px' }}>
+              {newOrder.items.map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '8px',
+                    marginBottom: '8px',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '13px', color: '#ffffff' }}>{item.name}</div>
+                    <div style={{ fontSize: '11px', color: '#9ca3c0' }}>Cantidad: {item.quantity}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveItem(item.id)}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      color: '#ef4444',
+                      padding: '4px 8px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+                placeholder="Nombre del item"
+                style={{
+                  flex: 2,
+                  padding: '8px 12px',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                }}
+              />
+              <input
+                type="number"
+                value={newItemQuantity}
+                onChange={(e) => setNewItemQuantity(e.target.value)}
+                placeholder="Cant."
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleAddItem}
+                style={{
+                  padding: '8px 16px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+              >
+                Agregar
+              </button>
+            </div>
+          </div>
+
+          <div className="task-modal-actions">
+            <div className="task-modal-actions-right">
+              <button
+                type="button"
+                className="task-modal-btn task-modal-btn-cancel"
+                onClick={onClose}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="task-modal-btn task-modal-btn-save"
+              >
+                Crear Pedido
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Componente Modal de Editar Pedido
+function EditOrderModal({ order, onClose, onSave, onDelete }) {
+  const [showOrderDateCalendar, setShowOrderDateCalendar] = useState(false)
+  const [showExpectedDateCalendar, setShowExpectedDateCalendar] = useState(false)
+  const [editedOrder, setEditedOrder] = useState(order)
+  const [newItemName, setNewItemName] = useState('')
+  const [newItemQuantity, setNewItemQuantity] = useState('')
+
+  const handleAddItem = () => {
+    if (newItemName && newItemQuantity) {
+      const newItem = {
+        id: Date.now(),
+        name: newItemName,
+        quantity: parseInt(newItemQuantity),
+        completed: false
+      }
+      setEditedOrder({ ...editedOrder, items: [...editedOrder.items, newItem] })
+      setNewItemName('')
+      setNewItemQuantity('')
+    }
+  }
+
+  const handleRemoveItem = (itemId) => {
+    setEditedOrder({
+      ...editedOrder,
+      items: editedOrder.items.filter(item => item.id !== itemId)
+    })
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (editedOrder.items.length > 0) {
+      onSave(editedOrder)
+    } else {
+      alert('Debes tener al menos un item en el pedido')
+    }
+  }
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="task-modal-header">
+          <h3>Editar Pedido</h3>
+          <button className="task-modal-close" onClick={onClose}>✕</button>
+        </div>
+        
+        <form className="task-modal-content" onSubmit={handleSubmit}>
+          <div className="task-modal-field">
+            <label>Número de Pedido</label>
+            <input
+              type="text"
+              value={editedOrder.orderNumber}
+              onChange={(e) => setEditedOrder({...editedOrder, orderNumber: e.target.value})}
+              required
+            />
+          </div>
+
+          <div className="task-modal-field">
+            <label>Proveedor</label>
+            <input
+              type="text"
+              value={editedOrder.supplier}
+              onChange={(e) => setEditedOrder({...editedOrder, supplier: e.target.value})}
+              required
+            />
+          </div>
+
+          <div className="task-modal-row">
+            <div className="task-modal-field">
+              <label>Fecha de Pedido</label>
+              <div 
+                className="date-display-field"
+                onClick={() => setShowOrderDateCalendar(true)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span>{editedOrder.orderDate}</span>
+              </div>
+              {showOrderDateCalendar && (
+                <CustomCalendar
+                  selectedDate={editedOrder.orderDate}
+                  onDateSelect={(date) => {
+                    const year = date.getFullYear()
+                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                    const day = String(date.getDate()).padStart(2, '0')
+                    const dateValue = `${year}-${month}-${day}`
+                    setEditedOrder({...editedOrder, orderDate: dateValue})
+                  }}
+                  onClose={() => setShowOrderDateCalendar(false)}
+                />
+              )}
+            </div>
+
+            <div className="task-modal-field">
+              <label>Fecha Esperada</label>
+              <div 
+                className="date-display-field"
+                onClick={() => setShowExpectedDateCalendar(true)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span>{editedOrder.expectedDate}</span>
+              </div>
+              {showExpectedDateCalendar && (
+                <CustomCalendar
+                  selectedDate={editedOrder.expectedDate}
+                  onDateSelect={(date) => {
+                    const year = date.getFullYear()
+                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                    const day = String(date.getDate()).padStart(2, '0')
+                    const dateValue = `${year}-${month}-${day}`
+                    setEditedOrder({...editedOrder, expectedDate: dateValue})
+                  }}
+                  onClose={() => setShowExpectedDateCalendar(false)}
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="task-modal-field">
+            <label>Items del Pedido</label>
+            <div style={{ marginBottom: '12px' }}>
+              {editedOrder.items.map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '8px',
+                    marginBottom: '8px',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '13px', color: '#ffffff' }}>{item.name}</div>
+                    <div style={{ fontSize: '11px', color: '#9ca3c0' }}>
+                      Cantidad: {item.quantity} {item.completed && '✓ Recibido'}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveItem(item.id)}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      color: '#ef4444',
+                      padding: '4px 8px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+                placeholder="Nombre del item"
+                style={{
+                  flex: 2,
+                  padding: '8px 12px',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                }}
+              />
+              <input
+                type="number"
+                value={newItemQuantity}
+                onChange={(e) => setNewItemQuantity(e.target.value)}
+                placeholder="Cant."
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleAddItem}
+                style={{
+                  padding: '8px 16px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+              >
+                Agregar
+              </button>
+            </div>
+          </div>
+
+          <div className="task-modal-actions">
+            <button
+              type="button"
+              className="task-modal-btn task-modal-btn-delete"
+              onClick={() => {
+                if (confirm('¿Estás seguro de eliminar este pedido?')) {
+                  onDelete(order.id)
+                }
+              }}
+            >
+              Eliminar
+            </button>
+            <div className="task-modal-actions-right">
+              <button
+                type="button"
+                className="task-modal-btn task-modal-btn-cancel"
+                onClick={onClose}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="task-modal-btn task-modal-btn-save"
+              >
+                Guardar
               </button>
             </div>
           </div>
