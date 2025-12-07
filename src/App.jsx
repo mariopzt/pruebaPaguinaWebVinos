@@ -149,6 +149,7 @@ function App() {
   const [showAddOrderModal, setShowAddOrderModal] = useState(false)
   const [showEditOrderModal, setShowEditOrderModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [isTareasFilterMenuOpen, setIsTareasFilterMenuOpen] = useState(false)
 
   const filteredOrders =
     ordersFilter === 'todos'
@@ -914,26 +915,46 @@ function App() {
             <div className="section section-full tareas-section">
               <div className="tareas-top-section">
                 <div className="tareas-filters-row">
-                  {/* Barra de filtros */}
-                  <div className="tareas-filter-bar">
-                    {taskFilters.map((filter) => (
-                      <button
-                        key={filter.id}
-                        type="button"
-                        className={`tareas-filter-chip ${tasksFilter === filter.id ? 'active' : ''}`}
-                        onClick={() => {
-                          setTasksAnimating(true)
-                          setTimeout(() => {
-                            setTasksFilter(filter.id)
-                            setTasksAnimating(false)
-                          }, 300)
-                        }}
-                      >
-                        {filter.label}
-                      </button>
-                    ))}
+                  {/* Dropdown de filtros (solo móvil, mismo estilo que Bodega) */}
+                  <div className="filter-dropdown-container tareas-filter-dropdown-mobile">
+                    <button
+                      type="button"
+                      className={`filter-dropdown-button ${isTareasFilterMenuOpen ? 'open' : ''}`}
+                      onClick={() => setIsTareasFilterMenuOpen(!isTareasFilterMenuOpen)}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                      </svg>
+                      Filtros
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="chevron">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+
+                    {isTareasFilterMenuOpen && (
+                      <div className="filter-dropdown-menu">
+                        {taskFilters.map((filter) => (
+                          <button
+                            key={filter.id}
+                            type="button"
+                            className={`filter-dropdown-item ${tasksFilter === filter.id ? 'active' : ''}`}
+                            onClick={() => {
+                              setTasksAnimating(true)
+                              setTimeout(() => {
+                                setTasksFilter(filter.id)
+                                setTasksAnimating(false)
+                              }, 300)
+                              setIsTareasFilterMenuOpen(false)
+                            }}
+                          >
+                            {tasksFilter === filter.id && <span className="checkmark">✓</span>}
+                            {filter.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  
+
                   {/* Botón nueva tarea */}
                   <button className="tareas-add-btn" onClick={handleAddTask}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

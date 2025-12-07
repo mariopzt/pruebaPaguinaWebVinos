@@ -4029,7 +4029,7 @@ flex-direction: column;
 
 /* --- Vista Tareas (diseño moderno) --- */
 .tareas-section {
-  height: 95vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -4089,6 +4089,7 @@ flex-direction: column;
 
 /* Fila de filtros y botón */
 .tareas-filters-row {
+  margin-top: 30px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4197,6 +4198,23 @@ flex-direction: column;
   border-color: rgba(16, 185, 129, 0.2);
 }
 
+
+/* --- Versión móvil de filtros en Tareas (similar a Bodega) --- */
+@media (max-width: 640px) {
+  /* Ocultar la barra de chips normal en móvil */
+  .tareas-filter-bar-desktop {
+    display: none;
+  }
+
+  .tareas-filters-row {
+    gap: 8px;
+  }
+
+  /* Mostrar dropdown de filtros en móvil */
+  .tareas-filter-dropdown-mobile {
+    display: block;
+  }
+}
 
 
 /* Header de la tarjeta */
@@ -5184,6 +5202,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
+}
+
+/* Versión desktop: visible solo en pantallas grandes */
+.tareas-filter-bar-desktop {
+  display: flex;
 }
 
 .tareas-filter-chip {
