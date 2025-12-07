@@ -915,7 +915,27 @@ function App() {
             <div className="section section-full tareas-section">
               <div className="tareas-top-section">
                 <div className="tareas-filters-row">
-                  {/* Dropdown de filtros (solo móvil, mismo estilo que Bodega) */}
+                  {/* Filtros individuales (solo desktop) */}
+                  <div className="tareas-filter-buttons-desktop">
+                    {taskFilters.map((filter) => (
+                      <button
+                        key={filter.id}
+                        type="button"
+                        className={`tareas-filter-chip ${tasksFilter === filter.id ? 'active' : ''}`}
+                        onClick={() => {
+                          setTasksAnimating(true)
+                          setTimeout(() => {
+                            setTasksFilter(filter.id)
+                            setTasksAnimating(false)
+                          }, 300)
+                        }}
+                      >
+                        {filter.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Dropdown de filtros (solo móvil) */}
                   <div className="filter-dropdown-container tareas-filter-dropdown-mobile">
                     <button
                       type="button"

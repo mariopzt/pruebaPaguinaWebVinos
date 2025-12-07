@@ -4201,18 +4201,8 @@ flex-direction: column;
 
 /* --- Versión móvil de filtros en Tareas (similar a Bodega) --- */
 @media (max-width: 640px) {
-  /* Ocultar la barra de chips normal en móvil */
-  .tareas-filter-bar-desktop {
-    display: none;
-  }
-
   .tareas-filters-row {
     gap: 8px;
-  }
-
-  /* Mostrar dropdown de filtros en móvil */
-  .tareas-filter-dropdown-mobile {
-    display: block;
   }
 }
 
@@ -5204,9 +5194,128 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   align-items: center;
 }
 
-/* Versión desktop: visible solo en pantallas grandes */
-.tareas-filter-bar-desktop {
+/* Botones de filtros individuales (solo desktop) */
+.tareas-filter-buttons-desktop {
+  display: none; /* Por defecto ocultos (móvil) */
+  gap: 8px;
+  align-items: center;
+}
+
+/* Dropdown de filtros (por defecto visible en móvil) */
+.tareas-filter-dropdown-mobile {
+  display: block;
+}
+
+/* Estilos para el dropdown de filtros en Tareas */
+.filter-dropdown-container {
+  position: relative;
+}
+
+.filter-dropdown-button {
   display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(20, 20, 30, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ca3c0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.filter-dropdown-button:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #a5b4fc;
+  background: rgba(30, 30, 45, 0.7);
+}
+
+.filter-dropdown-button.open {
+  border-color: rgba(99, 102, 241, 0.6);
+  background: rgba(30, 30, 45, 0.8);
+  color: #ffffff;
+}
+
+.filter-dropdown-button .chevron {
+  transition: transform 0.3s ease;
+}
+
+.filter-dropdown-button.open .chevron {
+  transform: rotate(180deg);
+}
+
+.filter-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 160px;
+  background: rgba(20, 20, 30, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  animation: dropdownSlideIn 0.2s ease-out;
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filter-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #d9d9de;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.filter-dropdown-item:hover {
+  background: rgba(99, 102, 241, 0.15);
+  color: #ffffff;
+}
+
+.filter-dropdown-item.active {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.filter-dropdown-item .checkmark {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* En escritorio: mostrar los botones individuales y ocultar el dropdown */
+@media (min-width: 768px) {
+  .tareas-filter-buttons-desktop {
+    display: flex;
+  }
+
+  .tareas-filter-dropdown-mobile {
+    display: none;
+  }
 }
 
 .tareas-filter-chip {
