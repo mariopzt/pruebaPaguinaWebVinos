@@ -2624,7 +2624,7 @@ body {
 
 @media (max-width: 1024px) {
   .Padre-container {
-    height: 90vh;
+    /* Dejamos que la altura crezca de forma natural para permitir scroll */
     padding-left: calc(var(--sidebar-width) + var(--sidebar-gap));
   }
   
@@ -4029,11 +4029,12 @@ flex-direction: column;
 
 /* --- Vista Tareas (diseño moderno) --- */
 .tareas-section {
-  height: 100vh;
+  min-height: 95vh;        /* ocupa casi toda la altura disponible */
   display: flex;
   flex-direction: column;
   gap: 20px;
   padding: 20px;
+  /* Sin max-height ni overflow aquí para que la página pueda hacer scroll normal */
 }
 
 /* Nuevo header de tareas */
@@ -4085,6 +4086,7 @@ flex-direction: column;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 12px;
   margin-top: 10px;
+  overflow: visible;
 }
 
 /* Fila de filtros y botón */
@@ -5585,6 +5587,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   padding: 20px;
 }
 
+/* Filtros de valoraciones */
+.valoraciones-filter-buttons-desktop {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.valoraciones-filter-dropdown-mobile {
+  display: none;
+}
+
 .valoraciones-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -5835,6 +5848,25 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   height: 50px;
   border-radius: 6px;
   object-fit: cover;
+}
+
+/* Responsive para Valoraciones */
+@media (max-width: 768px) {
+  .valoraciones-filter-buttons-desktop {
+    display: none;
+  }
+
+  .valoraciones-filter-dropdown-mobile {
+    display: block;
+  }
+
+  .valoraciones-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .valoraciones-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {

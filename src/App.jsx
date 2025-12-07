@@ -209,6 +209,7 @@ function App() {
   const [showAddReviewModal, setShowAddReviewModal] = useState(false)
   const [showEditReviewModal, setShowEditReviewModal] = useState(false)
   const [selectedReview, setSelectedReview] = useState(null)
+  const [isReviewsFilterMenuOpen, setIsReviewsFilterMenuOpen] = useState(false)
   const [isTareasFilterMenuOpen, setIsTareasFilterMenuOpen] = useState(false)
 
   const filteredOrders =
@@ -1648,7 +1649,8 @@ function App() {
             <div className="section section-full valoraciones-section">
               {/* Filtros y Botón Nuevo */}
               <div className="tareas-filters-row" style={{ marginBottom: 16 }}>
-                <div className="tareas-filter-bar">
+                {/* Filtros individuales (solo desktop) */}
+                <div className="valoraciones-filter-buttons-desktop">
                   <button
                     type="button"
                     className={`tareas-filter-chip ${reviewsFilter === 'todos' ? 'active' : ''}`}
@@ -1677,6 +1679,72 @@ function App() {
                   >
                     3 ★
                   </button>
+                </div>
+
+                {/* Dropdown de filtros (solo móvil) */}
+                <div className="filter-dropdown-container valoraciones-filter-dropdown-mobile">
+                  <button
+                    type="button"
+                    className={`filter-dropdown-button ${isReviewsFilterMenuOpen ? 'open' : ''}`}
+                    onClick={() => setIsReviewsFilterMenuOpen(!isReviewsFilterMenuOpen)}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                    </svg>
+                    Filtros
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="chevron">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+
+                  {isReviewsFilterMenuOpen && (
+                    <div className="filter-dropdown-menu">
+                      <button
+                        type="button"
+                        className={`filter-dropdown-item ${reviewsFilter === 'todos' ? 'active' : ''}`}
+                        onClick={() => {
+                          setReviewsFilter('todos')
+                          setIsReviewsFilterMenuOpen(false)
+                        }}
+                      >
+                        {reviewsFilter === 'todos' && <span className="checkmark">✓</span>}
+                        Todas
+                      </button>
+                      <button
+                        type="button"
+                        className={`filter-dropdown-item ${reviewsFilter === '5stars' ? 'active' : ''}`}
+                        onClick={() => {
+                          setReviewsFilter('5stars')
+                          setIsReviewsFilterMenuOpen(false)
+                        }}
+                      >
+                        {reviewsFilter === '5stars' && <span className="checkmark">✓</span>}
+                        5 ★
+                      </button>
+                      <button
+                        type="button"
+                        className={`filter-dropdown-item ${reviewsFilter === '4stars' ? 'active' : ''}`}
+                        onClick={() => {
+                          setReviewsFilter('4stars')
+                          setIsReviewsFilterMenuOpen(false)
+                        }}
+                      >
+                        {reviewsFilter === '4stars' && <span className="checkmark">✓</span>}
+                        4 ★
+                      </button>
+                      <button
+                        type="button"
+                        className={`filter-dropdown-item ${reviewsFilter === '3stars' ? 'active' : ''}`}
+                        onClick={() => {
+                          setReviewsFilter('3stars')
+                          setIsReviewsFilterMenuOpen(false)
+                        }}
+                      >
+                        {reviewsFilter === '3stars' && <span className="checkmark">✓</span>}
+                        3 ★
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <button className="tareas-add-btn" onClick={handleAddReview}>
