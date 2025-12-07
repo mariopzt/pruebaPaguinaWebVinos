@@ -2,7 +2,7 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
-import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings, FiBell, FiMenu, FiPackage } from 'react-icons/fi'
+import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings, FiBell, FiMenu, FiPackage, FiMessageSquare, FiCheckCircle } from 'react-icons/fi'
 import { FaArrowAltCircleLeft, FaWineBottle } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
@@ -149,6 +149,66 @@ function App() {
   const [showAddOrderModal, setShowAddOrderModal] = useState(false)
   const [showEditOrderModal, setShowEditOrderModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
+
+  // Estado para Valoraciones
+  const [reviews, setReviews] = useState([
+    {
+      id: 1,
+      wineId: 1,
+      wineName: 'Viña Albali Reserva 2018',
+      wineImage: 'https://images.pexels.com/photos/39351/pexels-photo-39351.jpeg?auto=compress&cs=tinysrgb&w=300',
+      wineType: 'Tinto',
+      rating: 5,
+      comment: 'Excelente vino, muy equilibrado. Notas de frutas rojas maduras y un final largo y elegante. Perfecto para acompañar carnes rojas.',
+      userName: 'Jonny Alvarez',
+      userAvatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120',
+      date: '2024-12-05',
+      verified: true
+    },
+    {
+      id: 2,
+      wineId: 3,
+      wineName: 'Marqués de Riscal Reserva',
+      wineImage: 'https://images.pexels.com/photos/2795026/pexels-photo-2795026.jpeg?auto=compress&cs=tinysrgb&w=300',
+      wineType: 'Tinto',
+      rating: 4,
+      comment: 'Muy bueno, aunque esperaba un poco más de complejidad. Aroma agradable y buen cuerpo.',
+      userName: 'María García',
+      userAvatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120',
+      date: '2024-12-03',
+      verified: true
+    },
+    {
+      id: 3,
+      wineId: 2,
+      wineName: 'Martín Códax Albariño',
+      wineImage: 'https://images.pexels.com/photos/2224060/pexels-photo-2224060.jpeg?auto=compress&cs=tinysrgb&w=300',
+      wineType: 'Blanco',
+      rating: 5,
+      comment: 'Increíble frescura y mineralidad. Perfecto para mariscos. De los mejores albariños que he probado.',
+      userName: 'Carlos Ruiz',
+      userAvatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=120',
+      date: '2024-12-01',
+      verified: true
+    },
+    {
+      id: 4,
+      wineId: 1,
+      wineName: 'Viña Albali Reserva 2018',
+      wineImage: 'https://images.pexels.com/photos/39351/pexels-photo-39351.jpeg?auto=compress&cs=tinysrgb&w=300',
+      wineType: 'Tinto',
+      rating: 4,
+      comment: 'Relación calidad-precio excepcional. Un Reserva que cumple todas las expectativas.',
+      userName: 'Laura Martínez',
+      userAvatar: 'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=120',
+      date: '2024-11-28',
+      verified: false
+    },
+  ])
+  const [reviewsFilter, setReviewsFilter] = useState('todos') // todos, 5stars, 4stars, 3stars, 2stars, 1star
+  const [showAddReviewModal, setShowAddReviewModal] = useState(false)
+  const [showEditReviewModal, setShowEditReviewModal] = useState(false)
+  const [selectedReview, setSelectedReview] = useState(null)
   const [isTareasFilterMenuOpen, setIsTareasFilterMenuOpen] = useState(false)
 
   const filteredOrders =
@@ -306,6 +366,42 @@ function App() {
         })
       )
     }, 450) // un pelín más que la animación CSS (0.4s)
+  }
+
+  // Handlers para Valoraciones
+  const handleAddReview = () => {
+    setSelectedReview(null)
+    setShowAddReviewModal(true)
+  }
+
+  const handleReviewClick = (review) => {
+    setSelectedReview(review)
+    setShowEditReviewModal(true)
+  }
+
+  const handleSaveReview = (reviewData) => {
+    if (reviewData.id) {
+      // Editar valoración existente
+      setReviews(reviews.map(r => r.id === reviewData.id ? reviewData : r))
+    } else {
+      // Agregar nueva valoración
+      const newReview = {
+        ...reviewData,
+        id: Date.now(),
+        userName: 'Jonny Alvarez',
+        userAvatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120',
+        date: new Date().toISOString().split('T')[0],
+        verified: true
+      }
+      setReviews([newReview, ...reviews])
+    }
+    setShowAddReviewModal(false)
+    setShowEditReviewModal(false)
+  }
+
+  const handleDeleteReview = (reviewId) => {
+    setReviews(reviews.filter(r => r.id !== reviewId))
+    setShowEditReviewModal(false)
   }
 
   const toggleMenu = () => {
@@ -1549,13 +1645,116 @@ function App() {
         {/* Vista Valoraciones */}
         {currentView === 'valoraciones' && (
           <div key="valoraciones-view" className="content view-enter">
-            <div className="section section-full">
-              <div className="section-header">
-                <h2 className="section-title">Valoraciones</h2>
+            <div className="section section-full valoraciones-section">
+              {/* Filtros y Botón Nuevo */}
+              <div className="tareas-filters-row" style={{ marginBottom: 16 }}>
+                <div className="tareas-filter-bar">
+                  <button
+                    type="button"
+                    className={`tareas-filter-chip ${reviewsFilter === 'todos' ? 'active' : ''}`}
+                    onClick={() => setReviewsFilter('todos')}
+                  >
+                    Todas
+                  </button>
+                  <button
+                    type="button"
+                    className={`tareas-filter-chip ${reviewsFilter === '5stars' ? 'active' : ''}`}
+                    onClick={() => setReviewsFilter('5stars')}
+                  >
+                    5 ★
+                  </button>
+                  <button
+                    type="button"
+                    className={`tareas-filter-chip ${reviewsFilter === '4stars' ? 'active' : ''}`}
+                    onClick={() => setReviewsFilter('4stars')}
+                  >
+                    4 ★
+                  </button>
+                  <button
+                    type="button"
+                    className={`tareas-filter-chip ${reviewsFilter === '3stars' ? 'active' : ''}`}
+                    onClick={() => setReviewsFilter('3stars')}
+                  >
+                    3 ★
+                  </button>
+                </div>
+
+                <button className="tareas-add-btn" onClick={handleAddReview}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 5v14M5 12h14"/>
+                  </svg>
+                  Nueva Reseña
+                </button>
               </div>
-              <p className="settings-placeholder">
-                Aquí podrás ver y gestionar las valoraciones de tus clientes sobre los vinos.
-              </p>
+
+              {/* Grid de Valoraciones */}
+              <div className="valoraciones-grid">
+                {reviews
+                  .filter(review => {
+                    if (reviewsFilter === 'todos') return true
+                    if (reviewsFilter === '5stars') return review.rating === 5
+                    if (reviewsFilter === '4stars') return review.rating === 4
+                    if (reviewsFilter === '3stars') return review.rating === 3
+                    return true
+                  })
+                  .map((review) => (
+                    <div
+                      key={review.id}
+                      className="valoracion-card"
+                      onClick={() => {
+                        // Solo permitir abrir el modal si es tu propia valoración
+                        if (review.userName === 'Jonny Alvarez') {
+                          handleReviewClick(review)
+                        }
+                      }}
+                      style={{
+                        cursor: review.userName === 'Jonny Alvarez' ? 'pointer' : 'default'
+                      }}
+                    >
+                      <div className="valoracion-card-header">
+                        <img
+                          src={review.wineImage}
+                          alt={review.wineName}
+                          className="valoracion-wine-image"
+                        />
+                        <div className="valoracion-wine-info">
+                          <h3 className="valoracion-wine-name">{review.wineName}</h3>
+                          <span className="valoracion-wine-type">{review.wineType}</span>
+                        </div>
+                      </div>
+
+                      <div className="valoracion-rating">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <FiStar
+                            key={star}
+                            className={star <= review.rating ? 'star-filled' : 'star-empty'}
+                          />
+                        ))}
+                      </div>
+
+                      <p className="valoracion-comment">{review.comment}</p>
+
+                      <div className="valoracion-card-footer">
+                        <div className="valoracion-user">
+                          <img
+                            src={review.userAvatar}
+                            alt={review.userName}
+                            className="valoracion-user-avatar"
+                          />
+                          <div className="valoracion-user-info">
+                            <span className="valoracion-user-name">{review.userName}</span>
+                            {review.verified && (
+                              <span className="valoracion-verified">
+                                <FiCheckCircle size={12} /> Verificada
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <span className="valoracion-date">{review.date}</span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </div>
           </div>
         )}
@@ -1761,6 +1960,26 @@ function App() {
         }}
         onSave={handleSaveOrder}
         onDelete={handleDeleteOrder}
+      />
+    )}
+
+    {/* Modal de agregar valoración */}
+    {showAddReviewModal && (
+      <AddReviewModal
+        onClose={() => setShowAddReviewModal(false)}
+        onSave={handleSaveReview}
+      />
+    )}
+
+    {/* Modal de ver/eliminar valoración */}
+    {showEditReviewModal && selectedReview && (
+      <EditReviewModal
+        review={selectedReview}
+        onClose={() => {
+          setShowEditReviewModal(false)
+          setSelectedReview(null)
+        }}
+        onDelete={handleDeleteReview}
       />
     )}
     </>
@@ -2673,6 +2892,229 @@ function EditOrderModal({ order, onClose, onSave, onDelete }) {
             </div>
           </div>
         </form>
+      </div>
+    </div>
+  )
+}
+
+// Componente Modal de Agregar Valoración
+function AddReviewModal({ onClose, onSave }) {
+  const [rating, setRating] = useState(0)
+  const [hoveredRating, setHoveredRating] = useState(0)
+  const [reviewData, setReviewData] = useState({
+    wineId: '',
+    wineName: '',
+    wineImage: '',
+    wineType: '',
+    rating: 0,
+    comment: ''
+  })
+
+  const handleWineSelect = (e) => {
+    const wineId = parseInt(e.target.value)
+    const selectedWine = winesData.find(w => w.id === wineId)
+    
+    if (selectedWine) {
+      setReviewData({
+        ...reviewData,
+        wineId: selectedWine.id,
+        wineName: selectedWine.name,
+        wineImage: selectedWine.image,
+        wineType: selectedWine.type
+      })
+    }
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (reviewData.wineId && rating > 0 && reviewData.comment.trim()) {
+      onSave({ ...reviewData, rating })
+    }
+  }
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
+        <form onSubmit={handleSubmit}>
+          <div className="task-modal-header">
+            <h2>Nueva Valoración</h2>
+            <button
+              type="button"
+              className="task-modal-close"
+              onClick={onClose}
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="task-modal-content">
+            <div className="task-modal-field">
+              <label>Vino *</label>
+              <select
+                value={reviewData.wineId}
+                onChange={handleWineSelect}
+                required
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'rgba(20, 20, 30, 0.6)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="">Selecciona un vino</option>
+                {winesData.map((wine) => (
+                  <option key={wine.id} value={wine.id}>
+                    {wine.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {reviewData.wineId && (
+              <div className="review-wine-display">
+                <img src={reviewData.wineImage} alt={reviewData.wineName} />
+                <div>
+                  <div style={{ fontWeight: 600, color: '#ffffff' }}>{reviewData.wineName}</div>
+                  <div style={{ fontSize: '13px', color: '#9ca3c0' }}>{reviewData.wineType}</div>
+                </div>
+              </div>
+            )}
+
+            <div className="task-modal-field">
+              <label>Puntuación *</label>
+              <div className="review-rating-selector">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <FiStar
+                    key={star}
+                    className={`rating-star ${star <= (hoveredRating || rating) ? 'active' : ''}`}
+                    onMouseEnter={() => setHoveredRating(star)}
+                    onMouseLeave={() => setHoveredRating(0)}
+                    onClick={() => setRating(star)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="task-modal-field">
+              <label>Comentario *</label>
+              <textarea
+                value={reviewData.comment}
+                onChange={(e) => setReviewData({...reviewData, comment: e.target.value})}
+                placeholder="Comparte tu experiencia con este vino..."
+                required
+                rows={4}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  background: 'rgba(20, 20, 30, 0.6)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontFamily: 'inherit',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="task-modal-actions">
+            <div className="task-modal-actions-right">
+              <button
+                type="button"
+                className="task-modal-btn task-modal-btn-cancel"
+                onClick={onClose}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="task-modal-btn task-modal-btn-save"
+              >
+                Publicar
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Componente Modal de Ver/Eliminar Valoración (solo para valoraciones propias)
+function EditReviewModal({ review, onClose, onDelete }) {
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="task-modal-header">
+          <h2>Tu Valoración</h2>
+          <button
+            type="button"
+            className="task-modal-close"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="task-modal-content">
+          <div className="task-modal-field">
+            <label>Vino</label>
+            <div className="review-wine-display">
+              <img src={review.wineImage} alt={review.wineName} />
+              <div>
+                <div style={{ fontWeight: 600, color: '#ffffff' }}>{review.wineName}</div>
+                <div style={{ fontSize: '13px', color: '#9ca3c0' }}>{review.wineType}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="task-modal-field">
+            <label>Puntuación</label>
+            <div className="review-rating-selector">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <FiStar
+                  key={star}
+                  className={`rating-star ${star <= review.rating ? 'active' : ''}`}
+                  style={{ cursor: 'default' }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="task-modal-field">
+            <label>Comentario</label>
+            <div style={{
+              padding: '12px',
+              background: 'rgba(20, 20, 30, 0.6)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '8px',
+              color: '#c0c2d8',
+              fontSize: '14px',
+              lineHeight: '1.6',
+              minHeight: '100px'
+            }}>
+              {review.comment}
+            </div>
+          </div>
+        </div>
+
+        <div className="task-modal-actions">
+          <button
+            type="button"
+            className="task-modal-btn task-modal-btn-delete"
+            onClick={() => {
+              if (confirm('¿Estás seguro de eliminar esta valoración?')) {
+                onDelete(review.id)
+              }
+            }}
+          >
+            Eliminar
+          </button>
+        </div>
       </div>
     </div>
   )
