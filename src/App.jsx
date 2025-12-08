@@ -2,7 +2,7 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
-import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings, FiBell, FiMenu, FiPackage, FiMessageSquare, FiCheckCircle } from 'react-icons/fi'
+import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings, FiBell, FiMenu, FiPackage, FiMessageSquare, FiCheckCircle, FiHeart } from 'react-icons/fi'
 import { FaArrowAltCircleLeft, FaWineBottle } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
@@ -211,6 +211,18 @@ function App() {
   const [selectedReview, setSelectedReview] = useState(null)
   const [isReviewsFilterMenuOpen, setIsReviewsFilterMenuOpen] = useState(false)
   const [isTareasFilterMenuOpen, setIsTareasFilterMenuOpen] = useState(false)
+
+  // Estado para Top Vinos
+  const [topWines, setTopWines] = useState([
+    { id: 1, rank: 1, wine: winesData[0], likes: 234, rating: 4.8, reviews: 45, growth: '+12.5%', liked: false },
+    { id: 2, rank: 2, wine: winesData[1], likes: 189, rating: 4.6, reviews: 38, growth: '+8.3%', liked: false },
+    { id: 3, rank: 3, wine: winesData[2], likes: 156, rating: 4.9, reviews: 52, growth: '+15.2%', liked: false },
+    { id: 4, rank: 4, wine: winesData[3], likes: 134, rating: 4.5, reviews: 29, growth: '+5.7%', liked: false },
+    { id: 5, rank: 5, wine: winesData[4], likes: 121, rating: 4.7, reviews: 41, growth: '+9.1%', liked: false },
+    { id: 6, rank: 6, wine: winesData[5], likes: 108, rating: 4.4, reviews: 33, growth: '-2.3%', liked: false },
+    { id: 7, rank: 7, wine: winesData[6], likes: 95, rating: 4.6, reviews: 27, growth: '+4.8%', liked: false },
+    { id: 8, rank: 8, wine: winesData[7], likes: 87, rating: 4.3, reviews: 24, growth: '+6.2%', liked: false },
+  ])
 
   const filteredOrders =
     ordersFilter === 'todos'
@@ -1833,24 +1845,14 @@ function App() {
             <div className="section section-full top-vinos-section">
               {/* Lista de top vinos estilo horizontal */}
               <div className="top-vinos-list">
-                {[
-                  { rank: 1, wine: winesData[0], sold: 234, revenue: 3276, rating: 4.8, reviews: 45, growth: '+12.5%' },
-                  { rank: 2, wine: winesData[1], sold: 189, revenue: 2646, rating: 4.6, reviews: 38, growth: '+8.3%' },
-                  { rank: 3, wine: winesData[2], sold: 156, revenue: 2184, rating: 4.9, reviews: 52, growth: '+15.2%' },
-                  { rank: 4, wine: winesData[3], sold: 134, revenue: 1876, rating: 4.5, reviews: 29, growth: '+5.7%' },
-                  { rank: 5, wine: winesData[4], sold: 121, revenue: 1694, rating: 4.7, reviews: 41, growth: '+9.1%' },
-                  { rank: 6, wine: winesData[5], sold: 108, revenue: 1512, rating: 4.4, reviews: 33, growth: '-2.3%' },
-                  { rank: 7, wine: winesData[6], sold: 95, revenue: 1330, rating: 4.6, reviews: 27, growth: '+4.8%' },
-                  { rank: 8, wine: winesData[7], sold: 87, revenue: 1218, rating: 4.3, reviews: 24, growth: '+6.2%' },
-                ].map((item, index) => (
+                {topWines.map((item, index) => (
                   <div 
-                    key={item.rank} 
+                    key={item.id} 
                     className={`top-vino-item ${item.rank <= 3 ? 'top-three' : ''}`}
-                    onClick={() => setSelectedWine(item.wine)}
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     {/* Icono y nombre del vino */}
-                    <div className="top-vino-main">
+                    <div className="top-vino-main" onClick={() => setSelectedWine(item.wine)}>
                       <div className="top-vino-icon">
                         <img src={item.wine.image} alt={item.wine.name} />
                       </div>
@@ -1867,8 +1869,8 @@ function App() {
                     {/* Estadísticas en columnas */}
                     <div className="top-vino-stats">
                       <div className="top-stat-col">
-                        <div className="stat-label">Ventas</div>
-                        <div className="stat-value">{item.sold} uds</div>
+                        <div className="stat-label">Likes</div>
+                        <div className="stat-value">{item.likes}</div>
                       </div>
                       
                       <div className="top-stat-col">
@@ -1884,18 +1886,34 @@ function App() {
                       </div>
                       
                       <div className="top-stat-col">
-                        <div className="stat-label">Ingresos</div>
-                        <div className="stat-value">€{item.revenue}</div>
+                        <div className="stat-label">Reseñas</div>
+                        <div className="stat-value">{item.reviews}</div>
                       </div>
                     </div>
 
-                    {/* Botón de acción y likes */}
+                    {/* Botón de like y ver detalles */}
                     <div className="top-vino-actions">
-                      <button className="top-vino-btn">+ Ver detalles</button>
-                      <div className="top-vino-likes">
-                        <FiStar size={16} />
-                        <span>{item.reviews}</span>
-                      </div>
+                      <button 
+                        className={`top-vino-like-btn ${item.liked ? 'liked' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updatedWines = topWines.map(w => 
+                            w.id === item.id 
+                              ? { ...w, liked: !w.liked, likes: w.liked ? w.likes - 1 : w.likes + 1 }
+                              : w
+                          );
+                          setTopWines(updatedWines);
+                        }}
+                      >
+                        <FiHeart size={18} />
+                        <span>{item.liked ? 'Te gusta' : 'Me gusta'}</span>
+                      </button>
+                      <button 
+                        className="top-vino-btn"
+                        onClick={() => setSelectedWine(item.wine)}
+                      >
+                        + Ver detalles
+                      </button>
                     </div>
                   </div>
                 ))}

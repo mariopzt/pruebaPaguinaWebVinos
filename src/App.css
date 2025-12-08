@@ -5893,7 +5893,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .top-vino-item {
-  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  background: radial-gradient(circle at top left, #16162a 0, #0a0a0f 60%);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 20px;
@@ -5908,13 +5908,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .top-vino-item:hover {
-  border-color: rgba(240, 255, 158, 0.3);
+  border-color: rgba(99, 102, 241, 0.3);
   transform: translateX(4px);
 }
 
 .top-vino-item.top-three {
-  border-color: rgba(240, 255, 158, 0.2);
-  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  border-color: rgba(99, 102, 241, 0.2);
+  background: radial-gradient(circle at top left, #16162a 0, #0a0a0f 60%);
 }
 
 /* Sección principal con icono y nombre */
@@ -6018,10 +6018,57 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   gap: 12px;
 }
 
+.top-vino-like-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #9ca3c0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.top-vino-like-btn svg {
+  transition: all 0.3s ease;
+}
+
+.top-vino-like-btn:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+  transform: translateY(-2px);
+}
+
+.top-vino-like-btn:hover svg {
+  transform: scale(1.1);
+}
+
+.top-vino-like-btn.liked {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.top-vino-like-btn.liked svg {
+  fill: #ef4444;
+  color: #ef4444;
+}
+
+.top-vino-like-btn.liked:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
 .top-vino-btn {
   padding: 10px 20px;
-  background: linear-gradient(180deg, #f0ff9e 0%, #d7ff57 100%);
-  color: #000000;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
   border: none;
   border-radius: 8px;
   font-size: 13px;
@@ -6033,23 +6080,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .top-vino-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(240, 255, 158, 0.3);
-}
-
-.top-vino-likes {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
-  color: #f0ff9e;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.top-vino-likes svg {
-  fill: #f0ff9e;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
 }
 
 /* Responsive */
@@ -6067,10 +6098,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 
   .top-vino-actions {
-    flex-direction: row;
+    flex-direction: row-reverse;
     justify-content: space-between;
     align-items: center;
     width: 100%;
+  }
+  
+  .top-vino-like-btn,
+  .top-vino-btn {
+    flex: 1;
   }
 }
 
