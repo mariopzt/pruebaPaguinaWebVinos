@@ -4029,7 +4029,7 @@ flex-direction: column;
 
 /* --- Vista Tareas (diseño moderno) --- */
 .tareas-section {
-  min-height: 95vh;        /* ocupa casi toda la altura disponible */
+  min-height: 100vh;        /* ocupa casi toda la altura disponible */
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -4091,7 +4091,6 @@ flex-direction: column;
 
 /* Fila de filtros y botón */
 .tareas-filters-row {
-  margin-top: 30px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -5876,5 +5875,221 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
   .valoraciones-grid {
     grid-template-columns: 1fr;
+  }
+}
+/* --- Vista Top Vinos --- */
+.top-vinos-section {
+  min-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.top-vinos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.top-vino-item {
+  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 2fr 3fr auto;
+  gap: 24px;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: taskFadeIn 0.4s ease forwards;
+  opacity: 0;
+}
+
+.top-vino-item:hover {
+  border-color: rgba(240, 255, 158, 0.3);
+  transform: translateX(4px);
+}
+
+.top-vino-item.top-three {
+  border-color: rgba(240, 255, 158, 0.2);
+  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+}
+
+/* Sección principal con icono y nombre */
+.top-vino-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.top-vino-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.top-vino-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.top-vino-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.top-vino-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 6px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-vino-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #9ca3c0;
+}
+
+.vino-category {
+  font-weight: 500;
+}
+
+.vino-divider {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.vino-risk {
+  font-weight: 400;
+}
+
+/* Estadísticas en columnas */
+.top-vino-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.top-stat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #9ca3c0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.stat-value.positive {
+  color: #22c55e;
+}
+
+.stat-value.negative {
+  color: #ef4444;
+}
+
+/* Acciones y likes */
+.top-vino-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.top-vino-btn {
+  padding: 10px 20px;
+  background: linear-gradient(180deg, #f0ff9e 0%, #d7ff57 100%);
+  color: #000000;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.top-vino-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(240, 255, 158, 0.3);
+}
+
+.top-vino-likes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  color: #f0ff9e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.top-vino-likes svg {
+  fill: #f0ff9e;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .top-vino-item {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .top-vino-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .top-vino-actions {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-vino-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .top-vino-main {
+    gap: 12px;
+  }
+
+  .top-vino-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .top-vino-title {
+    font-size: 14px;
   }
 }

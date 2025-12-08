@@ -1830,13 +1830,76 @@ function App() {
         {/* Vista Top Vinos */}
         {currentView === 'top-vinos' && (
           <div key="top-vinos-view" className="content view-enter">
-            <div className="section section-full">
-              <div className="section-header">
-                <h2 className="section-title">Top Vinos</h2>
+            <div className="section section-full top-vinos-section">
+              {/* Lista de top vinos estilo horizontal */}
+              <div className="top-vinos-list">
+                {[
+                  { rank: 1, wine: winesData[0], sold: 234, revenue: 3276, rating: 4.8, reviews: 45, growth: '+12.5%' },
+                  { rank: 2, wine: winesData[1], sold: 189, revenue: 2646, rating: 4.6, reviews: 38, growth: '+8.3%' },
+                  { rank: 3, wine: winesData[2], sold: 156, revenue: 2184, rating: 4.9, reviews: 52, growth: '+15.2%' },
+                  { rank: 4, wine: winesData[3], sold: 134, revenue: 1876, rating: 4.5, reviews: 29, growth: '+5.7%' },
+                  { rank: 5, wine: winesData[4], sold: 121, revenue: 1694, rating: 4.7, reviews: 41, growth: '+9.1%' },
+                  { rank: 6, wine: winesData[5], sold: 108, revenue: 1512, rating: 4.4, reviews: 33, growth: '-2.3%' },
+                  { rank: 7, wine: winesData[6], sold: 95, revenue: 1330, rating: 4.6, reviews: 27, growth: '+4.8%' },
+                  { rank: 8, wine: winesData[7], sold: 87, revenue: 1218, rating: 4.3, reviews: 24, growth: '+6.2%' },
+                ].map((item, index) => (
+                  <div 
+                    key={item.rank} 
+                    className={`top-vino-item ${item.rank <= 3 ? 'top-three' : ''}`}
+                    onClick={() => setSelectedWine(item.wine)}
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    {/* Icono y nombre del vino */}
+                    <div className="top-vino-main">
+                      <div className="top-vino-icon">
+                        <img src={item.wine.image} alt={item.wine.name} />
+                      </div>
+                      <div className="top-vino-info">
+                        <h3 className="top-vino-title">{item.wine.name}</h3>
+                        <div className="top-vino-subtitle">
+                          <span className="vino-category">{item.wine.type}</span>
+                          <span className="vino-divider">|</span>
+                          <span className="vino-risk">Año {item.wine.year}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Estadísticas en columnas */}
+                    <div className="top-vino-stats">
+                      <div className="top-stat-col">
+                        <div className="stat-label">Ventas</div>
+                        <div className="stat-value">{item.sold} uds</div>
+                      </div>
+                      
+                      <div className="top-stat-col">
+                        <div className="stat-label">Crecimiento</div>
+                        <div className={`stat-value ${item.growth.includes('-') ? 'negative' : 'positive'}`}>
+                          {item.growth}
+                        </div>
+                      </div>
+                      
+                      <div className="top-stat-col">
+                        <div className="stat-label">Valoración</div>
+                        <div className="stat-value">{item.rating} pts</div>
+                      </div>
+                      
+                      <div className="top-stat-col">
+                        <div className="stat-label">Ingresos</div>
+                        <div className="stat-value">€{item.revenue}</div>
+                      </div>
+                    </div>
+
+                    {/* Botón de acción y likes */}
+                    <div className="top-vino-actions">
+                      <button className="top-vino-btn">+ Ver detalles</button>
+                      <div className="top-vino-likes">
+                        <FiStar size={16} />
+                        <span>{item.reviews}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="settings-placeholder">
-                Sección en preparación para mostrar los vinos mejor valorados y más vendidos.
-              </p>
             </div>
           </div>
         )}
