@@ -16,7 +16,6 @@ function App() {
   const [selectedWine, setSelectedWine] = useState(null)
   const [showAddWineModal, setShowAddWineModal] = useState(false)
   const [wineListVersion, setWineListVersion] = useState(0)
-  const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
   const [highlightedWineId, setHighlightedWineId] = useState(null)
   const [chatMessages, setChatMessages] = useState([])
@@ -235,6 +234,90 @@ function App() {
   const [showThemeModal, setShowThemeModal] = useState(false)
   const [showLanguageModal, setShowLanguageModal] = useState(false)
 
+  // Estado para notificaciones
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      type: 'stock-bajo',
+      icon: 'FiBox',
+      title: 'Stock bajo en bodega',
+      message: '**Viña Albali Reserva 2018** tiene solo 2 unidades restantes. Considera hacer un nuevo pedido.',
+      time: 'Hace 5 min',
+      unread: true,
+      actions: ['Ver bodega', 'Hacer pedido']
+    },
+    {
+      id: 2,
+      type: 'pedido-nuevo',
+      icon: 'FiPackage',
+      title: 'Nuevo pedido recibido',
+      message: 'Pedido **#P-047** ha sido recibido y está listo para procesar. 5 productos, total: €234.50',
+      time: 'Hace 15 min',
+      unread: true,
+      actions: ['Ver pedido']
+    },
+    {
+      id: 3,
+      type: 'tarea-completada',
+      icon: 'FiCheckCircle',
+      title: 'Tarea completada',
+      message: 'La tarea **"Actualizar inventario"** ha sido completada exitosamente.',
+      time: 'Hace 1 hora',
+      unread: false,
+      actions: []
+    },
+    {
+      id: 4,
+      type: 'tarea-pendiente',
+      icon: 'FiCheckSquare',
+      title: 'Recordatorio: Tarea para hoy',
+      message: 'Tienes **3 tareas** programadas para hoy que requieren tu atención.',
+      time: 'Hace 2 horas',
+      unread: true,
+      actions: ['Ver tareas']
+    },
+    {
+      id: 5,
+      type: 'resumen-dia',
+      icon: 'FiTrendingUp',
+      title: 'Resumen del día',
+      message: 'Hoy has vendido **€1,248.00** en 12 pedidos. ¡Excelente día! +18% vs ayer.',
+      time: 'Hoy, 18:00',
+      unread: false,
+      actions: ['Ver estadísticas']
+    },
+    {
+      id: 6,
+      type: 'valoracion-nueva',
+      icon: 'FiStar',
+      title: 'Nueva valoración recibida',
+      message: '**María García** ha valorado con 5 estrellas el **Marqués de Riscal Reserva**',
+      time: 'Hace 3 horas',
+      unread: false,
+      actions: ['Ver valoración']
+    },
+    {
+      id: 7,
+      type: 'vino-popular',
+      icon: 'FiHeart',
+      title: 'Vino en tendencia',
+      message: '**Martín Códax Albariño** ha recibido +25 likes hoy y está en el top 3 de vinos más populares.',
+      time: 'Hace 5 horas',
+      unread: false,
+      actions: ['Ver en Top Vinos']
+    },
+    {
+      id: 8,
+      type: 'pedido-completado',
+      icon: 'FiCheckCircle',
+      title: 'Pedido completado',
+      message: 'El pedido **#P-042** ha sido completado y enviado al cliente.',
+      time: 'Ayer',
+      unread: false,
+      actions: []
+    }
+  ])
+
   // Estado para likes de vinos en bodega (por wineId)
   const [wineLikes, setWineLikes] = useState(() => {
     const initialLikes = {};
@@ -324,7 +407,7 @@ function App() {
       ? tasks.filter((t) => t.status !== 'completed')
       : tasksFilter === 'hoy'
         ? tasks.filter((t) => t.group === 'hoy' && t.status !== 'completed')
-        : tasksFilter === 'ayer'
+      : tasksFilter === 'ayer'
           ? tasks.filter((t) => t.group === 'ayer' && t.status !== 'completed')
           : tasksFilter === 'semana'
             ? tasks.filter((t) => t.group === 'semana' && t.status !== 'completed')
@@ -441,6 +524,22 @@ function App() {
     setSelectedReview(null)
     setShowAddReviewModal(true)
   }
+
+  // Función para marcar todas las notificaciones como leídas
+  const handleMarkAllAsRead = () => {
+    setNotifications(prev => prev.map(notif => ({ ...notif, unread: false })))
+  }
+
+  // Marcar notificaciones como leídas al entrar a la vista
+  useEffect(() => {
+    if (currentView === 'ayuda') {
+      // Esperar un momento antes de marcar como leídas para que el usuario vea el estado inicial
+      const timer = setTimeout(() => {
+        setNotifications(prev => prev.map(notif => ({ ...notif, unread: false })))
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [currentView])
 
   // Función para toggle like en vinos de bodega
   const handleToggleWineLike = (wineId) => {
@@ -736,7 +835,9 @@ function App() {
               onClick={() => setCurrentView('ayuda')}
             >
               <div className="nav-item-content">
-                <span className="nav-icon"><FiBell size={10} /></span>
+                <span className={`nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''}`}>
+                  <FiBell size={10} />
+                </span>
                 <span className="nav-text">Notificaciones</span>
               </div>
             </div>
@@ -848,7 +949,9 @@ function App() {
                 className="mobile-nav-item" 
                 onClick={() => { setCurrentView('ayuda'); setIsMenuOpen(false); }}
               >
-                <span className="mobile-nav-icon"><FiBell /></span>
+                <span className={`mobile-nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''}`}>
+                  <FiBell />
+                </span>
                 <span className="mobile-nav-text">Notificaciones</span>
               </div>
               <div 
@@ -1094,11 +1197,11 @@ function App() {
                 <div className="tareas-filters-row">
                   {/* Filtros individuales (solo desktop) */}
                   <div className="tareas-filter-buttons-desktop">
-                    {taskFilters.map((filter) => (
-                      <button
-                        key={filter.id}
-                        type="button"
-                        className={`tareas-filter-chip ${tasksFilter === filter.id ? 'active' : ''}`}
+                {taskFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    className={`tareas-filter-chip ${tasksFilter === filter.id ? 'active' : ''}`}
                         onClick={() => {
                           setTasksAnimating(true)
                           setTimeout(() => {
@@ -1106,15 +1209,15 @@ function App() {
                             setTasksAnimating(false)
                           }, 300)
                         }}
-                      >
-                        {filter.label}
-                      </button>
-                    ))}
-                  </div>
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
 
                   {/* Dropdown de filtros (solo móvil) */}
                   <div className="filter-dropdown-container tareas-filter-dropdown-mobile">
-                    <button
+                <button
                       type="button"
                       className={`filter-dropdown-button ${isTareasFilterMenuOpen ? 'open' : ''}`}
                       onClick={() => setIsTareasFilterMenuOpen(!isTareasFilterMenuOpen)}
@@ -1126,12 +1229,12 @@ function App() {
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="chevron">
                         <polyline points="6 9 12 15 18 9"/>
                       </svg>
-                    </button>
+                </button>
 
                     {isTareasFilterMenuOpen && (
                       <div className="filter-dropdown-menu">
                         {taskFilters.map((filter) => (
-                          <button
+                <button
                             key={filter.id}
                             type="button"
                             className={`filter-dropdown-item ${tasksFilter === filter.id ? 'active' : ''}`}
@@ -1146,7 +1249,7 @@ function App() {
                           >
                             {tasksFilter === filter.id && <span className="checkmark">✓</span>}
                             {filter.label}
-                          </button>
+                </button>
                         ))}
                       </div>
                     )}
@@ -1171,7 +1274,7 @@ function App() {
                     onClick={() => handleTaskClick(task)}
                   >
                     <div className="tarea-card-header-new">
-                      <button 
+                <button
                         className={`tarea-card-checkbox ${task.status === 'completed' ? 'checked' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation()
@@ -1197,9 +1300,9 @@ function App() {
                             <polyline points="20 6 9 17 4 12"/>
                           </svg>
                         )}
-                      </button>
-                    </div>
-                    
+                </button>
+              </div>
+
                     <h3 className="tarea-card-title-new">{task.title}</h3>
                     <p className="tarea-card-description-new">{task.description}</p>
                     
@@ -1210,8 +1313,8 @@ function App() {
                           alt="User" 
                           className="tarea-user-avatar"
                         />
-                      </div>
-                      
+              </div>
+
                       <div className="tarea-card-date-new">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -1221,7 +1324,7 @@ function App() {
                         </svg>
                         <span>{task.date}</span>
                       </div>
-                    </div>
+                      </div>
                   </article>
                 ))}
               </div>
@@ -1354,7 +1457,7 @@ function App() {
                   >
                     Terminados
                   </button>
-                </div>
+              </div>
                 
                 {/* Botón nuevo pedido */}
                 <button className="tareas-add-btn" onClick={handleAddOrder}>
@@ -1567,7 +1670,7 @@ function App() {
                 <div className="ajustes-profile">
                   <div className="ajustes-profile-avatar">
                     <img src={ajustesData.userAvatar} alt="Usuario" />
-                  </div>
+              </div>
                   <div className="ajustes-profile-info">
                     <h3>{ajustesData.userName}</h3>
                     <p>{ajustesData.userEmail}</p>
@@ -1787,13 +1890,62 @@ function App() {
         {/* Vista Notificaciones (antes Ayuda) */}
         {currentView === 'ayuda' && (
           <div key="notificaciones-view" className="content view-enter">
-            <div className="section section-full">
-              <div className="section-header">
-                <h2 className="section-title">Notificaciones</h2>
+            <div className="section section-full notificaciones-section">
+              <div className="notificaciones-header">
+                <button 
+                  className="notificaciones-mark-all"
+                  onClick={handleMarkAllAsRead}
+                >
+                  Marcar todas como leídas
+                </button>
               </div>
-              <p className="settings-placeholder">
-                Aquí verás tus alertas recientes sobre vinos agotados, novedades y recordatorios importantes.
-              </p>
+
+              <div className="notificaciones-container">
+                {notifications.map((notif) => {
+                  const IconComponent = 
+                    notif.icon === 'FiBox' ? FiBox :
+                    notif.icon === 'FiPackage' ? FiPackage :
+                    notif.icon === 'FiCheckCircle' ? FiCheckCircle :
+                    notif.icon === 'FiCheckSquare' ? FiCheckSquare :
+                    notif.icon === 'FiTrendingUp' ? FiTrendingUp :
+                    notif.icon === 'FiStar' ? FiStar :
+                    notif.icon === 'FiHeart' ? FiHeart : FiBox
+
+                  return (
+                    <div 
+                      key={notif.id} 
+                      className={`notificacion-item ${notif.unread ? 'unread' : ''}`}
+                    >
+                      <div className={`notificacion-icon ${notif.type}`}>
+                        <IconComponent />
+                      </div>
+                      <div className="notificacion-content">
+                        <div className="notificacion-header">
+                          <h4 className="notificacion-titulo">{notif.title}</h4>
+                          <span className="notificacion-time">{notif.time}</span>
+                        </div>
+                        <p 
+                          className="notificacion-mensaje"
+                          dangerouslySetInnerHTML={{ __html: notif.message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }}
+                        />
+                        {notif.actions && notif.actions.length > 0 && (
+                          <div className="notificacion-actions">
+                            {notif.actions.map((action, idx) => (
+                              <button 
+                                key={idx}
+                                className={idx === 0 ? 'notificacion-btn-primary' : 'notificacion-btn-secondary'}
+                              >
+                                {action}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {notif.unread && <div className="notificacion-badge"></div>}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -1971,7 +2123,7 @@ function App() {
                   >
                     3 ★
                   </button>
-                </div>
+              </div>
 
                 {/* Dropdown de filtros (solo móvil) */}
                 <div className="filter-dropdown-container valoraciones-filter-dropdown-mobile">
@@ -2035,7 +2187,7 @@ function App() {
                         {reviewsFilter === '3stars' && <span className="checkmark">✓</span>}
                         3 ★
                       </button>
-                    </div>
+            </div>
                   )}
                 </div>
 
@@ -2135,7 +2287,7 @@ function App() {
                     <div className="top-vino-main" onClick={() => setSelectedWine(item.wine)}>
                       <div className="top-vino-icon">
                         <img src={item.wine.image} alt={item.wine.name} />
-                      </div>
+              </div>
                       <div className="top-vino-info">
                         <h3 className="top-vino-title">{item.wine.name}</h3>
                         <div className="top-vino-subtitle">
