@@ -6088,6 +6088,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .top-vino-item {
     grid-template-columns: 1fr;
     gap: 16px;
+    padding: 16px;
   }
 
   .top-vino-stats {
@@ -6098,26 +6099,88 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 
   .top-vino-actions {
-    flex-direction: row-reverse;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    gap: 10px;
   }
   
   .top-vino-like-btn,
   .top-vino-btn {
     flex: 1;
+    justify-content: center;
   }
 }
 
-@media (max-width: 640px) {
-  .top-vino-stats {
-    grid-template-columns: 1fr;
-    gap: 12px;
+@media (max-width: 768px) {
+  .top-vinos-section {
+    padding: 16px;
+  }
+
+  .top-vinos-list {
+    gap: 10px;
+  }
+
+  .top-vino-item {
+    padding: 14px;
+    gap: 14px;
   }
 
   .top-vino-main {
     gap: 12px;
+  }
+
+  .top-vino-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .top-vino-title {
+    font-size: 14px;
+  }
+
+  .top-vino-subtitle {
+    font-size: 11px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .stat-value {
+    font-size: 14px;
+  }
+
+  .top-vino-like-btn,
+  .top-vino-btn {
+    padding: 9px 14px;
+    font-size: 12px;
+  }
+
+  .top-vino-like-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-vinos-section {
+    padding: 12px;
+  }
+
+  .top-vino-item {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .top-vino-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .top-vino-main {
+    gap: 10px;
   }
 
   .top-vino-icon {
@@ -6126,6 +6189,54 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 
   .top-vino-title {
-    font-size: 14px;
+    font-size: 13px;
+  }
+
+  .top-vino-subtitle {
+    font-size: 10px;
+    gap: 6px;
+  }
+
+  .stat-label {
+    font-size: 9px;
+  }
+
+  .stat-value {
+    font-size: 13px;
+  }
+
+  .top-vino-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .top-vino-like-btn,
+  .top-vino-btn {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-vinos-section {
+    padding: 10px;
+  }
+
+  .top-vino-item {
+    padding: 10px;
+  }
+
+  .top-vino-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .top-vino-title {
+    font-size: 12px;
+  }
+
+  .stat-value {
+    font-size: 12px;
   }
 }
