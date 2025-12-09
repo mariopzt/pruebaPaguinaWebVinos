@@ -3,7 +3,7 @@ import { winesData } from '../../data/winesData';
 import WineCard from './WineCard';
 import './Bodega.css';
 
-function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine }) {
+function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine, wineLikes, onToggleWineLike }) {
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -252,6 +252,9 @@ function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine }) {
             key={wine.id}
             wine={wine}
             onClick={(w) => onSelectWine && onSelectWine(w)}
+            likes={wineLikes[wine.id]?.count || 0}
+            liked={wineLikes[wine.id]?.liked || false}
+            onToggleLike={() => onToggleWineLike(wine.id)}
           />
         ))}
       </div>

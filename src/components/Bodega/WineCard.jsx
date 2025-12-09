@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { FiHeart } from 'react-icons/fi';
 import { getTimeAgo } from '../../data/winesData';
 import './WineCard.css';
 
@@ -16,7 +17,7 @@ const getOptimizedImageUrl = (url) => {
   return url;
 };
 
-function WineCard({ wine, onClick, isHighlighted }) {
+function WineCard({ wine, onClick, isHighlighted, likes = 0, liked = false, onToggleLike }) {
   const cardRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -41,6 +42,13 @@ function WineCard({ wine, onClick, isHighlighted }) {
     return () => observer.disconnect();
   }, []);
 
+  const handleLikeClick = (e) => {
+    e.stopPropagation(); // Evitar que abra el modal del vino
+    if (onToggleLike) {
+      onToggleLike();
+    }
+  };
+
   return (
     <div
       ref={cardRef}
@@ -55,10 +63,24 @@ function WineCard({ wine, onClick, isHighlighted }) {
           alt={wine.name}
           loading="lazy"
         />
+        {/* Botón de like flotante */}
+        <button 
+          className={`wine-like-btn ${liked ? 'liked' : ''}`}
+          onClick={handleLikeClick}
+          aria-label="Me gusta"
+        >
+          <FiHeart size={16} />
+        </button>
       </div>
       <div className="wine-card-info">
         <h3 className="wine-card-title">{wine.name}</h3>
-        <p className="wine-card-updated">{getTimeAgo(wine.updatedAt)}</p>
+        <div className="wine-card-footer">
+          <p className="wine-card-updated">{getTimeAgo(wine.updatedAt)}</p>
+          <div className="wine-likes-count">
+            <FiHeart size={12} />
+            <span>{likes}</span>
+          </div>
+        </div>
       </div>
     </div>
   );

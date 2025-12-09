@@ -212,17 +212,49 @@ function App() {
   const [isReviewsFilterMenuOpen, setIsReviewsFilterMenuOpen] = useState(false)
   const [isTareasFilterMenuOpen, setIsTareasFilterMenuOpen] = useState(false)
 
-  // Estado para Top Vinos
-  const [topWines, setTopWines] = useState([
-    { id: 1, rank: 1, wine: winesData[0], likes: 234, rating: 4.8, reviews: 45, growth: '+12.5%', liked: false },
-    { id: 2, rank: 2, wine: winesData[1], likes: 189, rating: 4.6, reviews: 38, growth: '+8.3%', liked: false },
-    { id: 3, rank: 3, wine: winesData[2], likes: 156, rating: 4.9, reviews: 52, growth: '+15.2%', liked: false },
-    { id: 4, rank: 4, wine: winesData[3], likes: 134, rating: 4.5, reviews: 29, growth: '+5.7%', liked: false },
-    { id: 5, rank: 5, wine: winesData[4], likes: 121, rating: 4.7, reviews: 41, growth: '+9.1%', liked: false },
-    { id: 6, rank: 6, wine: winesData[5], likes: 108, rating: 4.4, reviews: 33, growth: '-2.3%', liked: false },
-    { id: 7, rank: 7, wine: winesData[6], likes: 95, rating: 4.6, reviews: 27, growth: '+4.8%', liked: false },
-    { id: 8, rank: 8, wine: winesData[7], likes: 87, rating: 4.3, reviews: 24, growth: '+6.2%', liked: false },
-  ])
+  // Estado para likes de vinos en bodega (por wineId)
+  const [wineLikes, setWineLikes] = useState(() => {
+    const initialLikes = {};
+    winesData.forEach(wine => {
+      initialLikes[wine.id] = {
+        count: Math.floor(Math.random() * 150) + 20, // likes iniciales aleatorios
+        liked: false
+      };
+    });
+    return initialLikes;
+  })
+
+  // Estado para Top Vinos - se calcula dinámicamente basado en wineLikes
+  const [topWines, setTopWines] = useState([])
+
+  // Actualizar Top Vinos cuando cambien los likes
+  useEffect(() => {
+    // Crear array de vinos con sus likes
+    const winesWithLikes = winesData.map(wine => ({
+      wine,
+      likes: wineLikes[wine.id]?.count || 0,
+      liked: wineLikes[wine.id]?.liked || false
+    }));
+
+    // Ordenar por likes (descendente) y tomar los top 8
+    const sortedWines = winesWithLikes
+      .sort((a, b) => b.likes - a.likes)
+      .slice(0, 8);
+
+    // Crear el array de topWines con toda la información necesaria
+    const newTopWines = sortedWines.map((item, index) => ({
+      id: item.wine.id,
+      rank: index + 1,
+      wine: item.wine,
+      likes: item.likes,
+      liked: item.liked,
+      rating: (Math.random() * (5.0 - 4.0) + 4.0).toFixed(1), // Rating aleatorio entre 4.0 y 5.0
+      reviews: Math.floor(Math.random() * 50) + 15, // Reviews aleatorias entre 15 y 65
+      growth: `${Math.random() > 0.15 ? '+' : '-'}${(Math.random() * 15).toFixed(1)}%` // Growth aleatorio
+    }));
+
+    setTopWines(newTopWines);
+  }, [wineLikes])
 
   const filteredOrders =
     ordersFilter === 'todos'
@@ -385,6 +417,17 @@ function App() {
   const handleAddReview = () => {
     setSelectedReview(null)
     setShowAddReviewModal(true)
+  }
+
+  // Función para toggle like en vinos de bodega
+  const handleToggleWineLike = (wineId) => {
+    setWineLikes(prev => ({
+      ...prev,
+      [wineId]: {
+        count: prev[wineId].liked ? prev[wineId].count - 1 : prev[wineId].count + 1,
+        liked: !prev[wineId].liked
+      }
+    }));
   }
 
   const handleReviewClick = (review) => {
@@ -1002,6 +1045,8 @@ function App() {
                       onNavigateHome={navigateToHome} 
                       onSelectWine={setSelectedWine}
                       onOpenAddWine={() => setShowAddWineModal(true)}
+                      wineLikes={wineLikes}
+                      onToggleWineLike={handleToggleWineLike}
                     />
                   </div>
                 )}
@@ -1897,12 +1942,7 @@ function App() {
                         className={`top-vino-like-btn ${item.liked ? 'liked' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          const updatedWines = topWines.map(w => 
-                            w.id === item.id 
-                              ? { ...w, liked: !w.liked, likes: w.liked ? w.likes - 1 : w.likes + 1 }
-                              : w
-                          );
-                          setTopWines(updatedWines);
+                          handleToggleWineLike(item.wine.id);
                         }}
                       >
                         <FiHeart size={18} />
