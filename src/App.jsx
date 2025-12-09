@@ -232,6 +232,8 @@ function App() {
   const [showEditProfileModal, setShowEditProfileModal] = useState(false)
   const [showEditInfoModal, setShowEditInfoModal] = useState(false)
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
+  const [showThemeModal, setShowThemeModal] = useState(false)
+  const [showLanguageModal, setShowLanguageModal] = useState(false)
 
   // Estado para likes de vinos en bodega (por wineId)
   const [wineLikes, setWineLikes] = useState(() => {
@@ -1686,23 +1688,23 @@ function App() {
                 <div className="ajustes-group">
                   <h4 className="ajustes-group-title">Apariencia</h4>
                   <div className="ajustes-items">
-                    <div className="ajustes-item">
+                    <div className="ajustes-item" onClick={() => setShowThemeModal(true)}>
                       <div className="ajustes-item-left">
                         <FiStar className="ajustes-item-icon" />
                         <div className="ajustes-item-info">
                           <span className="ajustes-item-label">Tema</span>
-                          <span className="ajustes-item-desc">Oscuro</span>
+                          <span className="ajustes-item-desc">{ajustesData.theme}</span>
                         </div>
                       </div>
                       <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
                     </div>
                     
-                    <div className="ajustes-item">
+                    <div className="ajustes-item" onClick={() => setShowLanguageModal(true)}>
                       <div className="ajustes-item-left">
                         <FiUser className="ajustes-item-icon" />
                         <div className="ajustes-item-info">
                           <span className="ajustes-item-label">Idioma</span>
-                          <span className="ajustes-item-desc">Español</span>
+                          <span className="ajustes-item-desc">{ajustesData.language}</span>
                         </div>
                       </div>
                       <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
@@ -2436,6 +2438,30 @@ function App() {
         onSave={() => {
           // Por ahora no guardamos nada
           setShowChangePasswordModal(false)
+        }}
+      />
+    )}
+
+    {/* Modal de seleccionar tema */}
+    {showThemeModal && (
+      <ThemeModal
+        currentTheme={ajustesData.theme}
+        onClose={() => setShowThemeModal(false)}
+        onSelect={(theme) => {
+          setAjustesData({...ajustesData, theme})
+          setShowThemeModal(false)
+        }}
+      />
+    )}
+
+    {/* Modal de seleccionar idioma */}
+    {showLanguageModal && (
+      <LanguageModal
+        currentLanguage={ajustesData.language}
+        onClose={() => setShowLanguageModal(false)}
+        onSelect={(language) => {
+          setAjustesData({...ajustesData, language})
+          setShowLanguageModal(false)
         }}
       />
     )}
@@ -3787,6 +3813,72 @@ function ChangePasswordModal({ onClose, onSave }) {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  )
+}
+
+// Modal para seleccionar tema
+function ThemeModal({ currentTheme, onClose, onSelect }) {
+  const themes = ['Claro', 'Oscuro', 'Automático']
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+        <div className="task-modal-header">
+          <h2>Seleccionar tema</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="task-modal-content">
+          <div className="ajustes-selection-list">
+            {themes.map((theme) => (
+              <div
+                key={theme}
+                className={`ajustes-selection-item ${currentTheme === theme ? 'selected' : ''}`}
+                onClick={() => onSelect(theme)}
+              >
+                <div className="ajustes-selection-label">{theme}</div>
+                {currentTheme === theme && (
+                  <FiCheckCircle className="ajustes-selection-check" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Modal para seleccionar idioma
+function LanguageModal({ currentLanguage, onClose, onSelect }) {
+  const languages = ['Español', 'English', 'Français', 'Deutsch', 'Italiano', 'Português']
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+        <div className="task-modal-header">
+          <h2>Seleccionar idioma</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="task-modal-content">
+          <div className="ajustes-selection-list">
+            {languages.map((language) => (
+              <div
+                key={language}
+                className={`ajustes-selection-item ${currentLanguage === language ? 'selected' : ''}`}
+                onClick={() => onSelect(language)}
+              >
+                <div className="ajustes-selection-label">{language}</div>
+                {currentLanguage === language && (
+                  <FiCheckCircle className="ajustes-selection-check" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
