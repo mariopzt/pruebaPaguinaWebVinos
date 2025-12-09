@@ -1538,13 +1538,188 @@ function App() {
         {/* Vista Ajustes */}
         {currentView === 'ajustes' && (
           <div key="ajustes-view" className="content view-enter">
-            <div className="section section-full">
-              <div className="section-header">
-                <h2 className="section-title">Ajustes</h2>
+            <div className="section section-full ajustes-section">
+              <div className="ajustes-container">
+                {/* Perfil del usuario */}
+                <div className="ajustes-profile">
+                  <div className="ajustes-profile-avatar">
+                    <img src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120" alt="Usuario" />
+                  </div>
+                  <div className="ajustes-profile-info">
+                    <h3>Jonny Alvarez</h3>
+                    <p>jonny.alvarez@vinos.com</p>
+                  </div>
+                  <button className="ajustes-profile-edit">Editar perfil</button>
+                </div>
+
+                {/* Cuenta */}
+                <div className="ajustes-group">
+                  <h4 className="ajustes-group-title">Cuenta</h4>
+                  <div className="ajustes-items">
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiUser className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Información personal</span>
+                          <span className="ajustes-item-desc">Nombre, email, teléfono</span>
+                        </div>
+                      </div>
+                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
+                    </div>
+                    
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiSettings className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Cambiar contraseña</span>
+                          <span className="ajustes-item-desc">Actualiza tu contraseña</span>
+                        </div>
+                      </div>
+                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notificaciones */}
+                <div className="ajustes-group">
+                  <h4 className="ajustes-group-title">Notificaciones</h4>
+                  <div className="ajustes-items">
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiBell className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Notificaciones push</span>
+                          <span className="ajustes-item-desc">Recibe alertas en tiempo real</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input type="checkbox" defaultChecked />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+                    
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiPackage className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Actualizaciones de pedidos</span>
+                          <span className="ajustes-item-desc">Estado de tus órdenes</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input type="checkbox" defaultChecked />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiTag className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Ofertas y promociones</span>
+                          <span className="ajustes-item-desc">Descuentos exclusivos</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input type="checkbox" />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Apariencia */}
+                <div className="ajustes-group">
+                  <h4 className="ajustes-group-title">Apariencia</h4>
+                  <div className="ajustes-items">
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiStar className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Tema</span>
+                          <span className="ajustes-item-desc">Oscuro</span>
+                        </div>
+                      </div>
+                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
+                    </div>
+                    
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiUser className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Idioma</span>
+                          <span className="ajustes-item-desc">Español</span>
+                        </div>
+                      </div>
+                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Privacidad y seguridad */}
+                <div className="ajustes-group">
+                  <h4 className="ajustes-group-title">Privacidad y seguridad</h4>
+                  <div className="ajustes-items">
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiSettings className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Privacidad de datos</span>
+                          <span className="ajustes-item-desc">Gestiona tu información</span>
+                        </div>
+                      </div>
+                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
+                    </div>
+                    
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiCheckSquare className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Autenticación de dos factores</span>
+                          <span className="ajustes-item-desc">Seguridad adicional</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input type="checkbox" />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sobre la app */}
+                <div className="ajustes-group">
+                  <h4 className="ajustes-group-title">Sobre VinosStK</h4>
+                  <div className="ajustes-items">
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiHelpCircle className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Centro de ayuda</span>
+                          <span className="ajustes-item-desc">Preguntas frecuentes</span>
+                        </div>
+                      </div>
+                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
+                    </div>
+                    
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiBox className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Versión</span>
+                          <span className="ajustes-item-desc">1.0.0</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Botón de cerrar sesión */}
+                <button className="ajustes-logout">
+                  <FiLogOut />
+                  <span>Cerrar sesión</span>
+                </button>
               </div>
-              <p className="settings-placeholder">
-                Aquí podrás configurar la experiencia de VinosStK: preferencias de vista, notificaciones y más.
-              </p>
             </div>
           </div>
         )}

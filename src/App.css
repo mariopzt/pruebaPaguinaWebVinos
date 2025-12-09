@@ -4027,6 +4027,316 @@ flex-direction: column;
   margin: 0;
 }
 
+/* --- Vista Ajustes --- */
+.ajustes-section {
+  min-height: 95vh;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.ajustes-container {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Perfil del usuario */
+.ajustes-profile {
+  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ajustes-profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  flex-shrink: 0;
+}
+
+.ajustes-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ajustes-profile-info {
+  flex: 1;
+}
+
+.ajustes-profile-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.ajustes-profile-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #9ca3c0;
+}
+
+.ajustes-profile-edit {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ajustes-profile-edit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
+}
+
+/* Grupos de ajustes */
+.ajustes-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ajustes-group-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #a5b4fc;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+  padding: 0 4px;
+}
+
+.ajustes-items {
+  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Items de ajustes */
+.ajustes-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.ajustes-item:last-child {
+  border-bottom: none;
+}
+
+.ajustes-item:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.ajustes-item-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.ajustes-item-icon {
+  width: 20px;
+  height: 20px;
+  color: #a5b4fc;
+  flex-shrink: 0;
+}
+
+.ajustes-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ajustes-item-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.ajustes-item-desc {
+  font-size: 12px;
+  color: #9ca3c0;
+}
+
+.ajustes-item-arrow {
+  width: 16px;
+  height: 16px;
+  color: #9ca3c0;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+/* Toggle switch */
+.ajustes-toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.ajustes-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ajustes-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: 0.3s;
+  border-radius: 34px;
+}
+
+.ajustes-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.ajustes-toggle input:checked + .ajustes-toggle-slider {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+}
+
+.ajustes-toggle input:checked + .ajustes-toggle-slider:before {
+  transform: translateX(22px);
+}
+
+/* Botón cerrar sesión */
+.ajustes-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+}
+
+.ajustes-logout:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  transform: translateY(-2px);
+}
+
+.ajustes-logout svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive para ajustes */
+@media (max-width: 768px) {
+  .ajustes-section {
+    padding: 16px;
+  }
+
+  .ajustes-profile {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .ajustes-profile-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .ajustes-profile-edit {
+    width: 100%;
+  }
+
+  .ajustes-item {
+    padding: 14px 16px;
+  }
+
+  .ajustes-item-left {
+    gap: 12px;
+  }
+
+  .ajustes-item-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .ajustes-item-label {
+    font-size: 13px;
+  }
+
+  .ajustes-item-desc {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ajustes-section {
+    padding: 12px;
+  }
+
+  .ajustes-container {
+    gap: 16px;
+  }
+
+  .ajustes-profile {
+    padding: 16px;
+  }
+
+  .ajustes-profile-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .ajustes-profile-info h3 {
+    font-size: 16px;
+  }
+
+  .ajustes-profile-info p {
+    font-size: 12px;
+  }
+
+  .ajustes-item {
+    padding: 12px;
+  }
+}
+
 /* --- Vista Tareas (diseño moderno) --- */
 .tareas-section {
   min-height: 100vh;        /* ocupa casi toda la altura disponible */
