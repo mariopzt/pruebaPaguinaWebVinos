@@ -212,6 +212,27 @@ function App() {
   const [isReviewsFilterMenuOpen, setIsReviewsFilterMenuOpen] = useState(false)
   const [isTareasFilterMenuOpen, setIsTareasFilterMenuOpen] = useState(false)
 
+  // Estados para ajustes
+  const [ajustesData, setAjustesData] = useState({
+    // Datos del usuario
+    userName: 'Jonny Alvarez',
+    userEmail: 'jonny.alvarez@vinos.com',
+    userPhone: '+34 612 345 678',
+    userAvatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120',
+    // Notificaciones
+    notificationsPush: true,
+    notificationsOrders: true,
+    notificationsPromotions: false,
+    // Apariencia
+    theme: 'Oscuro',
+    language: 'Español',
+    // Seguridad
+    twoFactorAuth: false
+  })
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false)
+  const [showEditInfoModal, setShowEditInfoModal] = useState(false)
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
+
   // Estado para likes de vinos en bodega (por wineId)
   const [wineLikes, setWineLikes] = useState(() => {
     const initialLikes = {};
@@ -1543,20 +1564,36 @@ function App() {
                 {/* Perfil del usuario */}
                 <div className="ajustes-profile">
                   <div className="ajustes-profile-avatar">
-                    <img src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120" alt="Usuario" />
+                    <img src={ajustesData.userAvatar} alt="Usuario" />
                   </div>
                   <div className="ajustes-profile-info">
-                    <h3>Jonny Alvarez</h3>
-                    <p>jonny.alvarez@vinos.com</p>
+                    <h3>{ajustesData.userName}</h3>
+                    <p>{ajustesData.userEmail}</p>
                   </div>
-                  <button className="ajustes-profile-edit">Editar perfil</button>
+                  <button 
+                    className="ajustes-profile-edit"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      console.log('Estado antes:', showEditProfileModal)
+                      setShowEditProfileModal(true)
+                      console.log('Estado después:', true)
+                    }}
+                  >
+                    Editar perfil
+                  </button>
                 </div>
 
                 {/* Cuenta */}
                 <div className="ajustes-group">
                   <h4 className="ajustes-group-title">Cuenta</h4>
                   <div className="ajustes-items">
-                    <div className="ajustes-item">
+                    <div className="ajustes-item" onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      console.log('Abriendo modal de información personal')
+                      setShowEditInfoModal(true)
+                    }}>
                       <div className="ajustes-item-left">
                         <FiUser className="ajustes-item-icon" />
                         <div className="ajustes-item-info">
@@ -1567,7 +1604,12 @@ function App() {
                       <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
                     </div>
                     
-                    <div className="ajustes-item">
+                    <div className="ajustes-item" onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      console.log('Abriendo modal de cambiar contraseña')
+                      setShowChangePasswordModal(true)
+                    }}>
                       <div className="ajustes-item-left">
                         <FiSettings className="ajustes-item-icon" />
                         <div className="ajustes-item-info">
@@ -1593,7 +1635,11 @@ function App() {
                         </div>
                       </div>
                       <label className="ajustes-toggle">
-                        <input type="checkbox" defaultChecked />
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.notificationsPush}
+                          onChange={(e) => setAjustesData({...ajustesData, notificationsPush: e.target.checked})}
+                        />
                         <span className="ajustes-toggle-slider"></span>
                       </label>
                     </div>
@@ -1607,7 +1653,11 @@ function App() {
                         </div>
                       </div>
                       <label className="ajustes-toggle">
-                        <input type="checkbox" defaultChecked />
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.notificationsOrders}
+                          onChange={(e) => setAjustesData({...ajustesData, notificationsOrders: e.target.checked})}
+                        />
                         <span className="ajustes-toggle-slider"></span>
                       </label>
                     </div>
@@ -1621,7 +1671,11 @@ function App() {
                         </div>
                       </div>
                       <label className="ajustes-toggle">
-                        <input type="checkbox" />
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.notificationsPromotions}
+                          onChange={(e) => setAjustesData({...ajustesData, notificationsPromotions: e.target.checked})}
+                        />
                         <span className="ajustes-toggle-slider"></span>
                       </label>
                     </div>
@@ -1680,7 +1734,11 @@ function App() {
                         </div>
                       </div>
                       <label className="ajustes-toggle">
-                        <input type="checkbox" />
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.twoFactorAuth}
+                          onChange={(e) => setAjustesData({...ajustesData, twoFactorAuth: e.target.checked})}
+                        />
                         <span className="ajustes-toggle-slider"></span>
                       </label>
                     </div>
@@ -2344,6 +2402,41 @@ function App() {
           setSelectedReview(null)
         }}
         onDelete={handleDeleteReview}
+      />
+    )}
+
+    {/* Modal de editar perfil */}
+    {showEditProfileModal && (
+      <EditProfileModal
+        data={ajustesData}
+        onClose={() => setShowEditProfileModal(false)}
+        onSave={(newData) => {
+          setAjustesData({...ajustesData, ...newData})
+          setShowEditProfileModal(false)
+        }}
+      />
+    )}
+
+    {/* Modal de editar información personal */}
+    {showEditInfoModal && (
+      <EditInfoModal
+        data={ajustesData}
+        onClose={() => setShowEditInfoModal(false)}
+        onSave={(newData) => {
+          setAjustesData({...ajustesData, ...newData})
+          setShowEditInfoModal(false)
+        }}
+      />
+    )}
+
+    {/* Modal de cambiar contraseña */}
+    {showChangePasswordModal && (
+      <ChangePasswordModal
+        onClose={() => setShowChangePasswordModal(false)}
+        onSave={() => {
+          // Por ahora no guardamos nada
+          setShowChangePasswordModal(false)
+        }}
       />
     )}
     </>
@@ -3479,6 +3572,221 @@ function EditReviewModal({ review, onClose, onDelete }) {
             Eliminar
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// Modal para editar perfil
+function EditProfileModal({ data, onClose, onSave }) {
+  const [userName, setUserName] = useState(data.userName)
+  const [userEmail, setUserEmail] = useState(data.userEmail)
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    onSave({ userName, userEmail })
+  }
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="task-modal-header">
+          <h2>Editar perfil</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="task-modal-content">
+          <div className="task-modal-field">
+            <label>Nombre completo</label>
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Ingresa tu nombre"
+              required
+            />
+          </div>
+
+          <div className="task-modal-field">
+            <label>Email</label>
+            <input
+              type="email"
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
+              placeholder="tu@email.com"
+              required
+            />
+          </div>
+
+          <div className="task-modal-actions">
+            <button type="button" className="task-modal-btn task-modal-btn-cancel" onClick={onClose}>
+              Cancelar
+            </button>
+            <button type="submit" className="task-modal-btn task-modal-btn-save">
+              Guardar cambios
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Modal para editar información personal
+function EditInfoModal({ data, onClose, onSave }) {
+  const [userName, setUserName] = useState(data.userName)
+  const [userEmail, setUserEmail] = useState(data.userEmail)
+  const [userPhone, setUserPhone] = useState(data.userPhone)
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    onSave({ userName, userEmail, userPhone })
+  }
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="task-modal-header">
+          <h2>Información personal</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="task-modal-content">
+          <div className="task-modal-field">
+            <label>Nombre completo</label>
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Ingresa tu nombre"
+              required
+            />
+          </div>
+
+          <div className="task-modal-field">
+            <label>Email</label>
+            <input
+              type="email"
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
+              placeholder="tu@email.com"
+              required
+            />
+          </div>
+
+          <div className="task-modal-field">
+            <label>Teléfono</label>
+            <input
+              type="tel"
+              value={userPhone}
+              onChange={(e) => setUserPhone(e.target.value)}
+              placeholder="+34 612 345 678"
+              required
+            />
+          </div>
+
+          <div className="task-modal-actions">
+            <button type="button" className="task-modal-btn task-modal-btn-cancel" onClick={onClose}>
+              Cancelar
+            </button>
+            <button type="submit" className="task-modal-btn task-modal-btn-save">
+              Guardar cambios
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Modal para cambiar contraseña
+function ChangePasswordModal({ onClose, onSave }) {
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    setError('')
+
+    if (newPassword.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Las contraseñas no coinciden')
+      return
+    }
+
+    onSave()
+  }
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="task-modal-header">
+          <h2>Cambiar contraseña</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="task-modal-content">
+          <div className="task-modal-field">
+            <label>Contraseña actual</label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Ingresa tu contraseña actual"
+              required
+            />
+          </div>
+
+          <div className="task-modal-field">
+            <label>Nueva contraseña</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Mínimo 6 caracteres"
+              required
+            />
+          </div>
+
+          <div className="task-modal-field">
+            <label>Confirmar nueva contraseña</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Repite tu nueva contraseña"
+              required
+            />
+          </div>
+
+          {error && (
+            <div style={{ 
+              color: '#ef4444', 
+              fontSize: '12px', 
+              marginTop: '8px',
+              padding: '8px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              borderRadius: '6px'
+            }}>
+              {error}
+            </div>
+          )}
+
+          <div className="task-modal-actions">
+            <button type="button" className="task-modal-btn task-modal-btn-cancel" onClick={onClose}>
+              Cancelar
+            </button>
+            <button type="submit" className="task-modal-btn task-modal-btn-save">
+              Cambiar contraseña
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
