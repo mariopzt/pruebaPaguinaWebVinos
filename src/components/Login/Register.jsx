@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { FiUser, FiLock, FiEye, FiEyeOff, FiMail, FiArrowLeft, FiCheckCircle } from 'react-icons/fi'
 import { FaWineBottle } from 'react-icons/fa'
 import { sendWelcomeEmail } from '../../services/emailService'
+import authService from '../../api/authService'
 import './Login.css'
 
 function Register({ onRegister, onBackToLogin }) {
@@ -42,26 +43,40 @@ function Register({ onRegister, onBackToLogin }) {
       return
     }
 
-    // Simular delay de procesamiento
-    await new Promise(resolve => setTimeout(resolve, 800))
+    try {
+      // Registrar usuario en el backend
+      const response = await authService.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      })
 
-    // Registro exitoso - enviar email y mostrar confirmación
-    setRegisteredEmail(formData.email)
-    
-    // Enviar email de bienvenida
-    const emailResult = await sendWelcomeEmail({
-      name: formData.name,
-      email: formData.email
-    });
+      if (response.success) {
+        setRegisteredEmail(formData.email)
+        
+        // Enviar email de bienvenida
+        const emailResult = await sendWelcomeEmail({
+          name: formData.name,
+          email: formData.email
+        });
 
-    if (emailResult.success) {
-      console.log('✅ Email de bienvenida enviado correctamente');
-    } else {
-      console.warn('⚠️ No se pudo enviar el email, pero el registro fue exitoso');
+        if (emailResult.success) {
+          console.log('✅ Email de bienvenida enviado correctamente');
+        } else {
+          console.warn('⚠️ No se pudo enviar el email, pero el registro fue exitoso');
+        }
+        
+        setShowConfirmation(true)
+        setIsLoading(false)
+      } else {
+        setError(response.message || 'Error al registrar usuario')
+        setIsLoading(false)
+      }
+    } catch (error) {
+      console.error('Error en registro:', error)
+      setError(error.message || 'Error al registrar usuario')
+      setIsLoading(false)
     }
-
-    setShowConfirmation(true)
-    setIsLoading(false)
   }
 
   // Si se muestra la confirmación

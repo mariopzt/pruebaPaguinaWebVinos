@@ -1,0 +1,57 @@
+import api from './axios';
+
+// Servicio de vinos
+const wineService = {
+  // Obtener todos los vinos
+  getWines: async () => {
+    try {
+      const response = await api.get('/wines');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error al obtener vinos' };
+    }
+  },
+
+  // Obtener un vino por ID
+  getWine: async (id) => {
+    try {
+      const response = await api.get(`/wines/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error al obtener vino' };
+    }
+  },
+
+  // Crear nuevo vino
+  createWine: async (wineData) => {
+    try {
+      const response = await api.post('/wines', wineData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error al crear vino' };
+    }
+  },
+
+  // Actualizar vino
+  updateWine: async (id, wineData) => {
+    try {
+      const response = await api.put(`/wines/${id}`, wineData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error al actualizar vino' };
+    }
+  },
+
+  // Eliminar vino
+  deleteWine: async (id) => {
+    try {
+      const response = await api.delete(`/wines/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error al eliminar vino' };
+    }
+  }
+};
+
+export default wineService;
+

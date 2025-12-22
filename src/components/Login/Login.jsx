@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { FiUser, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
 import { FaWineBottle } from 'react-icons/fa'
 import Register from './Register'
+import authService from '../../api/authService'
 import './Login.css'
 
 function Login({ onLogin }) {
@@ -17,26 +18,29 @@ function Login({ onLogin }) {
     setError('')
     setIsLoading(true)
 
-    // Validación temporal
-    setTimeout(() => {
+    try {
+      // Validación básica
       if (!email || !password) {
         setError('Por favor, completa todos los campos')
         setIsLoading(false)
         return
       }
 
-      // Validar credenciales temporales
-      if (email === 'mario' && password === '123') {
-        onLogin({
-          email: 'mario@vinosstk.com',
-          name: 'Mario',
-          avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120'
-        })
+      // Intentar login con el backend
+      const response = await authService.login({ email, password })
+
+      if (response.success) {
+        // Login exitoso
+        onLogin(response.data)
       } else {
-        setError('Usuario o contraseña incorrectos')
+        setError(response.message || 'Error al iniciar sesión')
         setIsLoading(false)
       }
-    }, 800)
+    } catch (error) {
+      console.error('Error en login:', error)
+      setError(error.message || 'Credenciales incorrectas')
+      setIsLoading(false)
+    }
   }
 
   const handleGoogleLogin = () => {
