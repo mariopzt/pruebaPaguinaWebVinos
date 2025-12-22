@@ -7,18 +7,18 @@ const {
   markAllAsRead,
   deleteNotification
 } = require('../controllers/notificationController');
-const { protect, optionalAuth } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 
-// Lectura pública/semiautenticada, escritura protegida
+// Todas las rutas protegidas por usuario
 router.route('/')
-  .get(optionalAuth, getNotifications)
-  .post(optionalAuth, createNotification);
+  .get(protect, getNotifications)
+  .post(protect, createNotification);
 
-router.patch('/read-all', optionalAuth, markAllAsRead);
+router.patch('/read-all', protect, markAllAsRead);
 
 router.route('/:id')
-  .patch(optionalAuth, markAsRead)
-  .delete(optionalAuth, deleteNotification);
+  .patch(protect, markAsRead)
+  .delete(protect, deleteNotification);
 
 module.exports = router;
 

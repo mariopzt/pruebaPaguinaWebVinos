@@ -119,9 +119,9 @@ exports.updateWine = async (req, res) => {
     const newStock = wine.stock || 0;
 
     // Notificación: se agotó (pasa a 0)
-    if (prevStock > 0 && newStock === 0) {
+    if (prevStock > 0 && newStock === 0 && req.user?._id) {
       await Notification.create({
-        user: req.user?._id || null,
+        user: req.user._id,
         type: 'stock-bajo',
         icon: 'FiBox',
         title: 'Stock agotado',
@@ -134,9 +134,9 @@ exports.updateWine = async (req, res) => {
     }
 
     // Notificación: se reabastece (pasa de 0 a >0)
-    if (prevStock === 0 && newStock > 0) {
+    if (prevStock === 0 && newStock > 0 && req.user?._id) {
       await Notification.create({
-        user: req.user?._id || null,
+        user: req.user._id,
         type: 'stock-restaurado',
         icon: 'FiPackage',
         title: 'Stock restaurado',
