@@ -530,14 +530,13 @@ function App() {
     setNotifications(prev => prev.map(notif => ({ ...notif, unread: false })))
   }
 
-  // Marcar notificaciones como leídas al entrar a la vista
+  // Marcar notificaciones como leídas al salir de la vista
   useEffect(() => {
-    if (currentView === 'ayuda') {
-      // Esperar un momento antes de marcar como leídas para que el usuario vea el estado inicial
-      const timer = setTimeout(() => {
+    // Cleanup: marcar como leídas cuando el usuario sale de la vista de notificaciones
+    return () => {
+      if (currentView === 'ayuda') {
         setNotifications(prev => prev.map(notif => ({ ...notif, unread: false })))
-      }, 1500)
-      return () => clearTimeout(timer)
+      }
     }
   }, [currentView])
 
@@ -607,24 +606,32 @@ function App() {
   const addNotification = (wine) => {
     const newNotification = {
       id: Date.now(),
+      type: 'stock-bajo',
+      icon: 'FiBox',
+      title: 'Stock bajo en bodega',
       wineId: wine.id,
       wineName: wine.name,
-      message: `${wine.name} se ha agotado temporalmente. Te sugerimos hacer tu pedido cuanto antes para no quedarte sin él.`,
-      read: false
+      message: `**${wine.name}** se ha agotado temporalmente. Te sugerimos hacer tu pedido cuanto antes para no quedarte sin él.`,
+      time: 'Ahora',
+      unread: true,
+      actions: ['Ver bodega', 'Hacer pedido']
     };
     setNotifications(prev => [newNotification, ...prev]);
   };
 
-  // Marcar todas las notificaciones como leídas al abrir el panel (según ajustes)
+  // Abrir el panel de notificaciones sin marcarlas como leídas automáticamente
   const handleOpenNotifications = () => {
     setShowNotifications(true);
-    if (settings.markReadOnOpen) {
-      setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
-    }
+    // Ya no marcamos automáticamente como leídas al abrir
   };
 
-  // Manejar click en notificación
-  const handleNotificationClick = (wineId) => {
+  // Manejar click en notificación - marcar solo esa como leída
+  const handleNotificationClick = (wineId, notificationId) => {
+    // Marcar solo esta notificación como leída
+    setNotifications(prev => prev.map(notif => 
+      notif.id === notificationId ? { ...notif, unread: false } : notif
+    ));
+    
     setCurrentView('agotados');
     setHighlightedWineId(wineId);
     setShowNotifications(false);
@@ -636,6 +643,45 @@ function App() {
   // Remover notificación
   const removeNotification = (notificationId) => {
     setNotifications(prev => prev.filter(n => n.id !== notificationId));
+  };
+
+  // Manejar acciones de las notificaciones
+  const handleNotificationAction = (action, notificationId) => {
+    // Marcar la notificación como leída al interactuar con ella
+    setNotifications(prev => prev.map(notif => 
+      notif.id === notificationId ? { ...notif, unread: false } : notif
+    ));
+
+    // Navegar según la acción
+    switch(action) {
+      case 'Ver bodega':
+        setCurrentView('bodega');
+        break;
+      case 'Hacer pedido':
+        setCurrentView('pedidos');
+        break;
+      case 'Ver pedido':
+        setCurrentView('pedidos');
+        setOrdersFilter('pendientes'); // Mostrar pedidos pendientes
+        break;
+      case 'Ver tareas':
+        setCurrentView('tareas');
+        break;
+      case 'Ver estadísticas':
+        setCurrentView('home'); // Ir al home donde están las estadísticas
+        break;
+      case 'Ver valoración':
+        setCurrentView('valoraciones');
+        break;
+      case 'Ver en Top Vinos':
+        setCurrentView('top-vinos');
+        break;
+      default:
+        console.log('Acción no reconocida:', action);
+    }
+
+    // Scroll suave al inicio
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Enviar mensaje en el chat
@@ -700,6 +746,16 @@ function App() {
       }
     }
   }, [showNotifications, settings.lockScrollOnNotifications])
+
+  // Marcar notificaciones como leídas al cerrar el panel
+  useEffect(() => {
+    // Cuando se cierra el panel de notificaciones, marcar todas como leídas
+    return () => {
+      if (showNotifications) {
+        setNotifications(prev => prev.map(notif => ({ ...notif, unread: false })))
+      }
+    }
+  }, [showNotifications])
 
   // Inicializar opciones sugeridas del chat cuando entramos en la vista IA
   useEffect(() => {
@@ -1934,6 +1990,7 @@ function App() {
                               <button 
                                 key={idx}
                                 className={idx === 0 ? 'notificacion-btn-primary' : 'notificacion-btn-secondary'}
+                                onClick={() => handleNotificationAction(action, notif.id)}
                               >
                                 {action}
                               </button>
@@ -1953,7 +2010,7 @@ function App() {
         {/* Vista IA con chat embebido */}
         {currentView === 'ia' && (
           <div key="ia-view" className="content view-enter" style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100%'}}>
-            <div className="section section-full" style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+            <div className="section section-full" style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '95vh'}}>
               {/* Hero + chips de acciones rápidas: visibles solo antes del primer mensaje */}
               <div className={`ia-quick-wrapper ${chatMessages.length > 0 ? 'ia-quick-hide' : ''}`}>
                 <div className="ia-hero">
@@ -2380,8 +2437,8 @@ function App() {
               notifications.map(notification => (
                 <div 
                   key={notification.id} 
-                  className={`notification-item ${!notification.read ? 'unread' : ''}`}
-                  onClick={() => handleNotificationClick(notification.wineId)}
+                  className={`notification-item ${notification.unread ? 'unread' : ''}`}
+                  onClick={() => handleNotificationClick(notification.wineId, notification.id)}
                 >
                   <div className="notification-icon"><AiOutlineWarning size={14} /></div>
                   <div className="notification-content">
@@ -2399,7 +2456,7 @@ function App() {
                       )
                     })()}
                   </div>
-                  {!notification.read && <span className="notification-badge-item">NUEVA</span>}
+                  {notification.unread && <span className="notification-badge-item">NUEVA</span>}
                   <button
                     className="notification-remove"
                     onClick={(e) => {
