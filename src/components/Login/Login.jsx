@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { FiUser, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
 import { FaWineBottle } from 'react-icons/fa'
+import Register from './Register'
 import './Login.css'
 
 function Login({ onLogin }) {
+  const [showRegister, setShowRegister] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -49,6 +51,16 @@ function Login({ onLogin }) {
     }, 800)
   }
 
+  // Si está en modo registro, mostrar el componente Register
+  if (showRegister) {
+    return (
+      <Register 
+        onRegister={onLogin} 
+        onBackToLogin={() => setShowRegister(false)} 
+      />
+    )
+  }
+
   return (
     <div className="login-container">
       <div className="login-background">
@@ -74,7 +86,7 @@ function Login({ onLogin }) {
               <input
                 type="text"
                 className="login-input"
-                placeholder="mario"
+                placeholder="Usuario"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -147,7 +159,7 @@ function Login({ onLogin }) {
         </form>
 
         <div className="login-footer">
-          <p>¿Olvidaste tu contraseña? <a href="#recover">Recuperar</a></p>
+          <p>¿No tienes cuenta? <a href="#register" onClick={(e) => { e.preventDefault(); setShowRegister(true); }}>Crear cuenta</a></p>
         </div>
       </div>
 
