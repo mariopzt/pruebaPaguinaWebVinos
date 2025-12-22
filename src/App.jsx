@@ -8,9 +8,14 @@ import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
 import AddWineModal from './components/Bodega/AddWineModal'
+import Login from './components/Login/Login'
 import { winesData } from './data/winesData'
 
 function App() {
+  // Estado de autenticación
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [currentUser, setCurrentUser] = useState(null)
+
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [currentView, setCurrentView] = useState('home') // 'home', 'bodega', o 'agotados'
   const [selectedWine, setSelectedWine] = useState(null)
@@ -797,6 +802,31 @@ function App() {
     return () => clearInterval(interval)
   }, [])
 
+  // Funciones de autenticación
+  const handleLogin = (userData) => {
+    setCurrentUser(userData)
+    setIsAuthenticated(true)
+    // Actualizar datos de usuario en ajustes
+    setAjustesData(prev => ({
+      ...prev,
+      userName: userData.name,
+      userEmail: userData.email,
+      userAvatar: userData.avatar
+    }))
+  }
+
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+    setCurrentUser(null)
+    setCurrentView('home')
+    setIsMenuOpen(false)
+  }
+
+  // Si no está autenticado, mostrar Login
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />
+  }
+
   return (
     <>
     <div className="app">
@@ -929,7 +959,7 @@ function App() {
           </nav>
 
           {/* Logout */}
-          <div className="sidebar-logout nav-item">
+          <div className="sidebar-logout nav-item" onClick={handleLogout}>
             <div className="nav-item-content">
               <span className="nav-icon"><FiLogOut size={10} /></span>
               <span className="nav-text">Cerrar sesión</span>
@@ -1042,7 +1072,7 @@ function App() {
               <div className="mobile-menu-divider"></div>
               <div 
                 className="mobile-nav-item mobile-nav-logout" 
-                onClick={() => { setIsMenuOpen(false); }}
+                onClick={handleLogout}
               >
                 <span className="mobile-nav-icon"><FiLogOut /></span>
                 <span className="mobile-nav-text">Cerrar sesión</span>
@@ -2203,7 +2233,7 @@ function App() {
                 </div>
 
                 {/* Botón de cerrar sesión */}
-                <button className="ajustes-logout">
+                <button className="ajustes-logout" onClick={handleLogout}>
                   <FiLogOut />
                   <span>Cerrar sesión</span>
                 </button>
