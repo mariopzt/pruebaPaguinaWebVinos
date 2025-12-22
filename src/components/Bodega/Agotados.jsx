@@ -1,9 +1,8 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { winesData } from '../../data/winesData';
 import WineCard from './WineCard';
 import './Bodega.css';
 
-function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedWineId }) {
+function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedWineId, wines = [] }) {
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,8 +16,8 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
 
   // Lista base de vinos agotados (memorizada)
   const agotadosWines = useMemo(
-    () => winesData.filter((wine) => wine.stock === 0),
-    []
+    () => wines.filter((wine) => wine.stock === 0),
+    [wines]
   );
 
   // Filtro por tipo + búsqueda (memorizado)

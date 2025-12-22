@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { FiHeart } from 'react-icons/fi';
-import { getTimeAgo } from '../../data/winesData';
+import { getTimeAgo } from '../../utils/date';
 import './WineCard.css';
 
 const getOptimizedImageUrl = (url) => {

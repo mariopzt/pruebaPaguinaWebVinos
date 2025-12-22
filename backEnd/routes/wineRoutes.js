@@ -7,19 +7,17 @@ const {
   updateWine,
   deleteWine
 } = require('../controllers/wineController');
-const { protect } = require('../middleware/auth');
+const { protect, optionalAuth } = require('../middleware/auth');
 
-// Todas las rutas están protegidas
-router.use(protect);
-
+// Lectura pública/semiautenticada, escritura protegida
 router.route('/')
-  .get(getWines)
-  .post(createWine);
+  .get(optionalAuth, getWines)
+  .post(protect, createWine);
 
 router.route('/:id')
-  .get(getWine)
-  .put(updateWine)
-  .delete(deleteWine);
+  .get(optionalAuth, getWine)
+  .put(protect, updateWine)
+  .delete(protect, deleteWine);
 
 module.exports = router;
 

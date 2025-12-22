@@ -1,9 +1,8 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { winesData } from '../../data/winesData';
 import WineCard from './WineCard';
 import './Bodega.css';
 
-function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine, wineLikes, onToggleWineLike }) {
+function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine, wineLikes, onToggleWineLike, wines = [] }) {
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,14 +18,14 @@ function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine, wineLikes, onTogg
   const filteredWines = useMemo(() => {
     const baseList =
       activeFilter === 'Todos'
-        ? winesData.filter((wine) => wine.stock > 0)
-        : winesData.filter((wine) => wine.type === activeFilter && wine.stock > 0);
+        ? wines.filter((wine) => wine.stock > 0)
+        : wines.filter((wine) => wine.type === activeFilter && wine.stock > 0);
 
     if (!searchTerm.trim()) return baseList;
 
     const lowered = searchTerm.toLowerCase();
     return baseList.filter((wine) => wine.name.toLowerCase().includes(lowered));
-  }, [activeFilter, searchTerm]);
+  }, [activeFilter, searchTerm, wines]);
 
   // Calcular la paginación (memorizado)
   const totalPages = useMemo(

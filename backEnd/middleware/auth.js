@@ -54,3 +54,19 @@ exports.authorize = (...roles) => {
   };
 };
 
+// Middleware opcional: si hay token lo valida, si no, continúa sin error
+exports.optionalAuth = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next();
+  }
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.id);
+  } catch (e) {
+    // Token inválido: lo ignoramos y seguimos sin usuario
+  }
+  return next();
+};
+

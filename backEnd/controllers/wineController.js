@@ -5,7 +5,8 @@ const Wine = require('../models/Wine');
 // @access  Private
 exports.getWines = async (req, res) => {
   try {
-    const wines = await Wine.find({ user: req.user.id }).sort({ createdAt: -1 });
+    const query = req.user?.id ? { user: req.user.id } : {};
+    const wines = await Wine.find(query).sort({ updatedAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -36,8 +37,8 @@ exports.getWine = async (req, res) => {
       });
     }
 
-    // Verificar que el vino pertenezca al usuario
-    if (wine.user.toString() !== req.user.id) {
+    // Verificar que el vino pertenezca al usuario (si se guardó un usuario)
+    if (wine.user && req.user && wine.user.toString() !== req.user.id) {
       return res.status(401).json({
         success: false,
         message: 'No autorizado'
@@ -64,7 +65,9 @@ exports.getWine = async (req, res) => {
 exports.createWine = async (req, res) => {
   try {
     // Agregar usuario al body
-    req.body.user = req.user.id;
+    if (req.user?.id) {
+      req.body.user = req.user.id;
+    }
 
     const wine = await Wine.create(req.body);
 
@@ -97,8 +100,8 @@ exports.updateWine = async (req, res) => {
       });
     }
 
-    // Verificar que el vino pertenezca al usuario
-    if (wine.user.toString() !== req.user.id) {
+    // Verificar que el vino pertenezca al usuario (si aplica)
+    if (wine.user && req.user && wine.user.toString() !== req.user.id) {
       return res.status(401).json({
         success: false,
         message: 'No autorizado'
@@ -139,8 +142,8 @@ exports.deleteWine = async (req, res) => {
       });
     }
 
-    // Verificar que el vino pertenezca al usuario
-    if (wine.user.toString() !== req.user.id) {
+    // Verificar que el vino pertenezca al usuario (si aplica)
+    if (wine.user && req.user && wine.user.toString() !== req.user.id) {
       return res.status(401).json({
         success: false,
         message: 'No autorizado'

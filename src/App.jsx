@@ -9,12 +9,33 @@ import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
 import AddWineModal from './components/Bodega/AddWineModal'
 import Login from './components/Login/Login'
-import { winesData } from './data/winesData'
+import wineService from './api/wineService'
 
 function App() {
   // Estado de autenticación
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
+
+  // Vinos (desde backend)
+  const [wines, setWines] = useState([])
+  const [winesLoading, setWinesLoading] = useState(false)
+  const [winesError, setWinesError] = useState('')
+
+  // Hidratar sesión desde localStorage al cargar
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    const userStr = localStorage.getItem('user')
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        setCurrentUser(user)
+        setIsAuthenticated(true)
+      } catch (e) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+      }
+    }
+  }, [])
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [currentView, setCurrentView] = useState('home') // 'home', 'bodega', o 'agotados'
@@ -344,24 +365,58 @@ function App() {
   ])
 
   // Estado para likes de vinos en bodega (por wineId)
-  const [wineLikes, setWineLikes] = useState(() => {
-    const initialLikes = {};
-    winesData.forEach(wine => {
-      initialLikes[wine.id] = {
-        count: Math.floor(Math.random() * 150) + 20, // likes iniciales aleatorios
-        liked: false
-      };
-    });
-    return initialLikes;
-  })
+  const [wineLikes, setWineLikes] = useState({})
 
   // Estado para Top Vinos - se calcula dinámicamente basado en wineLikes
   const [topWines, setTopWines] = useState([])
 
+  // Normalizar vinos desde backend a formato de la UI
+  const normalizeWine = (wine) => ({
+    ...wine,
+    id: wine.id || wine._id,
+  })
+
+  // Cargar vinos desde API cuando está autenticado
+  useEffect(() => {
+    const fetchWines = async () => {
+      if (!isAuthenticated) return
+      setWinesLoading(true)
+      setWinesError('')
+      try {
+        const response = await wineService.getWines()
+        const list = (response.data || response).data || response.data
+        const normalized = (list || []).map(normalizeWine)
+        setWines(normalized)
+      } catch (error) {
+        console.error('Error al cargar vinos:', error)
+        setWinesError(error.message || 'Error al cargar vinos')
+      } finally {
+        setWinesLoading(false)
+      }
+    }
+    fetchWines()
+  }, [isAuthenticated])
+
+  // Inicializar likes cuando llegan vinos
+  useEffect(() => {
+    if (!wines || wines.length === 0) return
+    const initialLikes = {}
+    wines.forEach((wine) => {
+      const id = wine.id || wine._id
+      initialLikes[id] = wineLikes[id] || {
+        count: Math.floor(Math.random() * 150) + 20,
+        liked: false
+      }
+    })
+    setWineLikes(initialLikes)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wines])
+
   // Actualizar Top Vinos cuando cambien los likes
   useEffect(() => {
+    if (!wines || wines.length === 0) return
     // Crear array de vinos con sus likes
-    const winesWithLikes = winesData.map(wine => ({
+    const winesWithLikes = wines.map(wine => ({
       wine,
       likes: wineLikes[wine.id]?.count || 0,
       liked: wineLikes[wine.id]?.liked || false
@@ -385,7 +440,7 @@ function App() {
     }));
 
     setTopWines(newTopWines);
-  }, [wineLikes])
+  }, [wineLikes, wines])
 
   const filteredOrders =
     ordersFilter === 'todos'
@@ -567,11 +622,12 @@ function App() {
 
   // Función para toggle like en vinos de bodega
   const handleToggleWineLike = (wineId) => {
+    if (!wineId) return
     setWineLikes(prev => ({
       ...prev,
       [wineId]: {
-        count: prev[wineId].liked ? prev[wineId].count - 1 : prev[wineId].count + 1,
-        liked: !prev[wineId].liked
+        count: prev[wineId]?.liked ? prev[wineId].count - 1 : (prev[wineId]?.count || 0) + 1,
+        liked: !prev[wineId]?.liked
       }
     }));
   }
@@ -731,28 +787,32 @@ function App() {
   };
 
   const handleWineClick = (wineName) => {
-    // Buscar el vino en winesData por nombre
-    let wine = winesData.find(w => w.name.toLowerCase().includes(wineName.toLowerCase()))
-    // Si no encuentra coincidencia exacta, buscar por palabras clave
+    if (!wines || wines.length === 0) return
+    let wine = wines.find(w => w.name?.toLowerCase().includes(wineName.toLowerCase()))
     if (!wine) {
-      wine = winesData.find(w => {
+      wine = wines.find(w => {
         const searchTerms = wineName.toLowerCase().split(' ')
-        return searchTerms.some(term => w.name.toLowerCase().includes(term))
+        return searchTerms.some(term => w.name?.toLowerCase().includes(term))
       })
     }
-    // Si aún no encuentra, usar el primer vino como fallback
     if (!wine) {
-      wine = winesData[0]
+      wine = wines[0]
     }
     setSelectedWine(wine)
   }
 
   // Agregar nuevo vino
-  const handleAddWine = (newWine) => {
-    winesData.push(newWine)
-    setShowAddWineModal(false)
-    // Incrementar versión para forzar re-render
-    setWineListVersion(prev => prev + 1)
+  const handleAddWine = async (newWine) => {
+    try {
+      const response = await wineService.createWine(newWine)
+      const created = normalizeWine(response.data?.data || response.data)
+      setWines(prev => [...prev, created])
+      setShowAddWineModal(false)
+      setWineListVersion(prev => prev + 1)
+    } catch (error) {
+      console.error('Error al crear vino:', error)
+      alert('No se pudo crear el vino. Revisa la conexión.')
+    }
   }
 
   useEffect(() => {
@@ -1279,6 +1339,7 @@ function App() {
                       onOpenAddWine={() => setShowAddWineModal(true)}
                       wineLikes={wineLikes}
                       onToggleWineLike={handleToggleWineLike}
+                      wines={wines}
                     />
                   </div>
                 )}
@@ -1291,6 +1352,7 @@ function App() {
                       onSelectWine={setSelectedWine}
                       onWineOutOfStock={addNotification}
                       highlightedWineId={highlightedWineId}
+                      wines={wines}
                     />
                   </div>
                 )}
@@ -2900,6 +2962,7 @@ function App() {
       <AddReviewModal
         onClose={() => setShowAddReviewModal(false)}
         onSave={handleSaveReview}
+        wines={wines}
       />
     )}
 
@@ -3925,7 +3988,7 @@ function EditOrderModal({ order, onClose, onSave, onDelete }) {
 }
 
 // Componente Modal de Agregar Valoración
-function AddReviewModal({ onClose, onSave }) {
+function AddReviewModal({ onClose, onSave, wines = [] }) {
   const [rating, setRating] = useState(0)
   const [hoveredRating, setHoveredRating] = useState(0)
   const [reviewData, setReviewData] = useState({
@@ -3938,8 +4001,8 @@ function AddReviewModal({ onClose, onSave }) {
   })
 
   const handleWineSelect = (e) => {
-    const wineId = parseInt(e.target.value)
-    const selectedWine = winesData.find(w => w.id === wineId)
+    const wineId = e.target.value
+    const selectedWine = wines.find(w => w.id === wineId)
     
     if (selectedWine) {
       setReviewData({
@@ -3992,7 +4055,7 @@ function AddReviewModal({ onClose, onSave }) {
                 }}
               >
                 <option value="">Selecciona un vino</option>
-                {winesData.map((wine) => (
+                {wines.map((wine) => (
                   <option key={wine.id} value={wine.id}>
                     {wine.name}
                   </option>
