@@ -12,12 +12,12 @@ const { protect, optionalAuth } = require('../middleware/auth');
 // Lectura pública/semiautenticada, escritura protegida
 router.route('/')
   .get(optionalAuth, getWines)
-  .post(protect, createWine);
+  .post(optionalAuth, createWine);
 
 router.route('/:id')
   .get(optionalAuth, getWine)
-  .put(protect, updateWine)
-  .delete(protect, deleteWine);
+  .put(optionalAuth, updateWine)
+  .delete(optionalAuth, deleteWine);
 
 module.exports = router;
 

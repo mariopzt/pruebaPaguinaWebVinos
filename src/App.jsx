@@ -815,6 +815,22 @@ function App() {
     }
   }
 
+  // Actualizar vino
+  const handleUpdateWine = async (wineId, updates) => {
+    try {
+      const payload = { ...updates }
+      delete payload._id
+      const response = await wineService.updateWine(wineId, payload)
+      const updated = normalizeWine(response.data?.data || response.data)
+      setWines(prev => prev.map(w => (w.id === wineId || w._id === wineId ? updated : w)))
+      setSelectedWine(updated)
+      return { success: true }
+    } catch (error) {
+      console.error('Error al actualizar vino:', error)
+      return { success: false, message: error.message || 'No se pudo actualizar el vino' }
+    }
+  }
+
   useEffect(() => {
     if (chatMessagesContainerRef.current) {
       chatMessagesContainerRef.current.scrollTop = chatMessagesContainerRef.current.scrollHeight;
@@ -2904,6 +2920,7 @@ function App() {
         wine={selectedWine}
         onClose={() => setSelectedWine(null)}
         onWineOutOfStock={addNotification}
+        onUpdateWine={handleUpdateWine}
       />
     )}
 

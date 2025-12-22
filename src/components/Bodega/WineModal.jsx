@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './WineModal.css';
 
-function WineModal({ wine, onClose, onWineOutOfStock }) {
+function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedWine, setEditedWine] = useState({
     price: wine?.price || 0,
@@ -67,17 +67,37 @@ function WineModal({ wine, onClose, onWineOutOfStock }) {
   };
 
   // Guardar cambios en el objeto wine
-  const handleSave = () => {
+  const handleSave = async () => {
     const wasOutOfStock = wine.stock === 0;
-    wine.price = editedWine.price;
-    wine.stock = editedWine.stock;
-    wine.location = editedWine.location;
-    wine.image = editedWine.image;
-    wine.grapeVariety = editedWine.grapeVariety;
-    
+    const payload = {
+      ...wine,
+      price: editedWine.price,
+      stock: editedWine.stock,
+      location: editedWine.location,
+      image: editedWine.image,
+      grapeVariety: editedWine.grapeVariety,
+      updatedAtClient: new Date(),
+    };
+
+    // Si hay callback de actualización, usarlo (API)
+    if (onUpdateWine) {
+      const result = await onUpdateWine(wine.id || wine._id, payload);
+      if (!result?.success) {
+        alert(result?.message || 'No se pudo guardar el vino');
+        return;
+      }
+    } else {
+      // fallback local (no persiste en DB)
+      wine.price = payload.price;
+      wine.stock = payload.stock;
+      wine.location = payload.location;
+      wine.image = payload.image;
+      wine.grapeVariety = payload.grapeVariety;
+    }
+
     // Si el vino pasa a stock 0, crear notificación
     if (!wasOutOfStock && editedWine.stock === 0 && onWineOutOfStock) {
-      onWineOutOfStock(wine);
+      onWineOutOfStock({ ...wine, ...payload });
     }
     
     alert('Cambios guardados correctamente');
