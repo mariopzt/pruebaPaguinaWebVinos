@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './WineModal.css';
 
-function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine }) {
+function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedWine, setEditedWine] = useState({
     price: wine?.price || 0,
@@ -10,6 +10,9 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine }) {
     image: wine?.image || '',
     grapeVariety: Array.isArray(wine?.grapeVariety) ? [...wine.grapeVariety] : []
   });
+  const [showStockAdjust, setShowStockAdjust] = useState(false);
+  const [stockAdjustValue, setStockAdjustValue] = useState('');
+  const [adjustType, setAdjustType] = useState('add'); // 'add' o 'subtract'
 
   if (!wine) return null;
 
@@ -116,21 +119,59 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine }) {
     setIsEditMode(false);
   };
 
+  // Manejar ajuste rápido de stock
+  const handleStockAdjust = async () => {
+    const value = parseInt(stockAdjustValue);
+    if (isNaN(value) || value <= 0) {
+      alert('Por favor ingresa un número válido');
+      return;
+    }
+
+    const newStock = adjustType === 'add' 
+      ? wine.stock + value 
+      : Math.max(0, wine.stock - value);
+
+    const payload = {
+      ...wine,
+      stock: newStock,
+      updatedAtClient: new Date(),
+    };
+
+    if (onUpdateWine) {
+      const result = await onUpdateWine(wine.id || wine._id, payload);
+      if (!result?.success) {
+        alert(result?.message || 'No se pudo actualizar el stock');
+        return;
+      }
+    }
+
+    // Si el vino pasa a stock 0, crear notificación
+    if (wine.stock > 0 && newStock === 0 && onWineOutOfStock) {
+      onWineOutOfStock({ ...wine, ...payload });
+    }
+
+    setShowStockAdjust(false);
+    setStockAdjustValue('');
+    alert(`Stock actualizado: ${wine.stock} → ${newStock}`);
+  };
+
   return (
     <div className="wine-modal-overlay" onClick={onClose}>
       <div className="wine-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="wine-modal-close" onClick={onClose}>
-          ×
-        </button>
-        
-        {/* Botón Editar */}
-        <button 
-          className="wine-edit-button"
-          onClick={() => setIsEditMode(!isEditMode)}
-          title={isEditMode ? 'Cancelar edición' : 'Editar vino'}
-        >
-          {isEditMode ? '✕' : '✎'}
-        </button>
+        <div className="wine-modal-top-actions">
+          <button className="wine-modal-close" onClick={onClose}>
+            ×
+          </button>
+
+          {/* Botón Editar */}
+          <button 
+            className="wine-edit-button"
+            onClick={() => setIsEditMode(!isEditMode)}
+            title={isEditMode ? 'Cancelar edición' : 'Editar vino'}
+          >
+            {isEditMode ? '✕' : '✎'}
+          </button>
+        </div>
         
         <div className="wine-modal-content">
           <div className="wine-modal-image">
@@ -189,8 +230,8 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine }) {
                 </div>
               </div>
               
-              <div className="wine-info-row">
-                <div className="wine-info-item half-width">
+              <div className="wine-info-row wine-price-stock-row">
+                <div className="wine-info-item">
                   <span className="wine-info-label">Precio:</span>
                   {isEditMode ? (
                     <div className="wine-editable-field">
@@ -207,6 +248,66 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine }) {
                     <span className="wine-info-value">{wine.price.toFixed(2)}€</span>
                   )}
                 </div>
+
+                {/* Botones de ajuste rápido de stock (solo si NO está en modo edición) */}
+                {!isEditMode && (
+                  <div className="wine-stock-adjust-section">
+                    {!showStockAdjust ? (
+                      <div className="wine-stock-adjust-buttons">
+                        <button 
+                          className="wine-stock-btn wine-stock-add"
+                          onClick={() => {
+                            setAdjustType('add');
+                            setShowStockAdjust(true);
+                          }}
+                          title="Agregar stock"
+                        >
+                          +
+                        </button>
+                        <button 
+                          className="wine-stock-btn wine-stock-subtract"
+                          onClick={() => {
+                            setAdjustType('subtract');
+                            setShowStockAdjust(true);
+                          }}
+                          title="Restar stock"
+                        >
+                          −
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="wine-stock-adjust-input-container">
+                        <span className="wine-stock-adjust-label">
+                          {adjustType === 'add' ? 'Agregar:' : 'Restar:'}
+                        </span>
+                        <input 
+                          type="number"
+                          className="wine-stock-adjust-input"
+                          value={stockAdjustValue}
+                          onChange={(e) => setStockAdjustValue(e.target.value)}
+                          placeholder="0"
+                          autoFocus
+                          min="1"
+                        />
+                        <button 
+                          className="wine-stock-adjust-confirm"
+                          onClick={handleStockAdjust}
+                        >
+                          ✓
+                        </button>
+                        <button 
+                          className="wine-stock-adjust-cancel"
+                          onClick={() => {
+                            setShowStockAdjust(false);
+                            setStockAdjustValue('');
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -304,6 +405,27 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine }) {
                 </button>
                 <button className="wine-save-button" onClick={handleSave}>
                   💾 Guardar
+                </button>
+              </div>
+            )}
+
+            {/* Botón Eliminar al final del contenido (solo si NO está en modo edición) */}
+            {onDeleteWine && !isEditMode && (
+              <div className="wine-delete-container">
+                <button
+                  className="wine-delete-button"
+                  onClick={async () => {
+                    const ok = window.confirm('¿Eliminar este vino?');
+                    if (!ok) return;
+                    const res = await onDeleteWine(wine.id || wine._id);
+                    if (!res?.success) {
+                      alert(res?.message || 'No se pudo eliminar');
+                    } else {
+                      onClose();
+                    }
+                  }}
+                >
+                  🗑️ Eliminar vino
                 </button>
               </div>
             )}

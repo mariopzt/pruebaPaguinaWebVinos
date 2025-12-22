@@ -831,6 +831,19 @@ function App() {
     }
   }
 
+  const handleDeleteWine = async (wineId) => {
+    try {
+      await wineService.deleteWine(wineId)
+      setWines(prev => prev.filter(w => w.id !== wineId && w._id !== wineId))
+      setSelectedWine(null)
+      setWineListVersion(prev => prev + 1)
+      return { success: true }
+    } catch (error) {
+      console.error('Error al eliminar vino:', error)
+      return { success: false, message: error.message || 'No se pudo eliminar el vino' }
+    }
+  }
+
   useEffect(() => {
     if (chatMessagesContainerRef.current) {
       chatMessagesContainerRef.current.scrollTop = chatMessagesContainerRef.current.scrollHeight;
@@ -2921,6 +2934,7 @@ function App() {
         onClose={() => setSelectedWine(null)}
         onWineOutOfStock={addNotification}
         onUpdateWine={handleUpdateWine}
+        onDeleteWine={handleDeleteWine}
       />
     )}
 

@@ -25,12 +25,14 @@
   max-width: 900px;
   width: 100%;
   max-height: 90vh;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
   animation: modalSlideIn 0.3s ease;
   margin: auto !important;
   transform: none !important;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes modalSlideIn {
@@ -44,32 +46,228 @@
   }
 }
 
-.wine-modal-close {
+.wine-modal-top-actions {
   position: absolute;
   top: 20px;
   right: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  z-index: 10;
+}
+
+.wine-modal-close,
+.wine-edit-button {
   width: 40px;
   height: 40px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(20, 20, 30, 0.8);
   backdrop-filter: blur(10px);
   border-radius: 50%;
-  font-size: 28px;
+  font-size: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
   transition: all 0.2s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   color: #ffffff;
 }
 
-.wine-modal-close:hover {
+.wine-modal-close:hover,
+.wine-edit-button:hover {
   background: rgba(99, 102, 241, 0.9);
   border-color: rgba(99, 102, 241, 0.5);
-  transform: rotate(90deg);
+  transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.wine-price-stock-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wine-stock-adjust-section {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.wine-stock-adjust-buttons {
+  display: flex;
+  gap: 8px;
+  animation: fadeInButtons 0.3s ease-out;
+}
+
+@keyframes fadeInButtons {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.wine-stock-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(30, 30, 50, 0.6);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wine-stock-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.wine-stock-add {
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.wine-stock-add:hover {
+  background: rgba(34, 197, 94, 0.3);
+  border-color: rgba(34, 197, 94, 0.5);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+.wine-stock-subtract {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.wine-stock-subtract:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.wine-stock-adjust-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30, 30, 50, 0.4);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: expandStockInput 0.3s ease-out;
+  transform-origin: right center;
+}
+
+@keyframes expandStockInput {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.3) translateX(20px);
+  }
+  60% {
+    transform: scaleX(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1) translateX(0);
+  }
+}
+
+.wine-stock-adjust-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.wine-stock-adjust-input {
+  width: 60px;
+  padding: 4px 8px;
+  background: rgba(20, 20, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+}
+
+.wine-stock-adjust-input:focus {
+  outline: none;
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.wine-stock-adjust-confirm,
+.wine-stock-adjust-cancel {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.wine-stock-adjust-confirm {
+  background: rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+}
+
+.wine-stock-adjust-confirm:hover {
+  background: rgba(34, 197, 94, 0.5);
+  transform: scale(1.1);
+}
+
+.wine-stock-adjust-cancel {
+  background: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.wine-stock-adjust-cancel:hover {
+  background: rgba(239, 68, 68, 0.5);
+  transform: scale(1.1);
+}
+
+.wine-delete-container {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.wine-delete-button {
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: none;
+}
+
+.wine-delete-button:hover {
+  transform: translateY(-2px);
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+}
+
+.wine-delete-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
 }
 
 .wine-modal-content {
@@ -77,8 +275,8 @@
   grid-template-columns: 1fr 1.5fr;
   gap: 40px;
   padding: 40px;
-  max-height: 90vh;
-  overflow: hidden;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .wine-modal-image {
