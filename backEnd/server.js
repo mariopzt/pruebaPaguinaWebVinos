@@ -26,6 +26,7 @@ app.use(cors({
 // Rutas
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/wines', require('./routes/wineRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // Ruta de prueba
 app.get('/', (req, res) => {

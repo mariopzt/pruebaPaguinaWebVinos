@@ -578,6 +578,17 @@ body {
   animation: bellRing 2s ease-in-out infinite;
 }
 
+.nav-icon.notif-pulse,
+.mobile-nav-icon.notif-pulse {
+  animation: notifPulse 0.9s ease;
+}
+
+@keyframes notifPulse {
+  0% { transform: scale(0.9); filter: drop-shadow(0 0 0 rgba(102,126,234,0.4)); }
+  40% { transform: scale(1.1); filter: drop-shadow(0 0 12px rgba(102,126,234,0.55)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(102,126,234,0)); }
+}
+
 @keyframes bellRing {
   0%, 100% {
     transform: rotate(0deg);

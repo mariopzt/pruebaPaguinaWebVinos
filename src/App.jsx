@@ -10,6 +10,7 @@ import WineModal from './components/Bodega/WineModal'
 import AddWineModal from './components/Bodega/AddWineModal'
 import Login from './components/Login/Login'
 import wineService from './api/wineService'
+import notificationService from './api/notificationService'
 
 function App() {
   // Estado de autenticación
@@ -280,15 +281,32 @@ function App() {
   const [showDefaultViewModal, setShowDefaultViewModal] = useState(false)
   const [showSortByModal, setShowSortByModal] = useState(false)
 
+  // Helpers de tiempo para notificaciones (formato relativo sencillo)
+  const formatTimeAgoEs = (date) => {
+    if (!date) return ''
+    const now = Date.now()
+    const diffMs = now - new Date(date).getTime()
+    const minutes = Math.floor(diffMs / (1000 * 60))
+    if (minutes < 1) return 'Ahora'
+    if (minutes === 1) return 'Hace 1 min'
+    if (minutes < 60) return `Hace ${minutes} min`
+    const hours = Math.floor(minutes / 60)
+    if (hours === 1) return 'Hace 1 hora'
+    if (hours < 24) return `Hace ${hours} horas`
+    const days = Math.floor(hours / 24)
+    if (days === 1) return 'Ayer'
+    return `Hace ${days} días`
+  }
+
   // Estado para notificaciones
-  const [notifications, setNotifications] = useState([
+  const seedNotifications = [
     {
       id: 1,
       type: 'stock-bajo',
       icon: 'FiBox',
       title: 'Stock bajo en bodega',
       message: '**Viña Albali Reserva 2018** tiene solo 2 unidades restantes. Considera hacer un nuevo pedido.',
-      time: 'Hace 5 min',
+      createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
       unread: true,
       actions: ['Ver bodega', 'Hacer pedido']
     },
@@ -298,7 +316,7 @@ function App() {
       icon: 'FiPackage',
       title: 'Nuevo pedido recibido',
       message: 'Pedido **#P-047** ha sido recibido y está listo para procesar. 5 productos, total: €234.50',
-      time: 'Hace 15 min',
+      createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
       unread: true,
       actions: ['Ver pedido']
     },
@@ -308,7 +326,7 @@ function App() {
       icon: 'FiCheckCircle',
       title: 'Tarea completada',
       message: 'La tarea **"Actualizar inventario"** ha sido completada exitosamente.',
-      time: 'Hace 1 hora',
+      createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
       unread: false,
       actions: []
     },
@@ -318,7 +336,7 @@ function App() {
       icon: 'FiCheckSquare',
       title: 'Recordatorio: Tarea para hoy',
       message: 'Tienes **3 tareas** programadas para hoy que requieren tu atención.',
-      time: 'Hace 2 horas',
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
       unread: true,
       actions: ['Ver tareas']
     },
@@ -328,7 +346,7 @@ function App() {
       icon: 'FiTrendingUp',
       title: 'Resumen del día',
       message: 'Hoy has vendido **€1,248.00** en 12 pedidos. ¡Excelente día! +18% vs ayer.',
-      time: 'Hoy, 18:00',
+      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
       unread: false,
       actions: ['Ver estadísticas']
     },
@@ -338,7 +356,7 @@ function App() {
       icon: 'FiStar',
       title: 'Nueva valoración recibida',
       message: '**María García** ha valorado con 5 estrellas el **Marqués de Riscal Reserva**',
-      time: 'Hace 3 horas',
+      createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
       unread: false,
       actions: ['Ver valoración']
     },
@@ -348,7 +366,7 @@ function App() {
       icon: 'FiHeart',
       title: 'Vino en tendencia',
       message: '**Martín Códax Albariño** ha recibido +25 likes hoy y está en el top 3 de vinos más populares.',
-      time: 'Hace 5 horas',
+      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
       unread: false,
       actions: ['Ver en Top Vinos']
     },
@@ -358,11 +376,24 @@ function App() {
       icon: 'FiCheckCircle',
       title: 'Pedido completado',
       message: 'El pedido **#P-042** ha sido completado y enviado al cliente.',
-      time: 'Ayer',
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
       unread: false,
       actions: []
     }
-  ])
+  ]
+
+  const loadNotifications = () => {
+    try {
+      const stored = localStorage.getItem('notifications')
+      if (stored) return JSON.parse(stored)
+    } catch (e) {
+      // ignore
+    }
+    return seedNotifications
+  }
+
+  const [notifications, setNotifications] = useState([])
+  const [newNotifPulse, setNewNotifPulse] = useState(false)
 
   // Estado para likes de vinos en bodega (por wineId)
   const [wineLikes, setWineLikes] = useState({})
@@ -606,15 +637,20 @@ function App() {
   }
 
   // Función para marcar todas las notificaciones como leídas
-  const handleMarkAllAsRead = () => {
-    setNotifications(prev => prev.map(notif => ({ ...notif, unread: false })))
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead()
+      setNotifications(prev => prev.map(notif => ({ ...notif, unread: false, readAt: new Date() })))
+    } catch (e) {
+      console.error('No se pudo marcar todas como leídas', e)
+    }
   }
 
   // Marcar notificaciones como leídas al salir de la vista
   useEffect(() => {
     // Cleanup: marcar como leídas cuando el usuario sale de la vista de notificaciones
     return () => {
-      if (currentView === 'ayuda') {
+    if (currentView === 'ayuda') {
         setNotifications(prev => prev.map(notif => ({ ...notif, unread: false })))
       }
     }
@@ -684,21 +720,30 @@ function App() {
   }
 
   // Agregar notificación cuando un vino se agota
-  const addNotification = (wine) => {
+  const addNotification = async (wine) => {
     const newNotification = {
-      id: Date.now(),
       type: 'stock-bajo',
       icon: 'FiBox',
       title: 'Stock bajo en bodega',
       wineId: wine.id,
       wineName: wine.name,
       message: `**${wine.name}** se ha agotado temporalmente. Te sugerimos hacer tu pedido cuanto antes para no quedarte sin él.`,
-      time: 'Ahora',
+      createdAt: new Date().toISOString(),
       unread: true,
       actions: ['Ver bodega', 'Hacer pedido']
-    };
-    setNotifications(prev => [newNotification, ...prev]);
-  };
+    }
+    try {
+      const resp = await notificationService.create(newNotification)
+      const saved = resp.data?.data || resp.data || newNotification
+      setNotifications(prev => [saved, ...prev])
+      setNewNotifPulse(true)
+      setTimeout(() => setNewNotifPulse(false), 1200)
+    } catch (e) {
+      console.error('Error al crear notificación', e)
+      // fallback local
+      setNotifications(prev => [newNotification, ...prev])
+    }
+  }
 
   // Abrir el panel de notificaciones sin marcarlas como leídas automáticamente
   const handleOpenNotifications = () => {
@@ -707,10 +752,15 @@ function App() {
   };
 
   // Manejar click en notificación - marcar solo esa como leída
-  const handleNotificationClick = (wineId, notificationId) => {
-    // Marcar solo esta notificación como leída
+  const handleNotificationClick = async (wineId, notificationId) => {
+    try {
+      await notificationService.markAsRead(notificationId)
+    } catch (e) {
+      console.warn('No se pudo marcar como leída, usando estado local')
+    }
+
     setNotifications(prev => prev.map(notif => 
-      notif.id === notificationId ? { ...notif, unread: false } : notif
+      notif.id === notificationId ? { ...notif, unread: false, readAt: new Date() } : notif
     ));
     
     setCurrentView('agotados');
@@ -726,11 +776,43 @@ function App() {
     setNotifications(prev => prev.filter(n => n.id !== notificationId));
   };
 
+  // Derivados de notificaciones
+  const unreadNotifications = notifications.filter(n => n.unread);
+  const sortedNotifications = [...notifications].sort((a, b) => {
+    if (a.unread !== b.unread) return a.unread ? -1 : 1;
+    const da = new Date(a.createdAt || a.id).getTime();
+    const db = new Date(b.createdAt || b.id).getTime();
+    return db - da;
+  });
+  const getNotificationTime = (notif) => notif.createdAt ? formatTimeAgoEs(notif.createdAt) : (notif.time || '');
+
+  // Cargar notificaciones desde API al autenticarse
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!isAuthenticated) {
+        setNotifications([]);
+        return;
+      }
+      try {
+        const resp = await notificationService.getAll();
+        const list = resp.data?.data || resp.data || [];
+        setNotifications(list);
+      } catch (e) {
+        console.error('Error al cargar notificaciones', e);
+      }
+    };
+    fetchNotifications();
+  }, [isAuthenticated]);
+
   // Manejar acciones de las notificaciones
-  const handleNotificationAction = (action, notificationId) => {
-    // Marcar la notificación como leída al interactuar con ella
+  const handleNotificationAction = async (action, notificationId) => {
+    try {
+      await notificationService.markAsRead(notificationId)
+    } catch (e) {
+      // ignorar si falla
+    }
     setNotifications(prev => prev.map(notif => 
-      notif.id === notificationId ? { ...notif, unread: false } : notif
+      notif.id === notificationId ? { ...notif, unread: false, readAt: new Date() } : notif
     ));
 
     // Navegar según la acción
@@ -807,8 +889,8 @@ function App() {
       const response = await wineService.createWine(newWine)
       const created = normalizeWine(response.data?.data || response.data)
       setWines(prev => [...prev, created])
-      setShowAddWineModal(false)
-      setWineListVersion(prev => prev + 1)
+    setShowAddWineModal(false)
+    setWineListVersion(prev => prev + 1)
     } catch (error) {
       console.error('Error al crear vino:', error)
       alert('No se pudo crear el vino. Revisa la conexión.')
@@ -1030,7 +1112,7 @@ function App() {
               onClick={() => setCurrentView('ayuda')}
             >
               <div className="nav-item-content">
-                <span className={`nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''}`}>
+                <span className={`nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
                   <FiBell size={10} />
                 </span>
                 <span className="nav-text">Notificaciones</span>
@@ -1144,7 +1226,7 @@ function App() {
                 className="mobile-nav-item" 
                 onClick={() => { setCurrentView('ayuda'); setIsMenuOpen(false); }}
               >
-                <span className={`mobile-nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''}`}>
+              <span className={`mobile-nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
                   <FiBell />
                 </span>
                 <span className="mobile-nav-text">Notificaciones</span>
@@ -2347,7 +2429,7 @@ function App() {
               </div>
 
               <div className="notificaciones-container">
-                {notifications.map((notif) => {
+                {sortedNotifications.map((notif) => {
                   const IconComponent = 
                     notif.icon === 'FiBox' ? FiBox :
                     notif.icon === 'FiPackage' ? FiPackage :
@@ -2368,7 +2450,7 @@ function App() {
                       <div className="notificacion-content">
                         <div className="notificacion-header">
                           <h4 className="notificacion-titulo">{notif.title}</h4>
-                          <span className="notificacion-time">{notif.time}</span>
+                          <span className="notificacion-time">{getNotificationTime(notif)}</span>
                         </div>
                         <p 
                           className="notificacion-mensaje"
@@ -2813,7 +2895,7 @@ function App() {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="notifications-header">
-            <h2>Notificaciones ({notifications.length})</h2>
+            <h2>Notificaciones ({sortedNotifications.length})</h2>
             <button 
               className="notifications-close"
               onClick={() => setShowNotifications(false)}
@@ -2823,8 +2905,8 @@ function App() {
           </div>
           
           <div className="notifications-list">
-            {notifications.length > 0 ? (
-              notifications.map(notification => (
+            {sortedNotifications.length > 0 ? (
+              sortedNotifications.map(notification => (
                 <div 
                   key={notification.id} 
                   className={`notification-item ${notification.unread ? 'unread' : ''}`}
@@ -2845,12 +2927,14 @@ function App() {
                         </p>
                       )
                     })()}
+                    <span className="notification-time">{getNotificationTime(notification)}</span>
                   </div>
                   {notification.unread && <span className="notification-badge-item">NUEVA</span>}
                   <button
                     className="notification-remove"
                     onClick={(e) => {
                       e.stopPropagation();
+                      notificationService.delete(notification.id).catch(() => {})
                       removeNotification(notification.id);
                     }}
                   >
