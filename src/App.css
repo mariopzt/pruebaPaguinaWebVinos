@@ -15,6 +15,35 @@ body {
   height: 100vh;              /* referencia para los porcentajes de alto */
 }
 
+/* Scrollbar global mejorado */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(116, 111, 255, 0.1) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #0D0D0D;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #1a1a1a;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 :root {
   --sidebar-width: 140px;
   --sidebar-gap: 20px;
@@ -3630,6 +3659,30 @@ body {
   min-height: 0;
   max-height: 100%;
   overflow-y: auto;
+}
+
+/* Scrollbar personalizado para ia-chat-messages */
+.ia-chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ia-chat-messages::-webkit-scrollbar-track {
+  background: rgba(115, 111, 255, 0.08);
+  border-radius: 10px;
+  margin: 4px 0;
+}
+
+.ia-chat-messages::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  border: 2px solid rgba(8, 8, 11, 0.3);
+  transition: all 0.3s ease;
+}
+
+.ia-chat-messages::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #7c8ef5 0%, #8b5bb8 100%);
+  border: 2px solid rgba(8, 8, 11, 0.5);
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
 }
 
 .ia-chat-input {

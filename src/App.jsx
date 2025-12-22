@@ -2,7 +2,7 @@ import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
-import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings, FiBell, FiMenu, FiPackage, FiMessageSquare, FiCheckCircle, FiHeart } from 'react-icons/fi'
+import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings, FiBell, FiMenu, FiPackage, FiMessageSquare, FiCheckCircle, FiHeart, FiRefreshCw, FiWifi, FiDatabase, FiType, FiEye, FiZap, FiFilter } from 'react-icons/fi'
 import { FaArrowAltCircleLeft, FaWineBottle } from 'react-icons/fa'
 import Bodega from './components/Bodega/Bodega'
 import Agotados from './components/Bodega/Agotados'
@@ -222,17 +222,37 @@ function App() {
     notificationsPush: true,
     notificationsOrders: true,
     notificationsPromotions: false,
+    notificationsSound: true,
+    notificationsStockAlerts: true,
     // Apariencia
     theme: 'Oscuro',
     language: 'Español',
+    animations: true,
+    compactMode: false,
     // Seguridad
-    twoFactorAuth: false
+    twoFactorAuth: false,
+    biometricAuth: false,
+    // Preferencias de la app
+    autoSync: true,
+    offlineMode: false,
+    dataCompression: true,
+    // Accesibilidad
+    fontSize: 'Medio',
+    highContrast: false,
+    reduceMotion: false,
+    // Preferencias de bodega
+    defaultView: 'Bodega',
+    sortBy: 'Nombre',
+    showOutOfStock: true
   })
   const [showEditProfileModal, setShowEditProfileModal] = useState(false)
   const [showEditInfoModal, setShowEditInfoModal] = useState(false)
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
   const [showThemeModal, setShowThemeModal] = useState(false)
   const [showLanguageModal, setShowLanguageModal] = useState(false)
+  const [showFontSizeModal, setShowFontSizeModal] = useState(false)
+  const [showDefaultViewModal, setShowDefaultViewModal] = useState(false)
+  const [showSortByModal, setShowSortByModal] = useState(false)
 
   // Estado para notificaciones
   const [notifications, setNotifications] = useState([
@@ -1840,6 +1860,42 @@ function App() {
                         <span className="ajustes-toggle-slider"></span>
                       </label>
                     </div>
+
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiBox className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Alertas de stock bajo</span>
+                          <span className="ajustes-item-desc">Aviso cuando queden pocas unidades</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.notificationsStockAlerts}
+                          onChange={(e) => setAjustesData({...ajustesData, notificationsStockAlerts: e.target.checked})}
+                        />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiBell className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Sonido de notificaciones</span>
+                          <span className="ajustes-item-desc">Reproducir sonido al recibir alertas</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.notificationsSound}
+                          onChange={(e) => setAjustesData({...ajustesData, notificationsSound: e.target.checked})}
+                        />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
                   </div>
                 </div>
 
@@ -1867,6 +1923,42 @@ function App() {
                         </div>
                       </div>
                       <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
+                    </div>
+
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiStar className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Animaciones</span>
+                          <span className="ajustes-item-desc">Efectos visuales y transiciones</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.animations}
+                          onChange={(e) => setAjustesData({...ajustesData, animations: e.target.checked})}
+                        />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiBox className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Modo compacto</span>
+                          <span className="ajustes-item-desc">Reduce espacios y márgenes</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.compactMode}
+                          onChange={(e) => setAjustesData({...ajustesData, compactMode: e.target.checked})}
+                        />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -1899,6 +1991,183 @@ function App() {
                           type="checkbox" 
                           checked={ajustesData.twoFactorAuth}
                           onChange={(e) => setAjustesData({...ajustesData, twoFactorAuth: e.target.checked})}
+                        />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiUser className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Autenticación biométrica</span>
+                          <span className="ajustes-item-desc">Huella digital o Face ID</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.biometricAuth}
+                          onChange={(e) => setAjustesData({...ajustesData, biometricAuth: e.target.checked})}
+                        />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preferencias de la aplicación */}
+                <div className="ajustes-group">
+                  <h4 className="ajustes-group-title">Preferencias de la aplicación</h4>
+                  <div className="ajustes-items">
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiRefreshCw className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Sincronización automática</span>
+                          <span className="ajustes-item-desc">Actualizar datos en segundo plano</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.autoSync}
+                          onChange={(e) => setAjustesData({...ajustesData, autoSync: e.target.checked})}
+                        />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiWifi className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Modo sin conexión</span>
+                          <span className="ajustes-item-desc">Acceso a datos guardados</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.offlineMode}
+                          onChange={(e) => setAjustesData({...ajustesData, offlineMode: e.target.checked})}
+                        />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiDatabase className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Compresión de datos</span>
+                          <span className="ajustes-item-desc">Reduce el uso de almacenamiento</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.dataCompression}
+                          onChange={(e) => setAjustesData({...ajustesData, dataCompression: e.target.checked})}
+                        />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Accesibilidad */}
+                <div className="ajustes-group">
+                  <h4 className="ajustes-group-title">Accesibilidad</h4>
+                  <div className="ajustes-items">
+                    <div className="ajustes-item" onClick={() => setShowFontSizeModal(true)}>
+                      <div className="ajustes-item-left">
+                        <FiType className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Tamaño de texto</span>
+                          <span className="ajustes-item-desc">{ajustesData.fontSize}</span>
+                        </div>
+                      </div>
+                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
+                    </div>
+
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiEye className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Alto contraste</span>
+                          <span className="ajustes-item-desc">Mejora la visibilidad</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.highContrast}
+                          onChange={(e) => setAjustesData({...ajustesData, highContrast: e.target.checked})}
+                        />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiZap className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Reducir movimiento</span>
+                          <span className="ajustes-item-desc">Minimiza animaciones</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.reduceMotion}
+                          onChange={(e) => setAjustesData({...ajustesData, reduceMotion: e.target.checked})}
+                        />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preferencias de bodega */}
+                <div className="ajustes-group">
+                  <h4 className="ajustes-group-title">Preferencias de bodega</h4>
+                  <div className="ajustes-items">
+                    <div className="ajustes-item" onClick={() => setShowDefaultViewModal(true)}>
+                      <div className="ajustes-item-left">
+                        <FiHome className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Vista predeterminada</span>
+                          <span className="ajustes-item-desc">{ajustesData.defaultView}</span>
+                        </div>
+                      </div>
+                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
+                    </div>
+
+                    <div className="ajustes-item" onClick={() => setShowSortByModal(true)}>
+                      <div className="ajustes-item-left">
+                        <FiFilter className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Ordenar por</span>
+                          <span className="ajustes-item-desc">{ajustesData.sortBy}</span>
+                        </div>
+                      </div>
+                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
+                    </div>
+
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiSlash className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Mostrar vinos agotados</span>
+                          <span className="ajustes-item-desc">En la vista de bodega</span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input 
+                          type="checkbox" 
+                          checked={ajustesData.showOutOfStock}
+                          onChange={(e) => setAjustesData({...ajustesData, showOutOfStock: e.target.checked})}
                         />
                         <span className="ajustes-toggle-slider"></span>
                       </label>
@@ -2671,6 +2940,42 @@ function App() {
         onSelect={(language) => {
           setAjustesData({...ajustesData, language})
           setShowLanguageModal(false)
+        }}
+      />
+    )}
+
+    {/* Modal de tamaño de fuente */}
+    {showFontSizeModal && (
+      <FontSizeModal
+        currentSize={ajustesData.fontSize}
+        onClose={() => setShowFontSizeModal(false)}
+        onSelect={(fontSize) => {
+          setAjustesData({...ajustesData, fontSize})
+          setShowFontSizeModal(false)
+        }}
+      />
+    )}
+
+    {/* Modal de vista predeterminada */}
+    {showDefaultViewModal && (
+      <DefaultViewModal
+        currentView={ajustesData.defaultView}
+        onClose={() => setShowDefaultViewModal(false)}
+        onSelect={(defaultView) => {
+          setAjustesData({...ajustesData, defaultView})
+          setShowDefaultViewModal(false)
+        }}
+      />
+    )}
+
+    {/* Modal de ordenar por */}
+    {showSortByModal && (
+      <SortByModal
+        currentSort={ajustesData.sortBy}
+        onClose={() => setShowSortByModal(false)}
+        onSelect={(sortBy) => {
+          setAjustesData({...ajustesData, sortBy})
+          setShowSortByModal(false)
         }}
       />
     )}
@@ -4082,6 +4387,105 @@ function LanguageModal({ currentLanguage, onClose, onSelect }) {
               >
                 <div className="ajustes-selection-label">{language}</div>
                 {currentLanguage === language && (
+                  <FiCheckCircle className="ajustes-selection-check" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Modal para seleccionar tamaño de fuente
+function FontSizeModal({ currentSize, onClose, onSelect }) {
+  const sizes = ['Pequeño', 'Medio', 'Grande', 'Muy grande']
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+        <div className="task-modal-header">
+          <h2>Tamaño de texto</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="task-modal-content">
+          <div className="ajustes-selection-list">
+            {sizes.map((size) => (
+              <div
+                key={size}
+                className={`ajustes-selection-item ${currentSize === size ? 'selected' : ''}`}
+                onClick={() => onSelect(size)}
+              >
+                <div className="ajustes-selection-label">{size}</div>
+                {currentSize === size && (
+                  <FiCheckCircle className="ajustes-selection-check" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Modal para seleccionar vista predeterminada
+function DefaultViewModal({ currentView, onClose, onSelect }) {
+  const views = ['Inicio', 'Bodega', 'Tareas', 'Pedidos', 'Valoraciones']
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+        <div className="task-modal-header">
+          <h2>Vista predeterminada</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="task-modal-content">
+          <div className="ajustes-selection-list">
+            {views.map((view) => (
+              <div
+                key={view}
+                className={`ajustes-selection-item ${currentView === view ? 'selected' : ''}`}
+                onClick={() => onSelect(view)}
+              >
+                <div className="ajustes-selection-label">{view}</div>
+                {currentView === view && (
+                  <FiCheckCircle className="ajustes-selection-check" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Modal para seleccionar orden
+function SortByModal({ currentSort, onClose, onSelect }) {
+  const sorts = ['Nombre', 'Precio (menor a mayor)', 'Precio (mayor a menor)', 'Stock', 'Más recientes', 'Más populares']
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+        <div className="task-modal-header">
+          <h2>Ordenar por</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="task-modal-content">
+          <div className="ajustes-selection-list">
+            {sorts.map((sort) => (
+              <div
+                key={sort}
+                className={`ajustes-selection-item ${currentSort === sort ? 'selected' : ''}`}
+                onClick={() => onSelect(sort)}
+              >
+                <div className="ajustes-selection-label">{sort}</div>
+                {currentSort === sort && (
                   <FiCheckCircle className="ajustes-selection-check" />
                 )}
               </div>
