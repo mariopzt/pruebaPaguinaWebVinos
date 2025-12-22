@@ -9,6 +9,7 @@ import Agotados from './components/Bodega/Agotados'
 import WineModal from './components/Bodega/WineModal'
 import AddWineModal from './components/Bodega/AddWineModal'
 import Login from './components/Login/Login'
+import TestEmail from './components/Login/TestEmail'
 import { winesData } from './data/winesData'
 
 function App() {
@@ -3009,6 +3010,9 @@ function App() {
         }}
       />
     )}
+
+    {/* Componente temporal para probar emails */}
+    <TestEmail />
     </>
   )
 }

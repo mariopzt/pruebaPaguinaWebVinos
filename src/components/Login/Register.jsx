@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FiUser, FiLock, FiEye, FiEyeOff, FiMail, FiArrowLeft, FiCheckCircle } from 'react-icons/fi'
 import { FaWineBottle } from 'react-icons/fa'
+import { sendWelcomeEmail } from '../../services/emailService'
 import './Login.css'
 
 function Register({ onRegister, onBackToLogin }) {
@@ -23,30 +24,44 @@ function Register({ onRegister, onBackToLogin }) {
     setIsLoading(true)
 
     // Validaciones
-    setTimeout(() => {
-      if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-        setError('Por favor, completa todos los campos')
-        setIsLoading(false)
-        return
-      }
-
-      if (formData.password.length < 3) {
-        setError('La contraseña debe tener al menos 3 caracteres')
-        setIsLoading(false)
-        return
-      }
-
-      if (formData.password !== formData.confirmPassword) {
-        setError('Las contraseñas no coinciden')
-        setIsLoading(false)
-        return
-      }
-
-      // Registro exitoso - mostrar confirmación
-      setRegisteredEmail(formData.email)
-      setShowConfirmation(true)
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('Por favor, completa todos los campos')
       setIsLoading(false)
-    }, 800)
+      return
+    }
+
+    if (formData.password.length < 3) {
+      setError('La contraseña debe tener al menos 3 caracteres')
+      setIsLoading(false)
+      return
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Las contraseñas no coinciden')
+      setIsLoading(false)
+      return
+    }
+
+    // Simular delay de procesamiento
+    await new Promise(resolve => setTimeout(resolve, 800))
+
+    // Registro exitoso - enviar email y mostrar confirmación
+    setRegisteredEmail(formData.email)
+    
+    // Enviar email de bienvenida
+    const emailResult = await sendWelcomeEmail({
+      name: formData.name,
+      email: formData.email
+    });
+
+    if (emailResult.success) {
+      console.log('✅ Email de bienvenida enviado correctamente');
+    } else {
+      console.warn('⚠️ No se pudo enviar el email, pero el registro fue exitoso');
+    }
+
+    setShowConfirmation(true)
+    setIsLoading(false)
   }
 
   // Si se muestra la confirmación
