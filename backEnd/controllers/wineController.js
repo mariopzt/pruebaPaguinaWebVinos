@@ -1,4 +1,5 @@
 const Wine = require('../models/Wine');
+const Notification = require('../models/Notification');
 
 // @desc    Obtener todos los vinos
 // @route   GET /api/wines
@@ -108,10 +109,44 @@ exports.updateWine = async (req, res) => {
       });
     }
 
+    const prevStock = wine.stock || 0;
+
     wine = await Wine.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true
     });
+
+    const newStock = wine.stock || 0;
+
+    // Notificación: se agotó (pasa a 0)
+    if (prevStock > 0 && newStock === 0) {
+      await Notification.create({
+        user: req.user?._id || null,
+        type: 'stock-bajo',
+        icon: 'FiBox',
+        title: 'Stock agotado',
+        message: `**${wine.name}** se ha quedado en 0 unidades.`,
+        wineId: wine._id,
+        unread: true,
+        actions: ['Ver bodega', 'Hacer pedido'],
+        createdAt: new Date(),
+      });
+    }
+
+    // Notificación: se reabastece (pasa de 0 a >0)
+    if (prevStock === 0 && newStock > 0) {
+      await Notification.create({
+        user: req.user?._id || null,
+        type: 'stock-restaurado',
+        icon: 'FiPackage',
+        title: 'Stock restaurado',
+        message: `**${wine.name}** vuelve a tener stock (${newStock} unidades).`,
+        wineId: wine._id,
+        unread: true,
+        actions: ['Ver bodega'],
+        createdAt: new Date(),
+      });
+    }
 
     res.status(200).json({
       success: true,

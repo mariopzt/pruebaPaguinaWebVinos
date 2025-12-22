@@ -1,5 +1,5 @@
 import './App.css'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
 import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings, FiBell, FiMenu, FiPackage, FiMessageSquare, FiCheckCircle, FiHeart, FiRefreshCw, FiWifi, FiDatabase, FiType, FiEye, FiZap, FiFilter } from 'react-icons/fi'
@@ -11,6 +11,8 @@ import AddWineModal from './components/Bodega/AddWineModal'
 import Login from './components/Login/Login'
 import wineService from './api/wineService'
 import notificationService from './api/notificationService'
+import taskService from './api/taskService'
+import orderService from './api/orderService'
 
 function App() {
   // Estado de autenticación
@@ -63,114 +65,10 @@ function App() {
   const [selectedTask, setSelectedTask] = useState(null)
   const [showTaskModal, setShowTaskModal] = useState(false)
   const [showAddTaskModal, setShowAddTaskModal] = useState(false)
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: 'Revisar stock de tintos',
-      description: 'Comprueba las referencias con menos de 10 botellas y prepara una propuesta de reposición.',
-      group: 'hoy',
-      date: '4 July',
-      dateValue: '2025-07-04',
-      avatars: [
-        'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120',
-        'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120',
-        'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=120'
-      ],
-      extraCount: 3,
-      color: 'purple',
-      status: 'pending',
-      priority: 'high'
-    },
-    {
-      id: 2,
-      title: 'Actualizar carta de vinos por copa',
-      description: 'Añadir las nuevas referencias sugeridas por la IA y retirar las de rotación lenta.',
-      group: 'hoy',
-      date: '5 July',
-      dateValue: '2025-07-05',
-      avatars: [
-        'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=120',
-        'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120'
-      ],
-      extraCount: 1,
-      color: 'blue',
-      status: 'pending',
-      priority: 'medium'
-    },
-    {
-      id: 3,
-      title: 'Analizar ventas del fin de semana',
-      description: 'Revisar qué vinos han tenido mejor salida para ajustar recomendaciones.',
-      group: 'ayer',
-      date: '3 July',
-      dateValue: '2025-07-03',
-      avatars: [
-        'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120'
-      ],
-      extraCount: 2,
-      color: 'green',
-      status: 'pending',
-      priority: 'low'
-    },
-    {
-      id: 4,
-      title: 'Planificar cata interna del equipo',
-      description: 'Seleccionar 6 vinos y preparar una mini ficha para el personal de sala.',
-      group: 'semana',
-      date: '8 July',
-      dateValue: '2025-07-08',
-      avatars: [
-        'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120',
-        'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120'
-      ],
-      extraCount: 0,
-      color: 'orange',
-      status: 'pending',
-      priority: 'medium'
-    },
-  ])
+  const [tasks, setTasks] = useState([])
 
   // Estado para Pedidos
-  const [orders, setOrders] = useState([
-    {
-      id: 1,
-      orderNumber: 'PED-2024-001',
-      supplier: 'Bodegas Rioja Premium',
-      orderDate: '2024-12-01',
-      expectedDate: '2024-12-10',
-      items: [
-        { id: 1, name: 'Rioja Reserva 2018', quantity: 12, completed: true },
-        { id: 2, name: 'Rioja Gran Reserva 2015', quantity: 6, completed: true },
-        { id: 3, name: 'Rioja Crianza 2020', quantity: 24, completed: false },
-      ],
-      completing: false
-    },
-    {
-      id: 2,
-      orderNumber: 'PED-2024-002',
-      supplier: 'Vinos del Duero',
-      orderDate: '2024-12-02',
-      expectedDate: '2024-12-12',
-      items: [
-        { id: 1, name: 'Ribera del Duero Crianza', quantity: 18, completed: false },
-        { id: 2, name: 'Verdejo Rueda', quantity: 12, completed: false },
-      ],
-      completing: false
-    },
-    {
-      id: 3,
-      orderNumber: 'PED-2024-003',
-      supplier: 'Cavas Catalanas',
-      orderDate: '2024-11-28',
-      expectedDate: '2024-12-08',
-      items: [
-        { id: 1, name: 'Cava Brut Nature', quantity: 24, completed: true },
-        { id: 2, name: 'Cava Rosé', quantity: 12, completed: true },
-        { id: 3, name: 'Cava Reserva', quantity: 6, completed: true },
-      ],
-      completing: false
-    },
-  ])
+  const [orders, setOrders] = useState([])
   const [ordersFilter, setOrdersFilter] = useState('todos')
   const [showAddOrderModal, setShowAddOrderModal] = useState(false)
   const [showEditOrderModal, setShowEditOrderModal] = useState(false)
@@ -535,25 +433,37 @@ function App() {
     setShowAddTaskModal(true)
   }
 
-  const handleSaveTask = (taskData) => {
-    if (taskData.id) {
-      // Editar tarea existente
-      setTasks(tasks.map(t => t.id === taskData.id ? taskData : t))
-    } else {
-      // Agregar nueva tarea
-      const newTask = {
-        ...taskData,
-        id: Date.now(),
-        avatars: ['https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120'],
-        extraCount: 0
+  const handleSaveTask = async (taskData) => {
+    try {
+      if (taskData.id) {
+        const resp = await taskService.update(taskData.id, taskData)
+        const saved = resp.data?.data || resp.data || taskData
+        setTasks(tasks.map(t => t.id === taskData.id ? { ...saved, id: saved._id || saved.id } : t))
+      } else {
+        const payload = {
+          ...taskData,
+          avatars: taskData.avatars && taskData.avatars.length
+            ? taskData.avatars
+            : (currentUser?.avatar ? [currentUser.avatar] : []),
+          extraCount: taskData.extraCount ?? 0,
+        };
+        const resp = await taskService.create(payload)
+        const saved = resp.data?.data || resp.data || taskData
+        setTasks([...tasks, { ...saved, id: saved._id || saved.id }])
       }
-      setTasks([...tasks, newTask])
+    } catch (e) {
+      console.error('Error al guardar tarea', e)
     }
     setShowTaskModal(false)
     setShowAddTaskModal(false)
   }
 
-  const handleDeleteTask = (taskId) => {
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await taskService.delete(taskId)
+    } catch (e) {
+      console.error('No se pudo eliminar en backend, borrando local')
+    }
     setTasks(tasks.filter(t => t.id !== taskId))
     setShowTaskModal(false)
   }
@@ -563,71 +473,108 @@ function App() {
     setShowAddOrderModal(true)
   }
 
-  const handleSaveOrder = (orderData) => {
-    if (orderData.id) {
-      // Editar pedido existente
-      setOrders(orders.map(o => o.id === orderData.id ? orderData : o))
-    } else {
-      // Agregar nuevo pedido
-      const newOrder = {
-        ...orderData,
-        id: Date.now(),
-        completing: false
+  const handleSaveOrder = async (orderData) => {
+    try {
+      if (orderData.id) {
+        const payload = {
+          ...orderData,
+          items: (orderData.items || []).map(it => {
+            const { id, _id, ...rest } = it;
+            return { _id: _id || id, ...rest };
+          })
+        }
+        const resp = await orderService.update(orderData.id, payload)
+        const saved = normalizeOrder(resp.data?.data || resp.data || payload)
+        setOrders(orders.map(o => o.id === saved.id ? saved : o))
+      } else {
+        const payload = {
+          ...orderData,
+          completed: false,
+          status: 'pending',
+          items: (orderData.items || []).map(it => {
+            const { id, _id, ...rest } = it;
+            return { ...rest, completed: !!rest.completed };
+          })
+        }
+        const resp = await orderService.create(payload)
+        const saved = normalizeOrder(resp.data?.data || resp.data || payload)
+        setOrders([...orders, saved])
       }
-      setOrders([...orders, newOrder])
+      // Refrescar desde API para asegurar consistencia
+      fetchOrders()
+    } catch (e) {
+      console.error('Error al guardar pedido', e)
     }
     setShowAddOrderModal(false)
     setShowEditOrderModal(false)
   }
 
-  const handleDeleteOrder = (orderId) => {
+  const handleDeleteOrder = async (orderId) => {
+    try {
+      await orderService.delete(orderId)
+    } catch (e) {
+      console.error('No se pudo eliminar pedido en backend, borrando local')
+    }
     setOrders(orders.filter(o => o.id !== orderId))
     setShowEditOrderModal(false)
   }
 
-  const handleToggleOrderItem = (orderId, itemId) => {
-    // Primer update: actualizar items y, si se acaba de completar, activar la animación
+  const handleToggleOrderItem = async (orderId, itemId) => {
+    let updatedOrder;
+    // Primer update local con animación
     setOrders((prevOrders) =>
       prevOrders.map((order) => {
-        if (order.id !== orderId) return order
+        if (order.id !== orderId) return order;
 
-        const updatedItems = order.items.map((item) =>
-          item.id === itemId ? { ...item, completed: !item.completed } : item
-        )
+        const updatedItems = order.items.map((item, idx) =>
+          (item.id === itemId || item._id === itemId || idx === itemId)
+            ? { ...item, completed: !item.completed }
+            : item
+        );
 
-        const allCompleted = updatedItems.every((item) => item.completed)
-        const wasCompleted = order.items.every((item) => item.completed)
-        const changedCompletionState = allCompleted !== wasCompleted
+        const allCompleted = updatedItems.every((item) => item.completed);
+        const wasCompleted = order.items.every((item) => item.completed);
+        const changedCompletionState = allCompleted !== wasCompleted;
 
-        return {
+        updatedOrder = {
           ...order,
           items: updatedItems,
-          // Activamos la animación siempre que cambie el estado global de completado
           completing: changedCompletionState ? true : false,
-          // Estado lógico de completado
-          completed: allCompleted
-        }
+          completed: allCompleted,
+          status: allCompleted ? 'completed' : 'pending',
+        };
+        return updatedOrder;
       })
-    )
+    );
 
-    // Segundo update: al terminar la animación, quitamos la clase y dejamos solo el estado final
+    // Persistir en backend con estado final y refrescar
+    if (updatedOrder) {
+      try {
+        const payload = {
+          ...updatedOrder,
+          items: updatedOrder.items.map(({ id, _id, ...rest }) => ({ _id: _id || id, ...rest })),
+        };
+        const resp = await orderService.update(updatedOrder.id || updatedOrder._id, payload);
+        const saved = normalizeOrder(resp.data?.data || resp.data || updatedOrder);
+        setOrders((prev) => prev.map((o) => (o.id === saved.id ? saved : o)));
+      } catch (e) {
+        console.error('No se pudo persistir el pedido', e);
+      }
+    }
+
+    // Segundo update: limpiar la animación
     setTimeout(() => {
       setOrders((prevOrders) =>
         prevOrders.map((order) => {
           if (order.id !== orderId) return order
-
           const allCompleted = order.items.every((item) => item.completed)
-
-          // Si sigue completo, lo marcamos como terminado sin la clase de animación
           if (allCompleted) {
             return { ...order, completing: false, completed: true }
           }
-
-          // Si ya no está completo (por haber desmarcado algo), nos aseguramos de limpiar flags
           return { ...order, completing: false, completed: false }
         })
       )
-    }, 450) // un pelín más que la animación CSS (0.4s)
+    }, 450)
   }
 
   // Handlers para Valoraciones
@@ -803,6 +750,64 @@ function App() {
     };
     fetchNotifications();
   }, [isAuthenticated]);
+
+  // Cargar tareas y pedidos al autenticarse
+  const normalizeOrder = (o) => {
+    const itemsNorm = (o.items || []).map((it) => ({
+      ...it,
+      id: it._id || it.id,
+      _id: it._id || it.id,
+    }));
+    const allCompleted = itemsNorm.length > 0 && itemsNorm.every((it) => it.completed);
+    return {
+      ...o,
+      id: o._id || o.id,
+      items: itemsNorm,
+      completed: o.completed ?? allCompleted,
+      status: o.status ?? (allCompleted ? 'completed' : 'pending'),
+    };
+  };
+
+  const fetchOrders = useCallback(async () => {
+    if (!isAuthenticated) {
+      setOrders([]);
+      return;
+    }
+    try {
+      const resp = await orderService.getAll();
+      const ordersData = resp.data?.data || resp.data || [];
+      setOrders(ordersData.map(normalizeOrder));
+    } catch (e) {
+      console.error('Error al cargar pedidos', e);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const fetchTasksAndOrders = async () => {
+      if (!isAuthenticated) {
+        setTasks([]);
+        setOrders([]);
+        return;
+      }
+      try {
+        const [tasksResp] = await Promise.all([
+          taskService.getAll(),
+        ]);
+        const tasksData = tasksResp.data?.data || tasksResp.data || [];
+        const normalizeTask = (t) => ({
+          ...t,
+          id: t._id || t.id,
+          avatars: t.avatars && t.avatars.length ? t.avatars : (currentUser?.avatar ? [currentUser.avatar] : []),
+          extraCount: t.extraCount ?? 0,
+        });
+        setTasks(tasksData.map(normalizeTask));
+        fetchOrders();
+      } catch (e) {
+        console.error('Error al cargar tareas/pedidos', e);
+      }
+    };
+    fetchTasksAndOrders();
+  }, [isAuthenticated, fetchOrders]);
 
   // Manejar acciones de las notificaciones
   const handleNotificationAction = async (action, notificationId) => {
@@ -1571,6 +1576,9 @@ function App() {
                               removing: false
                             }
                             setTasks(tasks.map(t => t.id === task.id ? updatedTask : t))
+
+                            // Persistir en backend
+                            taskService.update(task.id, updatedTask).catch(() => {})
                           }, 400)
                         }}
                       >
@@ -1821,7 +1829,7 @@ function App() {
                         <div style={{ marginBottom: '16px' }}>
                           {order.items.map((item) => (
                             <div
-                              key={item.id}
+                              key={item.id || item._id}
                               onClick={(e) => e.stopPropagation()}
                               style={{
                                 display: 'flex',
@@ -1834,7 +1842,7 @@ function App() {
                               <input
                                 type="checkbox"
                                 checked={item.completed}
-                                onChange={() => handleToggleOrderItem(order.id, item.id)}
+                                onChange={() => handleToggleOrderItem(order.id, item.id || item._id)}
                                 style={{
                                   width: '16px',
                                   height: '16px',
@@ -2441,7 +2449,7 @@ function App() {
 
                   return (
                     <div 
-                      key={notif.id} 
+                      key={notif.id || `${notif.title}-${notif.message}-${notif.createdAt}`}
                       className={`notificacion-item ${notif.unread ? 'unread' : ''}`}
                     >
                       <div className={`notificacion-icon ${notif.type}`}>
@@ -2908,7 +2916,7 @@ function App() {
             {sortedNotifications.length > 0 ? (
               sortedNotifications.map(notification => (
                 <div 
-                  key={notification.id} 
+                  key={notification.id || `${notification.title}-${notification.createdAt}`}
                   className={`notification-item ${notification.unread ? 'unread' : ''}`}
                   onClick={() => handleNotificationClick(notification.wineId, notification.id)}
                 >
