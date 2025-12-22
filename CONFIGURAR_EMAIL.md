@@ -28,12 +28,52 @@ Bienvenido a VinosStK - Verifica tu cuenta
 ```
 
 ### Contenido del email:
+
+**IMPORTANTE: Usa el editor HTML de EmailJS para agregar el botón**
+
+En el editor de EmailJS, cambia a la vista HTML y pega esto:
+
+```html
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <h2>Hola {{to_name}},</h2>
+  
+  <p>¡Bienvenido a VinosStK! 🍷</p>
+  
+  <p>{{message}}</p>
+  
+  <p>Tu cuenta ha sido creada exitosamente. Ahora puedes acceder a la plataforma:</p>
+  
+  <div style="text-align: center; margin: 30px 0;">
+    <a href="{{login_link}}" style="background-color: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+      🍷 Entrar a VinosStK
+    </a>
+  </div>
+  
+  <p>O copia este enlace en tu navegador:</p>
+  <p style="color: #667eea; word-break: break-all;">{{login_link}}</p>
+  
+  <p>Gracias por unirte a nuestra plataforma de gestión de bodegas.</p>
+  
+  <p style="color: #999; font-size: 12px;">Si no creaste esta cuenta, puedes ignorar este correo.</p>
+  
+  <p>Saludos,<br>{{from_name}}</p>
+</div>
+```
+
+O si prefieres texto simple:
+
 ```
 Hola {{to_name}},
 
 ¡Bienvenido a VinosStK! 🍷
 
 {{message}}
+
+Tu cuenta ha sido creada exitosamente. Ahora puedes acceder a la plataforma haciendo clic en el siguiente enlace:
+
+{{login_link}}
+
+Copia y pega este enlace en tu navegador si no funciona el anterior.
 
 Gracias por unirte a nuestra plataforma de gestión de bodegas.
 
@@ -54,6 +94,9 @@ Asegúrate de que tu template en EmailJS tenga estas variables:
 - `{{to_email}}` - Email del destinatario (debe estar en "To Email" en Settings)
 - `{{from_name}}` - Nombre de quien envía (VinosStK)
 - `{{message}}` - Mensaje personalizado
+- `{{login_link}}` - Enlace para entrar a la aplicación
+- `{{app_url}}` - URL de la aplicación
+- `{{reply_to}}` - Email de respuesta (en "Reply To" en Settings)
 
 4. Guarda la plantilla
 5. **Copia el Template ID** (algo como: `template_xxxxxxx`)

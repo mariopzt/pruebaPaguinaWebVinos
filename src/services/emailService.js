@@ -16,7 +16,9 @@ export const sendWelcomeEmail = async (userData) => {
       to_email: userData.email,
       from_name: 'VinosStK',
       message: `¡Bienvenido a VinosStK! Gracias por registrarte.`,
-      reply_to: 'noreply@vinosstk.com'
+      reply_to: 'noreply@vinosstk.com',
+      login_link: window.location.origin,
+      app_url: window.location.origin
     };
 
     console.log('📧 Enviando email a:', userData.email);
