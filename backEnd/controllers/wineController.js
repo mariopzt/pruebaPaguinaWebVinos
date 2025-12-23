@@ -1,5 +1,6 @@
 const Wine = require('../models/Wine');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 
 // @desc    Obtener todos los vinos
 // @route   GET /api/wines
@@ -110,6 +111,7 @@ exports.updateWine = async (req, res) => {
     }
 
     const prevStock = wine.stock || 0;
+    const prevRestaurant = wine.restaurantStock || 0;
 
     wine = await Wine.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -117,8 +119,9 @@ exports.updateWine = async (req, res) => {
     });
 
     const newStock = wine.stock || 0;
+    const newRestaurant = wine.restaurantStock || 0;
 
-    // Notificación: se agotó (pasa a 0)
+    // Notificación: se agotó (pasa a 0) - solo al usuario que edita
     if (prevStock > 0 && newStock === 0 && req.user?._id) {
       await Notification.create({
         user: req.user._id,
@@ -133,7 +136,7 @@ exports.updateWine = async (req, res) => {
       });
     }
 
-    // Notificación: se reabastece (pasa de 0 a >0)
+    // Notificación: se reabastece (pasa de 0 a >0) - solo al usuario que edita
     if (prevStock === 0 && newStock > 0 && req.user?._id) {
       await Notification.create({
         user: req.user._id,
@@ -146,6 +149,40 @@ exports.updateWine = async (req, res) => {
         actions: ['Ver bodega'],
         createdAt: new Date(),
       });
+    }
+
+    // Aviso global: stock bodega <= 2 y bajó
+    if (newStock <= 2 && newStock < prevStock) {
+      const users = await User.find({}, '_id');
+      const docs = users.map(u => ({
+        user: u._id,
+        type: 'stock-bajo-bodega',
+        icon: 'FiBox',
+        title: 'Stock bajo en bodega',
+        message: `**${wine.name}** tiene ${newStock} unidades en bodega.`,
+        wineId: wine._id,
+        unread: true,
+        actions: ['Ver bodega'],
+        createdAt: new Date(),
+      }));
+      if (docs.length) await Notification.insertMany(docs);
+    }
+
+    // Aviso global: stock restaurante <= 2 y bajó
+    if (newRestaurant <= 2 && newRestaurant < prevRestaurant) {
+      const users = await User.find({}, '_id');
+      const docs = users.map(u => ({
+        user: u._id,
+        type: 'stock-bajo-restaurante',
+        icon: 'FiBox',
+        title: 'Stock bajo en restaurante',
+        message: `**${wine.name}** tiene ${newRestaurant} unidades en restaurante.`,
+        wineId: wine._id,
+        unread: true,
+        actions: ['Ver bodega'],
+        createdAt: new Date(),
+      }));
+      if (docs.length) await Notification.insertMany(docs);
     }
 
     res.status(200).json({
