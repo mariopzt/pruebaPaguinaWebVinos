@@ -5,7 +5,11 @@ const wineService = {
   // Obtener todos los vinos
   getWines: async () => {
     try {
-      const response = await api.get('/wines');
+      const response = await api.get('/wines', {
+        // Evita respuestas 304 vacías por caché
+        headers: { 'Cache-Control': 'no-cache' },
+        params: { t: Date.now() }
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error al obtener vinos' };

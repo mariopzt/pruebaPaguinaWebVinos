@@ -6,8 +6,8 @@ const Notification = require('../models/Notification');
 // @access  Private
 exports.getWines = async (req, res) => {
   try {
-    const query = req.user?.id ? { user: req.user.id } : {};
-    const wines = await Wine.find(query).sort({ updatedAt: -1 });
+    // Mostrar todos los vinos (sean públicos o asociados)
+    const wines = await Wine.find({}).sort({ updatedAt: -1 });
 
     res.status(200).json({
       success: true,

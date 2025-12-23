@@ -46,6 +46,7 @@ function App() {
   const [selectedWine, setSelectedWine] = useState(null)
   const [showAddWineModal, setShowAddWineModal] = useState(false)
   const [wineListVersion, setWineListVersion] = useState(0)
+  const NOTIFICATIONS_ENABLED = false
   const [showNotifications, setShowNotifications] = useState(false)
   const [highlightedWineId, setHighlightedWineId] = useState(null)
   const [chatMessages, setChatMessages] = useState([])
@@ -317,15 +318,15 @@ function App() {
     id: wine.id || wine._id,
   })
 
-  // Cargar vinos desde API cuando está autenticado
+  // Cargar vinos desde API (público, optionalAuth en backend)
   useEffect(() => {
     const fetchWines = async () => {
-      if (!isAuthenticated) return
       setWinesLoading(true)
       setWinesError('')
       try {
         const response = await wineService.getWines()
-        const list = (response.data || response).data || response.data
+        // wineService.getWines devuelve response.data -> { success, count, data: [...] }
+        const list = response?.data?.data || response?.data || response
         const normalized = (list || []).map(normalizeWine)
         setWines(normalized)
       } catch (error) {
@@ -336,7 +337,7 @@ function App() {
       }
     }
     fetchWines()
-  }, [isAuthenticated])
+  }, [])
 
   // Inicializar likes cuando llegan vinos
   useEffect(() => {
@@ -791,8 +792,9 @@ function App() {
     }
   };
 
-  // Cargar notificaciones desde API al autenticarse
+  // Cargar notificaciones desde API al autenticarse (solo si están habilitadas)
   useEffect(() => {
+    if (!NOTIFICATIONS_ENABLED) return;
     const fetchNotifications = async () => {
       if (!isAuthenticated) {
         setNotifications([]);
@@ -807,7 +809,7 @@ function App() {
       }
     };
     fetchNotifications();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, NOTIFICATIONS_ENABLED]);
 
   // Detectar token de activación en URL (aunque no esté /activate en la ruta)
   useEffect(() => {
@@ -1032,8 +1034,9 @@ function App() {
     }
   }, [chatMessages]);
 
-  // Bloquear scroll del fondo si ajustes lo permiten
+  // Bloquear scroll del fondo si ajustes lo permiten (solo si están habilitadas)
   useEffect(() => {
+    if (!NOTIFICATIONS_ENABLED) return;
     if (showNotifications && settings.lockScrollOnNotifications) {
       const previousOverflow = document.body.style.overflow
       document.body.style.overflow = 'hidden'
@@ -1041,17 +1044,18 @@ function App() {
         document.body.style.overflow = previousOverflow
       }
     }
-  }, [showNotifications, settings.lockScrollOnNotifications])
+  }, [showNotifications, settings.lockScrollOnNotifications, NOTIFICATIONS_ENABLED])
 
-  // Marcar notificaciones como leídas al cerrar el panel
+  // Marcar notificaciones como leídas al cerrar el panel (solo si están habilitadas)
   useEffect(() => {
+    if (!NOTIFICATIONS_ENABLED) return;
     // Cuando se cierra el panel de notificaciones, marcar todas como leídas
     return () => {
       if (showNotifications) {
         setNotifications(prev => prev.map(notif => ({ ...notif, unread: false })))
       }
     }
-  }, [showNotifications])
+  }, [showNotifications, NOTIFICATIONS_ENABLED])
 
   // Inicializar opciones sugeridas del chat cuando entramos en la vista IA
   useEffect(() => {
@@ -1267,17 +1271,19 @@ function App() {
                 <span className="nav-text">Ajustes</span>
               </div>
             </div>
-            <div 
-              className={`nav-item ${currentView === 'ayuda' ? 'active' : ''}`} 
-              onClick={() => setCurrentView('ayuda')}
-            >
-              <div className="nav-item-content">
-                <span className={`nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
-                  <FiBell size={10} />
-                </span>
-                <span className="nav-text">Notificaciones</span>
+            {NOTIFICATIONS_ENABLED && (
+              <div 
+                className={`nav-item ${currentView === 'ayuda' ? 'active' : ''}`} 
+                onClick={() => setCurrentView('ayuda')}
+              >
+                <div className="nav-item-content">
+                  <span className={`nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
+                    <FiBell size={10} />
+                  </span>
+                  <span className="nav-text">Notificaciones</span>
+                </div>
               </div>
-            </div>
+            )}
             <div 
               className={`nav-item ${currentView === 'ia' ? 'active' : ''}`} 
               onClick={() => setCurrentView('ia')}
@@ -1382,15 +1388,17 @@ function App() {
                 <span className="mobile-nav-icon"><FiSettings /></span>
                 <span className="mobile-nav-text">Ajustes</span>
               </div>
-              <div 
-                className="mobile-nav-item" 
-                onClick={() => { setCurrentView('ayuda'); setIsMenuOpen(false); }}
-              >
-              <span className={`mobile-nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
-                  <FiBell />
-                </span>
-                <span className="mobile-nav-text">Notificaciones</span>
-              </div>
+              {NOTIFICATIONS_ENABLED && (
+                <div 
+                  className="mobile-nav-item" 
+                  onClick={() => { setCurrentView('ayuda'); setIsMenuOpen(false); }}
+                >
+                <span className={`mobile-nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
+                    <FiBell />
+                  </span>
+                  <span className="mobile-nav-text">Notificaciones</span>
+                </div>
+              )}
               <div 
                 className="mobile-nav-item" 
                 onClick={() => { setCurrentView('ia'); setIsMenuOpen(false); }}
@@ -3048,7 +3056,7 @@ function App() {
 
 
     {/* Panel de Notificaciones */}
-    {showNotifications && (
+    {NOTIFICATIONS_ENABLED && showNotifications && (
       <div 
         className="notifications-overlay"
         onClick={() => setShowNotifications(false)}
