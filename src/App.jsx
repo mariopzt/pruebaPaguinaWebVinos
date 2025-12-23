@@ -90,7 +90,7 @@ function App() {
   const [selectedWine, setSelectedWine] = useState(null)
   const [showAddWineModal, setShowAddWineModal] = useState(false)
   const [wineListVersion, setWineListVersion] = useState(0)
-  const NOTIFICATIONS_ENABLED = false
+  const NOTIFICATIONS_ENABLED = true
   const [showNotifications, setShowNotifications] = useState(false)
   const [highlightedWineId, setHighlightedWineId] = useState(null)
   const [chatMessages, setChatMessages] = useState([])
