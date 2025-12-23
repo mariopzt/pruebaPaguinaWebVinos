@@ -14,9 +14,10 @@ const generateToken = (id) => {
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    const emailNorm = email?.toLowerCase().trim();
 
     // Verificar si el usuario ya existe
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: emailNorm });
     if (userExists) {
       return res.status(400).json({
         success: false,
@@ -27,7 +28,7 @@ exports.register = async (req, res) => {
     // Crear usuario
     const user = await User.create({
       name,
-      email,
+      email: emailNorm,
       password
     });
 
@@ -61,6 +62,7 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const emailNorm = email?.toLowerCase().trim();
 
     // Validar email y password
     if (!email || !password) {
@@ -70,8 +72,13 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Buscar usuario (incluir password)
-    const user = await User.findOne({ email }).select('+password');
+    // Buscar usuario por email o por nombre (case-insensitive), incluir password
+    const user = await User.findOne({
+      $or: [
+        { email: emailNorm },
+        { name: { $regex: new RegExp(`^${email.trim()}$`, 'i') } }
+      ]
+    }).select('+password');
 
     if (!user) {
       return res.status(401).json({

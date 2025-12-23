@@ -13,6 +13,7 @@ import wineService from './api/wineService'
 import notificationService from './api/notificationService'
 import taskService from './api/taskService'
 import orderService from './api/orderService'
+import pendingService from './api/pendingService'
 
 function App() {
   // Estado de autenticación
@@ -71,6 +72,17 @@ function App() {
   const [orders, setOrders] = useState([])
   const [ordersFilter, setOrdersFilter] = useState('todos')
   const [showAddOrderModal, setShowAddOrderModal] = useState(false)
+  // Activación por token (se lee desde la URL en el estado inicial)
+  const [activationToken, setActivationToken] = useState(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('token')
+  })
+  const [activationInfo, setActivationInfo] = useState(null)
+  const [activationError, setActivationError] = useState('')
+  const [activationLoading, setActivationLoading] = useState(false)
+  const [activationDone, setActivationDone] = useState(false)
+  const [activationPassword, setActivationPassword] = useState('')
+  const [activationPassword2, setActivationPassword2] = useState('')
   const [showEditOrderModal, setShowEditOrderModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
 
@@ -733,6 +745,29 @@ function App() {
   });
   const getNotificationTime = (notif) => notif.createdAt ? formatTimeAgoEs(notif.createdAt) : (notif.time || '');
 
+  // Activar cuenta desde token
+  const handleActivateAccount = async () => {
+    if (!activationToken) return;
+    if (!activationPassword || activationPassword.length < 6) {
+      setActivationError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    if (activationPassword !== activationPassword2) {
+      setActivationError('Las contraseñas no coinciden');
+      return;
+    }
+    setActivationLoading(true);
+    setActivationError('');
+    try {
+      await pendingService.activate(activationToken, activationPassword);
+      setActivationDone(true);
+    } catch (e) {
+      setActivationError(e?.message || 'No se pudo activar la cuenta');
+    } finally {
+      setActivationLoading(false);
+    }
+  };
+
   // Cargar notificaciones desde API al autenticarse
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -750,6 +785,34 @@ function App() {
     };
     fetchNotifications();
   }, [isAuthenticated]);
+
+  // Detectar token de activación en URL (aunque no esté /activate en la ruta)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      setActivationToken(token);
+    }
+  }, []);
+
+  // Cargar info del token
+  useEffect(() => {
+    const loadTokenInfo = async () => {
+      if (!activationToken) return;
+      setActivationLoading(true);
+      setActivationError('');
+      try {
+        const resp = await pendingService.getByToken(activationToken);
+        const data = resp.data?.data || resp.data;
+        setActivationInfo(data);
+      } catch (e) {
+        setActivationError(e?.message || 'Token inválido o expirado');
+      } finally {
+        setActivationLoading(false);
+      }
+    };
+    loadTokenInfo();
+  }, [activationToken]);
 
   // Cargar tareas y pedidos al autenticarse
   const normalizeOrder = (o) => {
@@ -977,6 +1040,66 @@ function App() {
     }, 600000) // 10 minutos
     return () => clearInterval(interval)
   }, [])
+
+  // Vista de activación por token (bloquea el resto hasta activar)
+  if (activationToken) {
+    return (
+      <div className="login-container">
+        <div className="login-background">
+          <div className="login-gradient-orb orb-1"></div>
+          <div className="login-gradient-orb orb-2"></div>
+          <div className="login-gradient-orb orb-3"></div>
+        </div>
+        <div className="login-card register-confirmation-card" style={{ maxWidth: 480 }}>
+          <div className="register-confirmation-content">
+            <div className="register-confirmation-icon">
+              <FiCheckCircle />
+            </div>
+            <h2 className="register-confirmation-title">
+              {activationDone ? 'Cuenta activada' : 'Activa tu cuenta'}
+            </h2>
+            {activationLoading && <p className="register-confirmation-message">Validando token...</p>}
+            {activationError && <p className="register-confirmation-message" style={{ color: '#f87171' }}>{activationError}</p>}
+            {activationInfo && !activationDone && (
+              <>
+                <p className="register-confirmation-message">
+                  Usuario: <strong>{activationInfo.email}</strong>
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+                  <input
+                    type="password"
+                    className="login-input"
+                    placeholder="Contraseña (mín. 6)"
+                    value={activationPassword}
+                    onChange={(e) => setActivationPassword(e.target.value)}
+                  />
+                  <input
+                    type="password"
+                    className="login-input"
+                    placeholder="Repite la contraseña"
+                    value={activationPassword2}
+                    onChange={(e) => setActivationPassword2(e.target.value)}
+                  />
+                  <button
+                    className="login-button"
+                    onClick={handleActivateAccount}
+                    disabled={activationLoading}
+                  >
+                    {activationLoading ? 'Activando...' : 'Activar cuenta'}
+                  </button>
+                </div>
+              </>
+            )}
+            {activationDone && (
+              <p className="register-confirmation-message">
+                Ya puedes iniciar sesión con tu correo y la contraseña que acabas de crear.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // Funciones de autenticación
   const handleLogin = (userData) => {

@@ -3,6 +3,7 @@ import { FiUser, FiLock, FiEye, FiEyeOff, FiMail, FiArrowLeft, FiCheckCircle } f
 import { FaWineBottle } from 'react-icons/fa'
 import { sendWelcomeEmail } from '../../services/emailService'
 import authService from '../../api/authService'
+import pendingService from '../../api/pendingService'
 import './Login.css'
 
 function Register({ onRegister, onBackToLogin }) {
@@ -44,34 +45,32 @@ function Register({ onRegister, onBackToLogin }) {
     }
 
     try {
-      // Registrar usuario en el backend
-      const response = await authService.register({
+      // Crear usuario pendiente y enviar link de activación
+      const pendingResp = await pendingService.create({
         name: formData.name,
-        email: formData.email,
-        password: formData.password
+        email: formData.email
       })
 
-      if (response.success) {
-        setRegisteredEmail(formData.email)
-        
-        // Enviar email de bienvenida
-        const emailResult = await sendWelcomeEmail({
-          name: formData.name,
-          email: formData.email
-        });
+      const activationLink = pendingResp?.data?.data?.activationLink || `${window.location.origin}/activate`
 
-        if (emailResult.success) {
-          console.log('✅ Email de bienvenida enviado correctamente');
-        } else {
-          console.warn('⚠️ No se pudo enviar el email, pero el registro fue exitoso');
-        }
-        
-        setShowConfirmation(true)
-        setIsLoading(false)
+      setRegisteredEmail(formData.email)
+      
+      // Enviar email de activación
+      const emailResult = await sendWelcomeEmail({
+        name: formData.name,
+        email: formData.email,
+        activationLink,
+        message: 'Activa tu cuenta para iniciar sesión.'
+      });
+
+      if (emailResult.success) {
+        console.log('✅ Email de activación enviado correctamente');
       } else {
-        setError(response.message || 'Error al registrar usuario')
-        setIsLoading(false)
+        console.warn('⚠️ No se pudo enviar el email, pero la invitación fue creada');
       }
+      
+      setShowConfirmation(true)
+      setIsLoading(false)
     } catch (error) {
       console.error('Error en registro:', error)
       setError(error.message || 'Error al registrar usuario')

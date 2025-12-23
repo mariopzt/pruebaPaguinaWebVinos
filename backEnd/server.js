@@ -29,6 +29,7 @@ app.use('/api/wines', require('./routes/wineRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
+app.use('/api/pending', require('./routes/pendingRoutes'));
 
 // Ruta de prueba
 app.get('/', (req, res) => {

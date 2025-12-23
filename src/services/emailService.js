@@ -11,14 +11,19 @@ const EMAIL_CONFIG = {
 // Función para enviar email de bienvenida
 export const sendWelcomeEmail = async (userData) => {
   try {
+    const activationLink =
+      userData.activationLink ||
+      (userData.token ? `${window.location.origin}/activate?token=${userData.token}` : window.location.origin);
+
     const templateParams = {
       to_name: userData.name,
       to_email: userData.email,
       from_name: 'VinosStK',
-      message: `¡Bienvenido a VinosStK! Gracias por registrarte.`,
+      message: userData.message || 'Activa tu cuenta para iniciar sesión.',
       reply_to: 'noreply@vinosstk.com',
-      login_link: window.location.origin,
-      app_url: window.location.origin
+      login_link: activationLink,
+      app_url: activationLink,
+      activation_link: activationLink,
     };
 
     console.log('📧 Enviando email a:', userData.email);
