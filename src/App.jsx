@@ -54,6 +54,12 @@ function App() {
     },
     [getDeterministicAvatar]
   )
+
+  // Fallback para referencias anteriores
+  const randomDefaultAvatar = useMemo(
+    () => getDeterministicAvatar('fallback'),
+    [getDeterministicAvatar]
+  )
   // Estado de autenticación
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
