@@ -6,6 +6,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
   const [editedWine, setEditedWine] = useState({
     price: wine?.price || 0,
     stock: wine?.stock || 0,
+    restaurantStock: wine?.restaurantStock || 0,
     location: wine?.location || '',
     image: wine?.image || '',
     grapeVariety: Array.isArray(wine?.grapeVariety) ? [...wine.grapeVariety] : []
@@ -13,6 +14,9 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
   const [showStockAdjust, setShowStockAdjust] = useState(false);
   const [stockAdjustValue, setStockAdjustValue] = useState('');
   const [adjustType, setAdjustType] = useState('add'); // 'add' o 'subtract'
+  const [showRestaurantAdjust, setShowRestaurantAdjust] = useState(false);
+  const [restaurantAdjustValue, setRestaurantAdjustValue] = useState('');
+  const [restaurantAdjustType, setRestaurantAdjustType] = useState('add');
 
   if (!wine) return null;
 
@@ -20,7 +24,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
   const handleChange = (field, value) => {
     setEditedWine({
       ...editedWine,
-      [field]: field === 'price' || field === 'stock' ? parseFloat(value) || 0 : value
+      [field]: field === 'price' || field === 'stock' || field === 'restaurantStock' ? parseFloat(value) || 0 : value
     });
   };
 
@@ -76,6 +80,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       ...wine,
       price: editedWine.price,
       stock: editedWine.stock,
+      restaurantStock: editedWine.restaurantStock,
       location: editedWine.location,
       image: editedWine.image,
       grapeVariety: editedWine.grapeVariety,
@@ -112,6 +117,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
     setEditedWine({
       price: wine.price,
       stock: wine.stock,
+      restaurantStock: wine.restaurantStock || 0,
       location: wine.location,
       image: wine.image,
       grapeVariety: Array.isArray(wine.grapeVariety) ? [...wine.grapeVariety] : []
@@ -153,6 +159,37 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
     setShowStockAdjust(false);
     setStockAdjustValue('');
     alert(`Stock actualizado: ${wine.stock} → ${newStock}`);
+  };
+
+  // Manejar ajuste rápido de stock de restaurante
+  const handleRestaurantAdjust = async () => {
+    const value = parseInt(restaurantAdjustValue);
+    if (isNaN(value) || value <= 0) {
+      alert('Por favor ingresa un número válido');
+      return;
+    }
+
+    const newRestaurantStock = restaurantAdjustType === 'add' 
+      ? (wine.restaurantStock || 0) + value 
+      : Math.max(0, (wine.restaurantStock || 0) - value);
+
+    const payload = {
+      ...wine,
+      restaurantStock: newRestaurantStock,
+      updatedAtClient: new Date(),
+    };
+
+    if (onUpdateWine) {
+      const result = await onUpdateWine(wine.id || wine._id, payload);
+      if (!result?.success) {
+        alert(result?.message || 'No se pudo actualizar el stock del restaurante');
+        return;
+      }
+    }
+
+    setShowRestaurantAdjust(false);
+    setRestaurantAdjustValue('');
+    alert(`Stock restaurante actualizado: ${wine.restaurantStock || 0} → ${newRestaurantStock}`);
   };
 
   return (
@@ -300,6 +337,88 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
                           onClick={() => {
                             setShowStockAdjust(false);
                             setStockAdjustValue('');
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Nueva sección: Stock en Restaurante */}
+            <div className="wine-modal-info-section">
+              <div className="wine-info-row wine-price-stock-row">
+                <div className="wine-info-item">
+                  <span className="wine-info-label">Restaurante:</span>
+                  {isEditMode ? (
+                    <div className="wine-editable-field">
+                      <input 
+                        type="number" 
+                        className="wine-editable-input"
+                        value={editedWine.restaurantStock}
+                        onChange={(e) => handleChange('restaurantStock', e.target.value)}
+                      />
+                      <span className="wine-input-unit">unidades</span>
+                    </div>
+                  ) : (
+                    <span className="wine-info-value">{wine.restaurantStock || 0} unidades</span>
+                  )}
+                </div>
+
+                {/* Botones de ajuste rápido de stock restaurante (solo si NO está en modo edición) */}
+                {!isEditMode && (
+                  <div className="wine-stock-adjust-section">
+                    {!showRestaurantAdjust ? (
+                      <div className="wine-stock-adjust-buttons">
+                        <button 
+                          className="wine-stock-btn wine-stock-add"
+                          onClick={() => {
+                            setRestaurantAdjustType('add');
+                            setShowRestaurantAdjust(true);
+                          }}
+                          title="Agregar stock restaurante"
+                        >
+                          +
+                        </button>
+                        <button 
+                          className="wine-stock-btn wine-stock-subtract"
+                          onClick={() => {
+                            setRestaurantAdjustType('subtract');
+                            setShowRestaurantAdjust(true);
+                          }}
+                          title="Restar stock restaurante"
+                        >
+                          −
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="wine-stock-adjust-input-container">
+                        <span className="wine-stock-adjust-label">
+                          {restaurantAdjustType === 'add' ? 'Agregar:' : 'Restar:'}
+                        </span>
+                        <input 
+                          type="number"
+                          className="wine-stock-adjust-input"
+                          value={restaurantAdjustValue}
+                          onChange={(e) => setRestaurantAdjustValue(e.target.value)}
+                          placeholder="0"
+                          autoFocus
+                          min="1"
+                        />
+                        <button 
+                          className="wine-stock-adjust-confirm"
+                          onClick={handleRestaurantAdjust}
+                        >
+                          ✓
+                        </button>
+                        <button 
+                          className="wine-stock-adjust-cancel"
+                          onClick={() => {
+                            setShowRestaurantAdjust(false);
+                            setRestaurantAdjustValue('');
                           }}
                         >
                           ✕

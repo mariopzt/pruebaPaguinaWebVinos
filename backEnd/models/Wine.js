@@ -47,6 +47,11 @@ const wineSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+    restaurantStock: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
     price: {
       type: Number,
       required: [true, 'El precio es requerido'],
