@@ -750,10 +750,15 @@ function App() {
     }
   }
 
-  // Abrir el panel de notificaciones sin marcarlas como leídas automáticamente
-  const handleOpenNotifications = () => {
+  // Abrir el panel de notificaciones y marcarlas como leídas al entrar
+  const handleOpenNotifications = async () => {
     setShowNotifications(true);
-    // Ya no marcamos automáticamente como leídas al abrir
+    try {
+      await notificationService.markAllAsRead();
+      setNotifications(prev => prev.map(notif => ({ ...notif, unread: false, readAt: new Date() })));
+    } catch (e) {
+      console.warn('No se pudo marcar todas como leídas');
+    }
   };
 
   // Manejar click en notificación - marcar solo esa como leída
@@ -764,7 +769,7 @@ function App() {
       console.warn('No se pudo marcar como leída, usando estado local')
     }
 
-    setNotifications(prev => prev.map(notif => 
+    setNotifications(prev => prev.map(notif =>
       notif.id === notificationId ? { ...notif, unread: false, readAt: new Date() } : notif
     ));
     
@@ -848,7 +853,10 @@ function App() {
       try {
         const resp = await notificationService.getAll();
         const list = resp.data?.data || resp.data || [];
-        setNotifications(list);
+        const normalized = (list || []).map(n => ({ ...n, unread: false, readAt: n.readAt || new Date() }));
+        setNotifications(normalized);
+        // aseguramos backend en leído
+        await notificationService.markAllAsRead();
       } catch (e) {
         console.error('Error al cargar notificaciones', e);
       }
