@@ -1,5 +1,5 @@
 import './App.css'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineWarning } from 'react-icons/ai'
 import { FiHome, FiShoppingBag, FiBox, FiSlash, FiCheckSquare, FiChevronDown, FiChevronUp, FiHelpCircle, FiCpu, FiUser, FiStar, FiTrendingUp, FiLogOut, FiTag, FiSettings, FiBell, FiMenu, FiPackage, FiMessageSquare, FiCheckCircle, FiHeart, FiRefreshCw, FiWifi, FiDatabase, FiType, FiEye, FiZap, FiFilter } from 'react-icons/fi'
@@ -16,6 +16,44 @@ import orderService from './api/orderService'
 import pendingService from './api/pendingService'
 
 function App() {
+  const DEFAULT_AVATARS = useMemo(
+    () => [
+      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk1',
+      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk2',
+      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk3',
+      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk4',
+      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk5',
+      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk6',
+      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk7',
+      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk8',
+      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk9',
+      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk10'
+    ],
+    []
+  )
+  const getDeterministicAvatar = useCallback(
+    (seed) => {
+      if (!seed) return DEFAULT_AVATARS[0]
+      let hash = 0
+      for (let i = 0; i < seed.length; i += 1) {
+        hash = (hash << 5) - hash + seed.charCodeAt(i)
+        hash |= 0 // 32-bit
+      }
+      const idx = Math.abs(hash) % DEFAULT_AVATARS.length
+      return DEFAULT_AVATARS[idx]
+    },
+    [DEFAULT_AVATARS]
+  )
+
+  const getUserAvatar = useCallback(
+    (user) => {
+      if (!user) return DEFAULT_AVATARS[0]
+      if (user.avatar) return user.avatar
+      const seed = user.email || user.name || user.id || user._id || 'seed'
+      return getDeterministicAvatar(seed)
+    },
+    [getDeterministicAvatar]
+  )
   // Estado de autenticación
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
@@ -457,7 +495,8 @@ function App() {
           ...taskData,
           avatars: taskData.avatars && taskData.avatars.length
             ? taskData.avatars
-            : (currentUser?.avatar ? [currentUser.avatar] : []),
+            : [getUserAvatar(currentUser)],
+          userName: currentUser?.name,
           extraCount: taskData.extraCount ?? 0,
         };
         const resp = await taskService.create(payload)
@@ -894,7 +933,10 @@ function App() {
         const normalizeTask = (t) => ({
           ...t,
           id: t._id || t.id,
-          avatars: t.avatars && t.avatars.length ? t.avatars : (currentUser?.avatar ? [currentUser.avatar] : []),
+          displayName: t.user?.name || t.userName || currentUser?.name || 'Usuario',
+          avatars: t.avatars && t.avatars.length
+            ? t.avatars
+            : [getUserAvatar(t.user || currentUser)],
           extraCount: t.extraCount ?? 0,
         });
         setTasks(tasksData.map(normalizeTask));
@@ -1139,14 +1181,18 @@ function App() {
 
   // Funciones de autenticación
   const handleLogin = (userData) => {
-    setCurrentUser(userData)
+    const hydratedUser = {
+      ...userData,
+      avatar: userData.avatar || getUserAvatar(userData)
+    }
+    setCurrentUser(hydratedUser)
     setIsAuthenticated(true)
     // Actualizar datos de usuario en ajustes
     setAjustesData(prev => ({
       ...prev,
-      userName: userData.name,
-      userEmail: userData.email,
-      userAvatar: userData.avatar
+      userName: hydratedUser.name,
+      userEmail: hydratedUser.email,
+      userAvatar: hydratedUser.avatar
     }))
   }
 
@@ -1173,12 +1219,12 @@ function App() {
             <div className="sidebar-avatar-wrapper">
               <img
                 className="sidebar-avatar"
-                src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120"
-                alt="User avatar"
+                src={getUserAvatar(currentUser)}
+                alt={currentUser?.name || 'Avatar'}
               />
             </div>
-            <div className="sidebar-user-name">Jonny Alvarez</div>
-            <div className="sidebar-user-email">Administrador</div>
+            <div className="sidebar-user-name">{currentUser?.name || 'Usuario'}</div>
+            <div className="sidebar-user-email">{currentUser?.email || 'Sin email'}</div>
           </div>
 
           <div className="sidebar-menu-label">MENÚ</div>
@@ -1759,10 +1805,11 @@ function App() {
                     <div className="tarea-card-footer-new">
                       <div className="tarea-card-user">
                         <img 
-                          src={task.avatars[0]} 
-                          alt="User" 
+                          src={(task.avatars && task.avatars[0]) || DEFAULT_AVATAR} 
+                          alt="Avatar"
                           className="tarea-user-avatar"
                         />
+                        <span className="tarea-user-name">{task.displayName || 'Usuario'}</span>
               </div>
 
                       <div className="tarea-card-date-new">

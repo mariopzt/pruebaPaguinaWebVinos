@@ -2,9 +2,11 @@ const Task = require('../models/Task');
 
 exports.getTasks = async (req, res, next) => {
   try {
-    const query = {};
-    if (req.user) query.$or = [{ user: req.user._id }, { user: null }];
-    const tasks = await Task.find(query).sort({ createdAt: -1 }).lean();
+    // Mostrar todas las tareas, sin filtrar por usuario, e incluir nombre/avatar del usuario si existe
+    const tasks = await Task.find({})
+      .populate('user', 'name avatar')
+      .sort({ createdAt: -1 })
+      .lean();
     res.json({ success: true, data: tasks });
   } catch (error) {
     next(error);
@@ -24,7 +26,7 @@ exports.createTask = async (req, res, next) => {
 
 exports.updateTask = async (req, res, next) => {
   try {
-    const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('user', 'name avatar');
     res.json({ success: true, data: task });
   } catch (error) {
     next(error);
