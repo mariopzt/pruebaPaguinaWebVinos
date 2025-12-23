@@ -761,6 +761,29 @@ function App() {
     try {
       await pendingService.activate(activationToken, activationPassword);
       setActivationDone(true);
+
+      // Intentar iniciar sesión automáticamente tras activar
+      if (activationInfo?.email) {
+        try {
+          const loginResp = await authService.login({
+            email: activationInfo.email,
+            password: activationPassword
+          });
+          // loginResp puede venir como { data: { token, user... } } o { success, data }
+          const data = loginResp.data || loginResp;
+          if (data?.token || data?.data?.token) {
+            const userData = data.data ? data.data : data;
+            handleLogin(userData);
+            // limpiar token de la URL
+            const url = new URL(window.location.href);
+            url.searchParams.delete('token');
+            window.history.replaceState({}, '', url.toString());
+            setActivationToken(null);
+          }
+        } catch (e) {
+          console.warn('Activación ok, pero auto-login falló; prueba manual');
+        }
+      }
     } catch (e) {
       setActivationError(e?.message || 'No se pudo activar la cuenta');
     } finally {
@@ -812,6 +835,15 @@ function App() {
       }
     };
     loadTokenInfo();
+  }, [activationToken]);
+
+  // Releer token al montar (por si el estado inicial no lo captura)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token && token !== activationToken) {
+      setActivationToken(token);
+    }
   }, [activationToken]);
 
   // Cargar tareas y pedidos al autenticarse

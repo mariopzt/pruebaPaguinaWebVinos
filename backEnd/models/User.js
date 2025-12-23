@@ -49,7 +49,7 @@ const userSchema = new mongoose.Schema({
 userSchema.pre('save', async function(next) {
   // Solo encriptar si la contraseña fue modificada
   if (!this.isModified('password')) {
-    next();
+    return next();
   }
 
   const salt = await bcrypt.genSalt(10);

@@ -26,8 +26,8 @@ function Login({ onLogin }) {
         return
       }
 
-      // Intentar login con el backend
-      const response = await authService.login({ email, password })
+      // Intentar login con el backend (acepta usuario o correo)
+      const response = await authService.login({ identifier: email, password })
 
       if (response.success) {
         // Login exitoso

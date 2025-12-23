@@ -61,22 +61,25 @@ exports.register = async (req, res) => {
 // @access  Public
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const emailNorm = email?.toLowerCase().trim();
+    const { email, identifier: rawIdentifier, password } = req.body;
+    const raw = rawIdentifier || email;
+    const identifier = raw ? raw.toLowerCase().trim() : '';
 
-    // Validar email y password
-    if (!email || !password) {
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Validar identificador y password
+    if (!identifier || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Por favor ingresa email y contraseña'
+        message: 'Por favor ingresa usuario y contraseña'
       });
     }
 
     // Buscar usuario por email o por nombre (case-insensitive), incluir password
     const user = await User.findOne({
       $or: [
-        { email: emailNorm },
-        { name: { $regex: new RegExp(`^${email.trim()}$`, 'i') } }
+        { email: identifier },
+        { name: { $regex: new RegExp(`^${escapeRegex(identifier)}$`, 'i') } }
       ]
     }).select('+password');
 
@@ -97,9 +100,9 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Actualizar último login
-    user.lastLogin = Date.now();
-    await user.save();
+    // Opcional: actualizar último login sin rehashear contraseña
+    // user.lastLogin = Date.now();
+    // await user.save({ validateBeforeSave: false });
 
     // Generar token
     const token = generateToken(user._id);
