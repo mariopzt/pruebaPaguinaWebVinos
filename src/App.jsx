@@ -861,12 +861,12 @@ function App() {
 
   // Cargar notificaciones desde API al autenticarse (solo si están habilitadas)
   useEffect(() => {
-    if (!NOTIFICATIONS_ENABLED) return;
+    if (!NOTIFICATIONS_ENABLED || !isAuthenticated) {
+      setNotifications([]);
+      return;
+    }
+    
     const fetchNotifications = async () => {
-      if (!isAuthenticated) {
-        setNotifications([]);
-        return;
-      }
       try {
         const resp = await notificationService.getAll();
         const list = resp.data?.data || resp.data || [];
@@ -887,12 +887,16 @@ function App() {
           setTimeout(() => setNewNotifPulse(false), 3000);
         }
       } catch (e) {
-        console.error('Error al cargar notificaciones', e);
+        // Solo loggear si no es error de autenticación
+        if (e?.response?.status !== 401) {
+          console.error('Error al cargar notificaciones', e);
+        }
       }
     };
+    
     fetchNotifications();
     
-    // Recargar notificaciones cada 30 segundos
+    // Recargar notificaciones cada 30 segundos (solo si autenticado)
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, [isAuthenticated, NOTIFICATIONS_ENABLED]);
