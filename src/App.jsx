@@ -97,6 +97,7 @@ function App() {
   const [highlightedWineId, setHighlightedWineId] = useState(null)
   const [chatMessages, setChatMessages] = useState([])
   const [suggestedOptions, setSuggestedOptions] = useState([])
+  const [aiChatMessages, setAiChatMessages] = useState([]) // Mensajes del chat IA (persisten entre vistas)
   const chatMessagesContainerRef = useRef(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [settings, setSettings] = useState({
@@ -2793,6 +2794,8 @@ function App() {
               }}
               currentUser={currentUser}
               isVisible={true}
+              messages={aiChatMessages}
+              onMessagesChange={setAiChatMessages}
             />
           </div>
         )}

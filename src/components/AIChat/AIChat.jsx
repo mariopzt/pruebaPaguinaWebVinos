@@ -3,31 +3,20 @@ import { FiSend, FiCpu, FiBox, FiSlash, FiTag, FiTrendingUp, FiStar, FiShoppingB
 import { useAI } from '../../hooks/useAI';
 import './AIChat.css';
 
-const MESSAGES_STORAGE_KEY = 'vinosstk_ai_messages';
-
 /**
  * Componente de Chat con IA - Diseño Original
+ * Los mensajes se pasan desde el padre para persistir entre vistas
  */
 export function AIChat({ 
   wines = [], 
   onWinesChange, 
   onUIChange, 
   currentUser,
-  isVisible = true 
+  isVisible = true,
+  messages = [],
+  onMessagesChange
 }) {
   const [inputMessage, setInputMessage] = useState('');
-  const [messages, setMessages] = useState(() => {
-    // Cargar mensajes de localStorage al iniciar
-    const saved = localStorage.getItem(MESSAGES_STORAGE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved) || [];
-      } catch (e) {
-        return [];
-      }
-    }
-    return [];
-  });
   const chatMessagesRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -37,13 +26,6 @@ export function AIChat({
     error,
     clearHistory
   } = useAI({ wines, onWinesChange, onUIChange, currentUser });
-
-  // Guardar mensajes en localStorage cuando cambien
-  useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(messages.slice(-100))); // Últimos 100
-    }
-  }, [messages]);
 
   // Auto-scroll al último mensaje
   useEffect(() => {
@@ -55,7 +37,7 @@ export function AIChat({
   // Enviar mensaje
   const handleSendMessage = useCallback(async (text) => {
     const message = text?.trim() || inputMessage.trim();
-    if (!message || isLoading) return;
+    if (!message || isLoading || !onMessagesChange) return;
 
     const userMsg = {
       id: `user-${Date.now()}`,
@@ -63,19 +45,19 @@ export function AIChat({
       sender: 'user',
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, userMsg]);
+    onMessagesChange(prev => [...prev, userMsg]);
     setInputMessage('');
 
     try {
       const response = await sendMessage(message);
-      setMessages(prev => [...prev, {
+      onMessagesChange(prev => [...prev, {
         id: `ai-${Date.now()}`,
         text: response?.response || 'Lo siento, no pude procesar tu mensaje.',
         sender: 'ai',
         timestamp: new Date()
       }]);
     } catch (err) {
-      setMessages(prev => [...prev, {
+      onMessagesChange(prev => [...prev, {
         id: `error-${Date.now()}`,
         text: 'Ocurrió un error. Por favor, intenta de nuevo.',
         sender: 'ai',
@@ -83,7 +65,7 @@ export function AIChat({
         timestamp: new Date()
       }]);
     }
-  }, [inputMessage, isLoading, sendMessage]);
+  }, [inputMessage, isLoading, sendMessage, onMessagesChange]);
 
   const handleSuggestedOption = (optionText) => {
     handleSendMessage(optionText);
@@ -96,10 +78,11 @@ export function AIChat({
     }
   };
 
-  // Limpiar chat y localStorage
+  // Limpiar chat
   const handleClearChat = () => {
-    setMessages([]);
-    localStorage.removeItem(MESSAGES_STORAGE_KEY);
+    if (onMessagesChange) {
+      onMessagesChange([]);
+    }
     clearHistory();
   };
 

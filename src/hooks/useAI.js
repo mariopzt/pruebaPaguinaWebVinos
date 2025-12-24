@@ -1,40 +1,17 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import api from '../api/axios';
 import wineService from '../api/wineService';
-
-const STORAGE_KEY = 'vinosstk_ai_chat';
 
 /**
  * Hook para comunicación con la IA
  * Control total sobre vinos: crear, editar, eliminar, modificar stock
+ * Chat se limpia al recargar la página
  */
 export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [conversationHistory, setConversationHistory] = useState([]);
   const abortControllerRef = useRef(null);
-
-  // Cargar historial de localStorage al iniciar
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          setConversationHistory(parsed);
-        }
-      } catch (e) {
-        console.error('Error al cargar historial de chat:', e);
-      }
-    }
-  }, []);
-
-  // Guardar en localStorage cuando cambia el historial
-  useEffect(() => {
-    if (conversationHistory.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(conversationHistory.slice(-50)));
-    }
-  }, [conversationHistory]);
 
   // Buscar vino por nombre (búsqueda flexible)
   const findWineByName = useCallback((name) => {
@@ -313,7 +290,6 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
   // Limpiar historial
   const clearHistory = useCallback(() => {
     setConversationHistory([]);
-    localStorage.removeItem(STORAGE_KEY);
     setError(null);
   }, []);
 

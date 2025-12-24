@@ -1,9 +1,543 @@
 const { openai } = require('@ai-sdk/openai');
 const { generateText } = require('ai');
 const Wine = require('../models/Wine');
+const axios = require('axios');
+const cheerio = require('cheerio');
 
 // Modelo de memoria en MongoDB (opcional)
 const mongoose = require('mongoose');
+
+/**
+ * Scrapear información de vinos de múltiples fuentes
+ */
+async function scrapeWineFromWeb(wineName) {
+  const results = [];
+  
+  // Headers para simular navegador
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
+  };
+
+  try {
+    // 1. Buscar en Vinissimus (tienda española de vinos)
+    const vinissimusUrl = `https://www.vinissimus.com/es/buscar/?q=${encodeURIComponent(wineName)}`;
+    console.log('[AI] Buscando en Vinissimus:', vinissimusUrl);
+    
+    const vinissimusRes = await axios.get(vinissimusUrl, { headers, timeout: 8000 });
+    const $v = cheerio.load(vinissimusRes.data);
+    
+    // Buscar el primer resultado de vino
+    const firstWine = $v('.product-card').first();
+    if (firstWine.length) {
+      const wineTitle = firstWine.find('.product-card__name').text().trim();
+      const wineInfo = firstWine.find('.product-card__info').text().trim();
+      const wineRegion = firstWine.find('.product-card__region').text().trim();
+      
+      if (wineTitle) {
+        results.push({
+          source: 'Vinissimus',
+          name: wineTitle,
+          info: `${wineInfo} ${wineRegion}`.trim()
+        });
+      }
+    }
+  } catch (e) {
+    console.log('[AI] Error Vinissimus:', e.message);
+  }
+
+  try {
+    // 2. Buscar DIRECTAMENTE en Google el vino + Vivino para obtener la página exacta
+    const googleVivinoUrl = `https://www.google.com/search?q=${encodeURIComponent(wineName + ' site:vivino.com')}&hl=es`;
+    console.log('[AI] Buscando en Google+Vivino...');
+    
+    const googleRes = await axios.get(googleVivinoUrl, { 
+      headers: {
+        ...headers,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }, 
+      timeout: 8000 
+    });
+    
+    const $g = cheerio.load(googleRes.data);
+    const snippets = [];
+    
+    $g('.VwiC3b, .IsZvec, .lEBKkf, span').each((i, el) => {
+      const text = $g(el).text().trim();
+      if (text && text.length > 20) {
+        snippets.push(text);
+      }
+    });
+    
+    const allText = snippets.join(' ').toLowerCase();
+    
+    // Detectar D.O. en los snippets - LISTA COMPLETA
+    const doPatterns = [
+      { pattern: /ribeira\s*sacra/i, name: 'Ribeira Sacra' },
+      { pattern: /ribeiro(?!\s*sacra)/i, name: 'Ribeiro' },
+      { pattern: /rías\s*baixas|rias\s*baixas/i, name: 'Rías Baixas' },
+      { pattern: /ribera\s*(del\s*)?duero/i, name: 'Ribera del Duero' },
+      { pattern: /rioja/i, name: 'Rioja' },
+      { pattern: /rueda/i, name: 'Rueda' },
+      { pattern: /bierzo/i, name: 'Bierzo' },
+      { pattern: /priorat/i, name: 'Priorat' },
+      { pattern: /toro(?!\s+de)/i, name: 'Toro' },
+      { pattern: /jumilla/i, name: 'Jumilla' },
+      { pattern: /valdeorras/i, name: 'Valdeorras' },
+      { pattern: /monterrei/i, name: 'Monterrei' },
+      { pattern: /terra\s*alta/i, name: 'Terra Alta' },
+      { pattern: /penedés|penedes/i, name: 'Penedés' },
+      { pattern: /somontano/i, name: 'Somontano' },
+      { pattern: /cariñena/i, name: 'Cariñena' },
+      { pattern: /campo\s*de\s*borja/i, name: 'Campo de Borja' },
+      { pattern: /calatayud/i, name: 'Calatayud' },
+      { pattern: /navarra/i, name: 'Navarra' },
+      { pattern: /txakoli|chacolí/i, name: 'Txakoli' },
+      { pattern: /méntrida|mentrida/i, name: 'Méntrida' },
+      { pattern: /la\s*mancha/i, name: 'La Mancha' },
+      { pattern: /manchuela/i, name: 'Manchuela' },
+      { pattern: /yecla/i, name: 'Yecla' },
+      { pattern: /alicante/i, name: 'Alicante' },
+      { pattern: /utiel.?requena/i, name: 'Utiel-Requena' },
+      { pattern: /valencia/i, name: 'Valencia' },
+      { pattern: /condado\s*de\s*huelva/i, name: 'Condado de Huelva' },
+      { pattern: /jerez|sherry/i, name: 'Jerez' },
+      { pattern: /montilla.?moriles/i, name: 'Montilla-Moriles' },
+      { pattern: /málaga/i, name: 'Málaga' }
+    ];
+    
+    const grapePatterns = [
+      { pattern: /godello/i, name: 'Godello' },
+      { pattern: /treixadura/i, name: 'Treixadura' },
+      { pattern: /albari[ñn]o/i, name: 'Albariño' },
+      { pattern: /menc[ií]a/i, name: 'Mencía' },
+      { pattern: /tempranillo/i, name: 'Tempranillo' },
+      { pattern: /garnacha/i, name: 'Garnacha' },
+      { pattern: /verdejo/i, name: 'Verdejo' },
+      { pattern: /monastrell/i, name: 'Monastrell' }
+    ];
+    
+    const foundDOs = doPatterns.filter(p => p.pattern.test(allText)).map(p => p.name);
+    const foundGrapes = grapePatterns.filter(p => p.pattern.test(allText)).map(p => p.name);
+    
+    if (foundDOs.length > 0 || foundGrapes.length > 0) {
+      const info = [
+        foundDOs.length > 0 ? `D.O.: ${foundDOs[0]}` : '',
+        foundGrapes.length > 0 ? `Uvas: ${foundGrapes.join(', ')}` : '',
+        'Galicia, España'
+      ].filter(Boolean).join(' | ');
+      
+      results.push({
+        source: 'Vivino/Google',
+        name: wineName,
+        info: info
+      });
+      
+      console.log('[AI] ✅ Encontrado:', info);
+    }
+  } catch (e) {
+    console.log('[AI] Error Google+Vivino:', e.message);
+  }
+
+  try {
+    // 3. Buscar directamente la página del vino en Vivino
+    const vivinoSearchUrl = `https://www.vivino.com/search/wines?q=${encodeURIComponent(wineName)}`;
+    console.log('[AI] Buscando en Vivino directo:', vivinoSearchUrl);
+    
+    const vivinoRes = await axios.get(vivinoSearchUrl, { 
+      headers, 
+      timeout: 10000,
+      maxRedirects: 5
+    });
+    
+    const $v = cheerio.load(vivinoRes.data);
+    const pageText = $v('body').text().replace(/\s+/g, ' ');
+    
+    // Buscar patrones específicos en el HTML
+    const doMatch = pageText.match(/(?:D\.?O\.?|Denominación|Region|Región)[:\s]*(Ribeiro|Rías Baixas|Ribera del Duero|Rioja|Rueda|Bierzo|Priorat|Valdeorras)/i);
+    const grapeMatch = pageText.match(/(?:Uva|Grape|Varietal)[:\s]*((?:Godello|Treixadura|Albariño|Mencía|Tempranillo|Garnacha|Verdejo)(?:[,\s]+(?:Godello|Treixadura|Albariño|Mencía|Tempranillo|Garnacha|Verdejo))*)/i);
+    
+    if (doMatch || grapeMatch) {
+      const info = [
+        doMatch ? `D.O.: ${doMatch[1]}` : '',
+        grapeMatch ? `Uvas: ${grapeMatch[1]}` : ''
+      ].filter(Boolean).join(' | ');
+      
+      if (info && !results.some(r => r.info.includes(doMatch?.[1] || ''))) {
+        results.push({
+          source: 'Vivino',
+          name: wineName,
+          info: info
+        });
+        console.log('[AI] ✅ Vivino directo:', info);
+      }
+    }
+  } catch (e) {
+    console.log('[AI] Error Vivino directo:', e.message);
+  }
+
+  try {
+    // 3. Buscar en Bodeboca (tienda española)
+    const bodebocaUrl = `https://www.bodeboca.com/buscar?q=${encodeURIComponent(wineName)}`;
+    console.log('[AI] Buscando en Bodeboca:', bodebocaUrl);
+    
+    const bodebocaRes = await axios.get(bodebocaUrl, { headers, timeout: 8000 });
+    const $b = cheerio.load(bodebocaRes.data);
+    
+    const wineCard = $b('.product-card, .wine-card, [class*="product"]').first();
+    const wineText = wineCard.text().replace(/\s+/g, ' ').trim().substring(0, 300);
+    
+    if (wineText && wineText.length > 20) {
+      results.push({
+        source: 'Bodeboca',
+        name: wineName,
+        info: wineText
+      });
+    }
+  } catch (e) {
+    console.log('[AI] Error Bodeboca:', e.message);
+  }
+
+  try {
+    // 4. Búsqueda en DuckDuckGo HTML (más permisivo que Google)
+    const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(wineName + ' vino bodega denominación origen uva España')}`;
+    console.log('[AI] Buscando en DuckDuckGo:', wineName);
+    
+    const ddgRes = await axios.get(ddgUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html'
+      },
+      timeout: 10000
+    });
+    
+    const $ddg = cheerio.load(ddgRes.data);
+    const ddgText = $ddg('body').text().replace(/\s+/g, ' ');
+    
+    // Buscar D.O.s
+    const allDOs = [
+      'Ribeira Sacra', 'Ribeiro', 'Rías Baixas', 'Rias Baixas',
+      'Ribera del Duero', 'Rioja', 'Rueda', 'Bierzo', 'Priorat',
+      'Valdeorras', 'Monterrei', 'Toro', 'Jumilla', 'Somontano',
+      'Penedés', 'Cariñena', 'Navarra', 'La Mancha', 'Yecla'
+    ];
+    
+    const allGrapes = [
+      'Mencía', 'Mencia', 'Godello', 'Treixadura', 'Albariño', 'Albarino',
+      'Tempranillo', 'Garnacha', 'Verdejo', 'Monastrell', 'Bobal', 'Moscatel'
+    ];
+    
+    let ddgFoundDO = null;
+    let ddgFoundGrapes = [];
+    
+    for (const doName of allDOs) {
+      if (ddgText.toLowerCase().includes(doName.toLowerCase())) {
+        ddgFoundDO = doName;
+        console.log('[AI] ✅ DuckDuckGo encontró D.O.:', doName);
+        break;
+      }
+    }
+    
+    for (const grape of allGrapes) {
+      if (ddgText.toLowerCase().includes(grape.toLowerCase())) {
+        ddgFoundGrapes.push(grape);
+      }
+    }
+    ddgFoundGrapes = [...new Set(ddgFoundGrapes)].slice(0, 3);
+    
+    if (ddgFoundDO || ddgFoundGrapes.length > 0) {
+      results.push({
+        source: 'DuckDuckGo',
+        name: wineName,
+        info: [
+          ddgFoundDO ? `D.O.: ${ddgFoundDO}` : '',
+          ddgFoundGrapes.length > 0 ? `Uvas: ${ddgFoundGrapes.join(', ')}` : ''
+        ].filter(Boolean).join(' | ')
+      });
+      console.log('[AI] ✅ DuckDuckGo info:', ddgFoundDO, ddgFoundGrapes);
+    }
+  } catch (e) {
+    console.log('[AI] Error DuckDuckGo:', e.message);
+  }
+
+  try {
+    // 5. Búsqueda en Google como respaldo
+    const queries = [
+      `"${wineName}" vino denominación origen bodega`,
+      `${wineName} vino España D.O. uva`
+    ];
+    
+    for (const searchQuery of queries) {
+      try {
+        const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}&hl=es&num=10`;
+        console.log('[AI] Google query:', searchQuery);
+        
+        const googleRes = await axios.get(googleUrl, { 
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
+          }, 
+          timeout: 10000 
+        });
+        
+        const $g = cheerio.load(googleRes.data);
+        const pageText = $g('body').text().replace(/\s+/g, ' ');
+        
+        // Buscar D.O.s en todo el texto de Google
+        const allDOs = [
+          'Ribeira Sacra', 'Ribeiro', 'Rías Baixas', 'Rias Baixas',
+          'Ribera del Duero', 'Rioja', 'Rueda', 'Bierzo', 'Priorat',
+          'Valdeorras', 'Monterrei', 'Toro', 'Jumilla', 'Somontano',
+          'Penedés', 'Cariñena', 'Navarra', 'La Mancha', 'Yecla',
+          'Alicante', 'Valencia', 'Jerez', 'Málaga', 'Condado de Huelva'
+        ];
+        
+        const allGrapes = [
+          'Mencía', 'Mencia', 'Godello', 'Treixadura', 'Albariño', 'Albarino',
+          'Tempranillo', 'Garnacha', 'Verdejo', 'Monastrell', 'Bobal',
+          'Graciano', 'Mazuelo', 'Cariñena', 'Viura', 'Macabeo', 'Parellada',
+          'Xarel·lo', 'Palomino', 'Pedro Ximénez', 'Moscatel'
+        ];
+        
+        let foundDO = null;
+        let foundGrapes = [];
+        
+        for (const doName of allDOs) {
+          if (pageText.toLowerCase().includes(doName.toLowerCase())) {
+            foundDO = doName;
+            console.log('[AI] ✅ Google encontró D.O.:', doName);
+            break;
+          }
+        }
+        
+        for (const grape of allGrapes) {
+          if (pageText.toLowerCase().includes(grape.toLowerCase())) {
+            foundGrapes.push(grape);
+          }
+        }
+        foundGrapes = [...new Set(foundGrapes)].slice(0, 3);
+        
+        if (foundDO || foundGrapes.length > 0) {
+          const info = [
+            foundDO ? `D.O.: ${foundDO}` : '',
+            foundGrapes.length > 0 ? `Uvas: ${foundGrapes.join(', ')}` : ''
+          ].filter(Boolean).join(' | ');
+          
+          // Solo añadir si es info nueva
+          if (!results.some(r => r.info === info)) {
+            results.push({
+              source: 'Google',
+              name: wineName,
+              info: info
+            });
+            console.log('[AI] ✅ Google info:', info);
+          }
+          
+          // Si encontramos D.O., no seguir buscando
+          if (foundDO) break;
+        }
+      } catch (e) {
+        console.log('[AI] Error en query Google:', e.message);
+      }
+    }
+  } catch (e) {
+    console.log('[AI] Error Google general:', e.message);
+  }
+
+  return results;
+}
+
+/**
+ * Buscar información PRECISA sobre vinos en múltiples fuentes
+ */
+async function searchWineInfo(query) {
+  const results = [];
+  
+  // Extraer SOLO el nombre del vino
+  let wineName = query.toLowerCase();
+  
+  // Lista de palabras a eliminar (en orden)
+  const wordsToRemove = [
+    'háblame', 'hablame', 'dime', 'cuéntame', 'cuentame', 'busca', 'buscar',
+    'info', 'información', 'informacion', 'sobre', 'acerca de', 'acerca',
+    'en la web', 'en internet', 'del vino', 'el vino', 'un vino', 'la vino',
+    'del', 'de', 'el', 'la', 'un', 'una', 'los', 'las', 'vino', 'vinos'
+  ];
+  
+  for (const word of wordsToRemove) {
+    wineName = wineName.replace(new RegExp(`^${word}\\s*`, 'gi'), '');
+    wineName = wineName.replace(new RegExp(`\\s*${word}$`, 'gi'), '');
+  }
+  
+  // Quitar caracteres especiales y normalizar espacios
+  wineName = wineName
+    .replace(/[?¿!¡.,;:]/g, '')
+    .trim()
+    .replace(/\s+/g, ' ');
+
+  // Capitalizar cada palabra
+  wineName = wineName.split(' ').map(w => 
+    w.length > 0 ? w.charAt(0).toUpperCase() + w.slice(1) : ''
+  ).filter(w => w.length > 0).join(' ');
+
+  console.log('[AI] 🔍 Nombre del vino extraído:', wineName);
+
+  try {
+    // 1. Buscar en Wikipedia España - D.O. y bodegas
+    const wikiSearches = [
+      `${wineName} bodega vino`,
+      `${wineName} denominación origen`,
+      wineName
+    ];
+
+    for (const search of wikiSearches) {
+      try {
+        const wikiUrl = `https://es.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(search)}&format=json&srlimit=5`;
+        const wikiResponse = await axios.get(wikiUrl, { timeout: 4000 });
+        
+        if (wikiResponse.data?.query?.search?.length > 0) {
+          for (const result of wikiResponse.data.query.search.slice(0, 3)) {
+            // Filtrar resultados relevantes a vinos
+            const title = result.title.toLowerCase();
+            if (title.includes('vino') || title.includes('bodega') || 
+                title.includes('ribeiro') || title.includes('ribera') ||
+                title.includes('rioja') || title.includes('denominación') ||
+                title.includes(wineName.toLowerCase().split(' ')[0])) {
+              
+              const extractUrl = `https://es.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(result.title)}&prop=extracts&exintro=true&explaintext=true&format=json`;
+              const extractResponse = await axios.get(extractUrl, { timeout: 4000 });
+              const pages = extractResponse.data?.query?.pages;
+              
+              if (pages) {
+                const pageId = Object.keys(pages)[0];
+                if (pages[pageId]?.extract && pages[pageId].extract.length > 100) {
+                  results.push({
+                    source: 'Wikipedia',
+                    title: result.title,
+                    content: pages[pageId].extract.substring(0, 600)
+                  });
+                }
+              }
+            }
+          }
+        }
+      } catch (e) { /* continuar */ }
+    }
+
+    // 2. Buscar directamente la bodega/vino en Google via SerpAPI alternativa
+    try {
+      const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(wineName + ' bodega vino denominación origen uva')}&format=json&no_html=1&skip_disambig=1`;
+      const ddgResponse = await axios.get(ddgUrl, { timeout: 4000 });
+      
+      if (ddgResponse.data?.Abstract) {
+        results.push({
+          source: 'DuckDuckGo',
+          title: ddgResponse.data.Heading || wineName,
+          content: ddgResponse.data.Abstract
+        });
+      }
+      
+      // Buscar en temas relacionados
+      if (ddgResponse.data?.RelatedTopics?.length > 0) {
+        for (const topic of ddgResponse.data.RelatedTopics.slice(0, 5)) {
+          if (topic.Text && (
+            topic.Text.toLowerCase().includes('vino') ||
+            topic.Text.toLowerCase().includes('bodega') ||
+            topic.Text.toLowerCase().includes('uva') ||
+            topic.Text.toLowerCase().includes('denominación')
+          )) {
+            results.push({
+              source: 'DuckDuckGo',
+              title: 'Info relacionada',
+              content: topic.Text
+            });
+          }
+        }
+      }
+    } catch (e) { /* continuar */ }
+
+    // 3. Buscar en Wikipedia la D.O. específica si el nombre sugiere una región
+    const doKeywords = {
+      'ribeiro': 'Denominación de Origen Ribeiro',
+      'ribera': 'Denominación de Origen Ribera del Duero',
+      'rioja': 'Denominación de Origen Calificada Rioja',
+      'rueda': 'Denominación de Origen Rueda',
+      'rías baixas': 'Denominación de Origen Rías Baixas',
+      'rias baixas': 'Denominación de Origen Rías Baixas',
+      'priorat': 'Denominación de Origen Calificada Priorat',
+      'penedés': 'Denominación de Origen Penedès',
+      'penedes': 'Denominación de Origen Penedès',
+      'toro': 'Denominación de Origen Toro',
+      'jumilla': 'Denominación de Origen Jumilla',
+      'bierzo': 'Denominación de Origen Bierzo',
+      'godello': 'Godello (uva)',
+      'albariño': 'Albariño',
+      'albarino': 'Albariño',
+      'mencía': 'Mencía (uva)',
+      'mencia': 'Mencía (uva)',
+      'tempranillo': 'Tempranillo',
+      'garnacha': 'Garnacha'
+    };
+
+    for (const [keyword, wikiTitle] of Object.entries(doKeywords)) {
+      if (wineName.toLowerCase().includes(keyword)) {
+        try {
+          const doUrl = `https://es.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&prop=extracts&exintro=true&explaintext=true&format=json`;
+          const doResponse = await axios.get(doUrl, { timeout: 4000 });
+          const pages = doResponse.data?.query?.pages;
+          
+          if (pages) {
+            const pageId = Object.keys(pages)[0];
+            if (pages[pageId]?.extract) {
+              results.push({
+                source: 'Wikipedia D.O.',
+                title: wikiTitle,
+                content: pages[pageId].extract.substring(0, 500)
+              });
+            }
+          }
+        } catch (e) { /* continuar */ }
+        break;
+      }
+    }
+
+  } catch (error) {
+    console.error('Error en búsqueda de vino:', error.message);
+  }
+
+  // 4. Si no hay suficientes resultados, buscar en páginas de vinos (scraping)
+  if (results.length < 2) {
+    console.log('[AI] Pocos resultados, buscando en tiendas de vinos...');
+    try {
+      const webResults = await scrapeWineFromWeb(wineName);
+      for (const wr of webResults) {
+        results.push({
+          source: wr.source,
+          title: wr.name,
+          content: wr.info
+        });
+      }
+    } catch (e) {
+      console.log('[AI] Error en scraping:', e.message);
+    }
+  }
+
+  // Combinar resultados únicos
+  const combined = results
+    .map(r => `[${r.source}] ${r.title || ''}: ${r.content || r.info || ''}`)
+    .filter(r => r.length > 20)
+    .join('\n\n')
+    .substring(0, 2500);
+
+  console.log('[AI] Resultados totales encontrados:', results.length);
+  
+  return {
+    results,
+    combined: combined || null
+  };
+}
 
 // Schema para memoria de conversación
 const conversationMemorySchema = new mongoose.Schema({
@@ -44,15 +578,73 @@ exports.processCommand = async (req, res, next) => {
       });
     }
 
+    // Detectar si es una pregunta sobre un vino específico - patrones ampliados
+    const wineQuestionPatterns = [
+      /qu[ée]\s+(tipo|clase|es|significa|variedad|uva)/i,
+      /h[aá]blame\s+de/i,
+      /información\s+(de|sobre|del)/i,
+      /conoces?\s+(el\s+vino|a)/i,
+      /sabes?\s+(qu[ée]|algo|sobre)/i,
+      /cu[aá]l\s+es/i,
+      /d[ií]me\s+(sobre|qu[ée])/i,
+      /es\s+un\s+vino/i,
+      /de\s+d[oó]nde\s+es/i,
+      /origen\s+de/i,
+      /busca\s+(en\s+la\s+web|info|información)/i,
+      /buscar\s+(sobre|vino|info)/i,
+      /sobre\s+el\s+vino/i,
+      /vino\s+\w+/i,
+      /bodega\s+\w+/i,
+      /menc[ií]a/i,
+      /tempranillo/i,
+      /albari[ñn]o/i,
+      /godello/i,
+      /garnacha/i,
+      /verdejo/i,
+      /ribeiro/i,
+      /ribera/i,
+      /rioja/i,
+      /d\.?o\.?\s+\w+/i,
+      /denominaci[oó]n/i,
+      /adega/i,
+      /bodegas?\s+\w+/i
+    ];
+    
+    // También buscar si el mensaje parece ser un nombre de vino (corto, con mayúsculas)
+    const looksLikeWineName = message.length < 50 && /[A-Z]/.test(message) && !/^(hola|gracias|ok|si|no|vale)$/i.test(message);
+    
+    const isWineQuestion = wineQuestionPatterns.some(pattern => pattern.test(message)) || looksLikeWineName;
+    let webSearchInfo = '';
+    
+    if (isWineQuestion) {
+      // Extraer posible nombre de vino de la pregunta
+      const cleanedMessage = message.replace(/[?¿!¡.,]/g, '').trim();
+      console.log('[AI] Detectada pregunta sobre vino, buscando info para:', cleanedMessage);
+      const searchResult = await searchWineInfo(cleanedMessage);
+      if (searchResult.combined && searchResult.combined.length > 50) {
+        webSearchInfo = `\n\n🔍 INFORMACIÓN DE BÚSQUEDA WEB (USA ESTOS DATOS):\n${searchResult.combined}`;
+        console.log('[AI] ✅ Info encontrada:', searchResult.combined.substring(0, 200));
+      } else {
+        // Si el usuario está dando información, aceptarla
+        const isUserGivingInfo = /es\s+(un|de|del|la|el)|menc[ií]a|tinto|blanco|bodega|adega/i.test(message);
+        if (isUserGivingInfo) {
+          webSearchInfo = `\n\n✅ El usuario te está dando información sobre el vino. ACEPTA lo que dice y confirma que has aprendido esa información.`;
+        } else {
+          webSearchInfo = `\n\n⚠️ No encontré información verificada. Puedes preguntar al usuario o responder con tu conocimiento general si lo tienes.`;
+        }
+        console.log('[AI] ⚠️ Info limitada para:', cleanedMessage);
+      }
+    }
+
     // Construir contexto de vinos
     const winesContext = context?.wines?.slice(0, 30).map(w => 
       `- "${w.name}" | Bodega: ${w.stock || 0} | Restaurante: ${w.restaurantStock || 0} | €${w.price || 0}`
     ).join('\n') || 'Sin vinos';
 
     // Construir prompt del sistema
-    const systemPrompt = `Eres el asistente IA de VinosStK con CONTROL TOTAL sobre la bodega de vinos.
-
-VINOS ACTUALES:
+    const systemPrompt = `Eres el asistente IA EXPERTO EN VINOS de VinosStK con CONTROL TOTAL sobre la bodega.
+${webSearchInfo}
+VINOS EN LA BODEGA:
 ${winesContext}
 
 ACCIONES QUE PUEDES EJECUTAR:
@@ -135,17 +727,21 @@ Usuario: "Crea 5 vinos nuevos"
 → Precios realistas entre 8€ y 45€
 → Stock aleatorio entre 10 y 50
 
-REGLAS:
-- Responde SIEMPRE en español y JSON válido
-- Usa los nombres EXACTOS de los vinos del contexto cuando modifiques stock
-- Para CREAR vinos: genera nombres CREATIVOS y DIFERENTES cada vez
-- Usa tu conocimiento de vinos españoles reales (bodegas famosas, D.O., variedades)
-- Incluye variedad: Tempranillo, Garnacha, Albariño, Verdejo, Godello, Mencía, Monastrell, etc.
-- Para operaciones múltiples, incluye TODOS los vinos en el array "wines"
-- Cuando pidan "crea X vinos", genera EXACTAMENTE X vinos DIFERENTES y ÚNICOS
-- NO repitas los mismos vinos, sé CREATIVO con los nombres
-- Confirma siempre qué hiciste en "response"
-- Si el usuario dice "todos los vinos", incluye todos los del contexto`;
+REGLAS GENERALES:
+- Responde SIEMPRE en español
+- Para operaciones de stock/vinos: responde en JSON válido
+- Para preguntas sobre vinos: responde en texto normal (NO JSON)
+
+REGLAS PARA PREGUNTAS SOBRE VINOS:
+- **SI HAY "INFORMACIÓN DE BÚSQUEDA WEB" ARRIBA**: USA esos datos para responder
+- Ejemplo: Si dice "D.O.: Ribeiro | Uvas: Treixadura", responde: "El vino X es de la D.O. Ribeiro, elaborado con uvas Treixadura"
+- **SI NO HAY información de búsqueda**: di "No encontré información verificada sobre este vino"
+- Sé BREVE y DIRECTO: solo menciona D.O., uvas, bodega
+
+REGLAS PARA OPERACIONES DE BODEGA:
+- Usa los nombres EXACTOS de los vinos del contexto
+- Para CREAR vinos: genera nombres CREATIVOS de bodegas españolas reales
+- Confirma siempre qué hiciste en "response"`;
 
     // Construir historial de mensajes
     const messages = [
