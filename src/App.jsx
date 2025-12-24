@@ -3329,7 +3329,10 @@ function App() {
     {/* Modal de editar perfil */}
     {showEditProfileModal && (
       <EditProfileModal
-        data={ajustesData}
+        data={{
+          userName: currentUser?.name || ajustesData.userName,
+          userEmail: currentUser?.email || ajustesData.userEmail
+        }}
         currentAvatar={currentUser?.avatar || getUserAvatar(currentUser)}
         availableAvatars={DEFAULT_AVATARS}
         onClose={() => setShowEditProfileModal(false)}
