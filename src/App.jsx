@@ -2781,14 +2781,13 @@ function App() {
 
         {/* Vista IA con chat embebido */}
         {currentView === 'ia' && (
-          <div key="ia-view" className="content view-enter" style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+          <div key="ia-view" className="content view-enter" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100%' }}>
             <AIChat
               wines={wines}
               onWinesChange={setWines}
               onUIChange={(changes) => {
                 if (changes.currentView) setCurrentView(changes.currentView);
                 if (changes.searchTerm !== undefined) {
-                  // Manejar búsqueda
                   console.log('Buscar:', changes.searchTerm);
                 }
               }}

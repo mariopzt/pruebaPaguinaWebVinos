@@ -5,7 +5,6 @@ import './AIChat.css';
 
 /**
  * Componente de Chat con IA - Diseño Original
- * Proporciona interfaz de conversación con asistente inteligente
  */
 export function AIChat({ 
   wines = [], 
@@ -32,19 +31,11 @@ export function AIChat({
     }
   }, [messages]);
 
-  // Focus en input cuando se abre
-  useEffect(() => {
-    if (isVisible) {
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
-  }, [isVisible]);
-
   // Enviar mensaje
   const handleSendMessage = useCallback(async (text) => {
     const message = text?.trim() || inputMessage.trim();
     if (!message || isLoading) return;
 
-    // Agregar mensaje del usuario
     const userMsg = {
       id: `user-${Date.now()}`,
       text: message,
@@ -56,13 +47,10 @@ export function AIChat({
 
     try {
       const response = await sendMessage(message);
-      
-      // Agregar respuesta de la IA
       setMessages(prev => [...prev, {
         id: `ai-${Date.now()}`,
         text: response?.response || 'Lo siento, no pude procesar tu mensaje.',
         sender: 'ai',
-        action: response?.action,
         timestamp: new Date()
       }]);
     } catch (err) {
@@ -76,12 +64,10 @@ export function AIChat({
     }
   }, [inputMessage, isLoading, sendMessage]);
 
-  // Manejar sugerencia rápida
   const handleSuggestedOption = (optionText) => {
     handleSendMessage(optionText);
   };
 
-  // Manejar Enter
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -92,7 +78,7 @@ export function AIChat({
   if (!isVisible) return null;
 
   return (
-    <div className="section section-full ia-section" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '85vh' }}>
+    <div className="section section-full" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '95vh' }}>
       {/* Hero + chips de acciones rápidas: visibles solo antes del primer mensaje */}
       <div className={`ia-quick-wrapper ${messages.length > 0 ? 'ia-quick-hide' : ''}`}>
         <div className="ia-hero">
@@ -168,7 +154,7 @@ export function AIChat({
             <div className="chat-message-container ai">
               <span className="chat-message-icon"><FiCpu size={12} /></span>
               <div className="chat-message">
-                <div className="ia-thinking">
+                <div className="ia-typing">
                   <span></span>
                   <span></span>
                   <span></span>
