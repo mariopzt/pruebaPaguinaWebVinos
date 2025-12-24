@@ -120,14 +120,29 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
       if (!wineData.name) continue;
 
       try {
+        // Convertir grape string a grapeVariety array con porcentajes
+        let grapeVariety = [];
+        const grapeString = wineData.grape || '';
+        if (grapeString) {
+          const grapes = grapeString.split(',').map(g => g.trim()).filter(Boolean);
+          const percentPerGrape = Math.floor(100 / grapes.length);
+          const remainder = 100 - (percentPerGrape * grapes.length);
+          grapeVariety = grapes.map((name, i) => ({
+            name,
+            percentage: percentPerGrape + (i === 0 ? remainder : 0)
+          }));
+        }
+
         const wine = {
           name: wineData.name,
           type: wineData.type || 'Tinto',
           price: wineData.price || Math.floor(Math.random() * 30) + 10,
           stock: wineData.stock || Math.floor(Math.random() * 50) + 10,
           restaurantStock: wineData.restaurantStock || Math.floor(Math.random() * 20) + 5,
-          year: wineData.year || new Date().getFullYear() - Math.floor(Math.random() * 10),
-          region: wineData.region || '',
+          year: wineData.year || new Date().getFullYear() - Math.floor(Math.random() * 5),
+          region: wineData.region || 'España',
+          grape: grapeString,
+          grapeVariety: grapeVariety,
           description: wineData.description || ''
         };
 
@@ -150,8 +165,41 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
     return results;
   }, [onWinesChange]);
 
-  // Ejecutar acción de eliminar vino
+  // Ejecutar acción de eliminar vino(s)
   const executeDeleteWine = useCallback(async (data) => {
+    // Si es "all" o hay lista de wines, eliminar múltiples
+    if (data?.all === true || data?.wines) {
+      const winesToDelete = data.all ? wines : 
+        (data.wines || []).map(w => findWineByName(w.name || w)).filter(Boolean);
+      
+      if (winesToDelete.length === 0) {
+        return { success: false, error: 'No hay vinos para eliminar' };
+      }
+
+      const results = [];
+      const deletedIds = [];
+
+      for (const wine of winesToDelete) {
+        try {
+          const wineId = wine._id || wine.id;
+          await wineService.deleteWine(wineId);
+          deletedIds.push(wineId);
+          results.push({ success: true, wine: wine.name });
+          console.log('✅ Vino eliminado:', wine.name);
+        } catch (err) {
+          console.error('Error eliminando vino:', wine.name, err);
+          results.push({ success: false, name: wine.name, error: err.message });
+        }
+      }
+
+      if (onWinesChange && deletedIds.length > 0) {
+        onWinesChange(prev => prev.filter(w => !deletedIds.includes(w._id || w.id)));
+      }
+
+      return results;
+    }
+
+    // Eliminar un solo vino
     const { name, id } = data || {};
     
     let wine;

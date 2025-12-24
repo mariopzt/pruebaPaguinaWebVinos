@@ -662,17 +662,32 @@ ACCIONES QUE PUEDES EJECUTAR:
 2. **set_stock** - Establecer stock exacto:
    { "wines": [{ "name": "NombreVino", "stock": 50, "field": "stock" }] }
 
-3. **add_wine** - Agregar vino(s):
-   Un vino: { "wines": [{ "name": "Rioja Reserva", "type": "Tinto", "price": 18, "stock": 25 }] }
-   Varios vinos: { "wines": [
-     { "name": "Rioja Reserva", "type": "Tinto", "price": 18, "stock": 25 },
-     { "name": "Albariño", "type": "Blanco", "price": 12, "stock": 30 },
-     { "name": "Ribera del Duero", "type": "Tinto", "price": 22, "stock": 15 }
-   ]}
-   - Cuando pidan "crea X vinos", genera X vinos con nombres realistas españoles
+3. **add_wine** - Agregar vino(s) con TODOS los campos:
+   { "wines": [{
+     "name": "Marqués de Riscal Reserva",
+     "type": "Tinto",
+     "year": 2019,
+     "region": "D.O.Ca. Rioja",
+     "grape": "Tempranillo, Graciano, Mazuelo",
+     "price": 18,
+     "stock": 25,
+     "restaurantStock": 8
+   }]}
+   
+   CAMPOS OBLIGATORIOS para cada vino:
+   - name: Nombre completo del vino (bodega + tipo)
+   - type: "Tinto", "Blanco", "Rosado", "Espumoso", "Dulce"
+   - year: Año de cosecha (2018-2023)
+   - region: D.O. completa (ej: "D.O. Ribera del Duero", "D.O. Rías Baixas")
+   - grape: Uvas utilizadas (ej: "Tempranillo", "Albariño, Godello")
+   - price: Precio en euros (8-50)
+   - stock: Stock en bodega (10-50)
+   - restaurantStock: Stock en restaurante (5-20)
 
-4. **delete_wine** - Eliminar vino:
-   { "name": "NombreVino" }
+4. **delete_wine** - Eliminar vino(s):
+   Un vino: { "name": "NombreVino" }
+   Varios vinos: { "wines": [{ "name": "Vino1" }, { "name": "Vino2" }] }
+   TODOS los vinos: { "all": true }
 
 5. **none** - Solo responder sin acción
 
@@ -720,12 +735,45 @@ Usuario: "Elimina el vino Tempranillo"
   "data": { "name": "Tempranillo" }
 }
 
+Usuario: "Elimina todos los vinos"
+{
+  "action": "delete_wine",
+  "response": "He eliminado todos los vinos de la bodega.",
+  "data": { "all": true }
+}
+
 Usuario: "Crea 5 vinos nuevos"
-→ Genera 5 vinos ÚNICOS con nombres de bodegas y vinos españoles REALES y VARIADOS
-→ Usa tu conocimiento para crear nombres auténticos (Rioja, Ribera del Duero, Rías Baixas, Rueda, Priorat, Jumilla, Toro, Bierzo, Penedès, etc.)
-→ Varía entre tintos, blancos y rosados
-→ Precios realistas entre 8€ y 45€
-→ Stock aleatorio entre 10 y 50
+{
+  "action": "add_wine",
+  "response": "He añadido 5 vinos a la bodega.",
+  "data": { "wines": [
+    { "name": "Protos Reserva", "type": "Tinto", "year": 2018, "region": "D.O. Ribera del Duero", "grape": "Tempranillo", "price": 28, "stock": 20, "restaurantStock": 8 },
+    { "name": "Martín Códax", "type": "Blanco", "year": 2022, "region": "D.O. Rías Baixas", "grape": "Albariño", "price": 14, "stock": 35, "restaurantStock": 12 },
+    { "name": "Muga Reserva", "type": "Tinto", "year": 2019, "region": "D.O.Ca. Rioja", "grape": "Tempranillo, Garnacha", "price": 22, "stock": 25, "restaurantStock": 10 },
+    { "name": "Pétalos del Bierzo", "type": "Tinto", "year": 2021, "region": "D.O. Bierzo", "grape": "Mencía", "price": 16, "stock": 30, "restaurantStock": 6 },
+    { "name": "Rueda Verdejo", "type": "Blanco", "year": 2023, "region": "D.O. Rueda", "grape": "Verdejo", "price": 10, "stock": 40, "restaurantStock": 15 }
+  ]}
+}
+
+BODEGAS Y VINOS ESPAÑOLES REALES para usar:
+- Rioja: Marqués de Riscal, Muga, La Rioja Alta, CVNE, López de Heredia, Roda
+- Ribera del Duero: Vega Sicilia, Protos, Pesquera, Pingus, Emilio Moro, Pago de Carraovejas
+- Rías Baixas: Martín Códax, Pazo de Señorans, Terras Gauda, Mar de Frades
+- Rueda: José Pariente, Belondrade, Menade, Naia
+- Priorat: Álvaro Palacios, Clos Mogador, Clos Figueras
+- Bierzo: Descendientes de J. Palacios, Dominio de Tares, Pittacum
+- Ribeira Sacra: Guímaro, Envínate, Regina Viarum
+- Ribeiro: Coto de Gomariz, Viña Meín, Casal de Armán
+- Somontano: Enate, Viñas del Vero, Pirineos
+- Jumilla: Juan Gil, Casa Castillo, El Nido
+
+UVAS por región:
+- Rioja/Ribera: Tempranillo, Garnacha, Graciano, Mazuelo
+- Rías Baixas: Albariño
+- Rueda: Verdejo, Sauvignon Blanc
+- Priorat: Garnacha, Cariñena
+- Bierzo/Ribeira Sacra: Mencía, Godello
+- Ribeiro: Treixadura, Godello, Albariño
 
 REGLAS GENERALES:
 - Responde SIEMPRE en español

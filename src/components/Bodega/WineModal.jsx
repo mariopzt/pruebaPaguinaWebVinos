@@ -9,6 +9,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
     restaurantStock: wine?.restaurantStock || 0,
     location: wine?.location || '',
     image: wine?.image || '',
+    grape: wine?.grape || '',
     grapeVariety: Array.isArray(wine?.grapeVariety) ? [...wine.grapeVariety] : []
   });
   const [showStockAdjust, setShowStockAdjust] = useState(false);
@@ -83,6 +84,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       restaurantStock: editedWine.restaurantStock,
       location: editedWine.location,
       image: editedWine.image,
+      grape: editedWine.grape,
       grapeVariety: editedWine.grapeVariety,
       updatedAtClient: new Date(),
     };
@@ -100,6 +102,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       wine.stock = payload.stock;
       wine.location = payload.location;
       wine.image = payload.image;
+      wine.grape = payload.grape;
       wine.grapeVariety = payload.grapeVariety;
     }
 
@@ -120,6 +123,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       restaurantStock: wine.restaurantStock || 0,
       location: wine.location,
       image: wine.image,
+      grape: wine.grape || '',
       grapeVariety: Array.isArray(wine.grapeVariety) ? [...wine.grapeVariety] : []
     });
     setIsEditMode(false);
@@ -445,44 +449,66 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
               </div>
               <div className="wine-varieties-list">
                 {isEditMode ? (
-                  editedWine.grapeVariety.map((grape, index) => (
-                    <div key={index} className="wine-variety-item-edit">
+                  <>
+                    {/* Campo simple de uva */}
+                    <div className="wine-variety-item-edit" style={{marginBottom: '10px'}}>
                       <input
                         type="text"
-                        className="wine-editable-input variety-name-input"
-                        value={grape.name}
-                        onChange={(e) => handleVarietyChange(index, 'name', e.target.value)}
-                        placeholder="Nombre variedad"
+                        className="wine-editable-input"
+                        style={{width: '100%'}}
+                        value={editedWine.grape}
+                        onChange={(e) => handleChange('grape', e.target.value)}
+                        placeholder="Ej: Tempranillo, Garnacha, Albariño..."
                       />
-                      <input
-                        type="number"
-                        className="wine-editable-input variety-percentage-input"
-                        value={grape.percentage}
-                        onChange={(e) => handleVarietyChange(index, 'percentage', e.target.value)}
-                        placeholder="%"
-                        min="0"
-                        max="100"
-                      />
-                      <button
-                        className="wine-remove-variety-btn"
-                        onClick={() => handleRemoveVariety(index)}
-                        title="Eliminar"
-                      >
-                        ✕
-                      </button>
                     </div>
-                  ))
+                    {/* Variedades con porcentaje (opcional) */}
+                    {editedWine.grapeVariety.map((grape, index) => (
+                      <div key={index} className="wine-variety-item-edit">
+                        <input
+                          type="text"
+                          className="wine-editable-input variety-name-input"
+                          value={grape.name}
+                          onChange={(e) => handleVarietyChange(index, 'name', e.target.value)}
+                          placeholder="Nombre variedad"
+                        />
+                        <input
+                          type="number"
+                          className="wine-editable-input variety-percentage-input"
+                          value={grape.percentage}
+                          onChange={(e) => handleVarietyChange(index, 'percentage', e.target.value)}
+                          placeholder="%"
+                          min="0"
+                          max="100"
+                        />
+                        <button
+                          className="wine-remove-variety-btn"
+                          onClick={() => handleRemoveVariety(index)}
+                          title="Eliminar"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </>
                 ) : (
-                  Array.isArray(wine.grapeVariety) ? (
+                  Array.isArray(wine.grapeVariety) && wine.grapeVariety.length > 0 ? (
                     wine.grapeVariety.map((grape, index) => (
                       <div key={index} className="wine-variety-item">
                         <span className="wine-variety-name">{grape.name}</span>
                         <span className="wine-variety-percentage">{grape.percentage}%</span>
                       </div>
                     ))
-                  ) : (
+                  ) : wine.grape ? (
+                    <div className="wine-variety-item">
+                      <span className="wine-variety-name">{wine.grape}</span>
+                    </div>
+                  ) : wine.grapeVariety ? (
                     <div className="wine-variety-item">
                       <span className="wine-variety-name">{wine.grapeVariety}</span>
+                    </div>
+                  ) : (
+                    <div className="wine-variety-item">
+                      <span className="wine-variety-name" style={{opacity: 0.5}}>Sin especificar</span>
                     </div>
                   )
                 )}

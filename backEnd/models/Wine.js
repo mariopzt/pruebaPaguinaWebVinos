@@ -26,12 +26,15 @@ const wineSchema = new mongoose.Schema(
       trim: true,
       default: 'España',
     },
-    grapeVariety: [
-      {
-        name: { type: String, trim: true },
-        percentage: { type: Number, min: 0, max: 100 },
-      },
-    ],
+    grape: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    grapeVariety: {
+      type: Array,
+      default: [],
+    },
     alcoholContent: {
       type: String,
       trim: true,
