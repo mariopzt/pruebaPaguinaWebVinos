@@ -90,39 +90,39 @@ export function AIChat({
 
         <div className="ia-quick-actions">
           <button className="ia-quick-chip" onClick={() => handleSuggestedOption('Ver vinos disponibles')}>
-            <span className="ia-quick-chip-icon"><FiBox size={10} /></span>
+            <span className="ia-quick-chip-icon"><FiBox size={12} /></span>
             <span>Disponibles</span>
           </button>
           <button className="ia-quick-chip" onClick={() => handleSuggestedOption('Vinos agotados')}>
-            <span className="ia-quick-chip-icon"><FiSlash size={10} /></span>
+            <span className="ia-quick-chip-icon"><FiSlash size={12} /></span>
             <span>Agotados</span>
           </button>
           <button className="ia-quick-chip" onClick={() => handleSuggestedOption('Ofertas especiales')}>
-            <span className="ia-quick-chip-icon"><FiTag size={10} /></span>
+            <span className="ia-quick-chip-icon"><FiTag size={12} /></span>
             <span>Ofertas</span>
           </button>
           <button className="ia-quick-chip" onClick={() => handleSuggestedOption('Vinos más vendidos')}>
-            <span className="ia-quick-chip-icon"><FiTrendingUp size={10} /></span>
+            <span className="ia-quick-chip-icon"><FiTrendingUp size={12} /></span>
             <span>Top ventas</span>
           </button>
           <button className="ia-quick-chip" onClick={() => handleSuggestedOption('Mejores valorados')}>
-            <span className="ia-quick-chip-icon"><FiStar size={10} /></span>
+            <span className="ia-quick-chip-icon"><FiStar size={12} /></span>
             <span>Mejor valorados</span>
           </button>
           <button className="ia-quick-chip" onClick={() => handleSuggestedOption('Pedidos pendientes')}>
-            <span className="ia-quick-chip-icon"><FiShoppingBag size={10} /></span>
+            <span className="ia-quick-chip-icon"><FiShoppingBag size={12} /></span>
             <span>Pedidos</span>
           </button>
           <button className="ia-quick-chip" onClick={() => handleSuggestedOption('Recomendaciones de hoy')}>
-            <span className="ia-quick-chip-icon"><FiCpu size={10} /></span>
+            <span className="ia-quick-chip-icon"><FiCpu size={12} /></span>
             <span>Recomendados</span>
           </button>
           <button className="ia-quick-chip" onClick={() => handleSuggestedOption('Vinos con poco stock')}>
-            <span className="ia-quick-chip-icon"><FiSlash size={10} /></span>
+            <span className="ia-quick-chip-icon"><FiSlash size={12} /></span>
             <span>Stock bajo</span>
           </button>
           <button className="ia-quick-chip" onClick={() => handleSuggestedOption('Nuevos vinos en la bodega')}>
-            <span className="ia-quick-chip-icon"><FiBox size={10} /></span>
+            <span className="ia-quick-chip-icon"><FiBox size={12} /></span>
             <span>Nuevos vinos</span>
           </button>
         </div>
@@ -141,7 +141,7 @@ export function AIChat({
                       className="chat-avatar"
                     />
                   ) : (
-                    <FiCpu size={12} />
+                    <FiCpu size={14} />
                   )}
                 </span>
                 <div className="chat-message">
@@ -152,7 +152,7 @@ export function AIChat({
           )}
           {isLoading && (
             <div className="chat-message-container ai">
-              <span className="chat-message-icon"><FiCpu size={12} /></span>
+              <span className="chat-message-icon"><FiCpu size={14} /></span>
               <div className="chat-message">
                 <div className="ia-typing">
                   <span></span>
@@ -164,7 +164,7 @@ export function AIChat({
           )}
           {error && (
             <div className="chat-message-container ai error">
-              <span className="chat-message-icon"><FiCpu size={12} /></span>
+              <span className="chat-message-icon"><FiCpu size={14} /></span>
               <div className="chat-message">
                 <p>{error}</p>
               </div>
