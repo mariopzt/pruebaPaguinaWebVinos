@@ -668,15 +668,8 @@ function App() {
     }
   }
 
-  // Marcar notificaciones como leídas al salir de la vista
-  useEffect(() => {
-    // Cleanup: marcar como leídas cuando el usuario sale de la vista de notificaciones
-    return () => {
-    if (currentView === 'ayuda') {
-        setNotifications(prev => prev.map(notif => ({ ...notif, unread: false })))
-      }
-    }
-  }, [currentView])
+  // NOTA: Ya no marcamos como leídas automáticamente al salir de la vista
+  // Solo se marcan cuando el usuario entra a la vista de notificaciones
 
   // Función para toggle like en vinos de bodega
   const handleToggleWineLike = (wineId) => {
@@ -780,14 +773,19 @@ function App() {
 
   // Manejar click en notificación - marcar solo esa como leída
   const handleNotificationClick = async (wineId, notificationId) => {
-    try {
-      await notificationService.markAsRead(notificationId)
-    } catch (e) {
-      console.warn('No se pudo marcar como leída, usando estado local')
+    // Asegurar que tenemos un ID válido
+    if (notificationId) {
+      try {
+        await notificationService.markAsRead(notificationId)
+      } catch (e) {
+        console.warn('No se pudo marcar como leída, usando estado local')
+      }
     }
 
     setNotifications(prev => prev.map(notif =>
-      notif.id === notificationId ? { ...notif, unread: false, readAt: new Date() } : notif
+      (notif.id === notificationId || notif._id === notificationId) 
+        ? { ...notif, unread: false, readAt: new Date() } 
+        : notif
     ));
     
     setCurrentView('agotados');
@@ -870,15 +868,31 @@ function App() {
       try {
         const resp = await notificationService.getAll();
         const list = resp.data?.data || resp.data || [];
-        const normalized = (list || []).map(n => ({ ...n, unread: false, readAt: n.readAt || new Date() }));
+        
+        // Respetar el estado unread del backend
+        const normalized = (list || []).map(n => ({ 
+          ...n, 
+          id: n._id || n.id,
+          unread: n.unread === true || n.unread === undefined
+        }));
+        
         setNotifications(normalized);
-        // aseguramos backend en leído
-        await notificationService.markAllAsRead();
+        
+        // Si hay notificaciones nuevas, activar la animación
+        const hasUnread = normalized.some(n => n.unread);
+        if (hasUnread) {
+          setNewNotifPulse(true);
+          setTimeout(() => setNewNotifPulse(false), 3000);
+        }
       } catch (e) {
         console.error('Error al cargar notificaciones', e);
       }
     };
     fetchNotifications();
+    
+    // Recargar notificaciones cada 30 segundos
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
   }, [isAuthenticated, NOTIFICATIONS_ENABLED]);
 
   // Detectar token de activación en URL (aunque no esté /activate en la ruta)
@@ -1119,16 +1133,8 @@ function App() {
     }
   }, [showNotifications, settings.lockScrollOnNotifications, NOTIFICATIONS_ENABLED])
 
-  // Marcar notificaciones como leídas al cerrar el panel (solo si están habilitadas)
-  useEffect(() => {
-    if (!NOTIFICATIONS_ENABLED) return;
-    // Cuando se cierra el panel de notificaciones, marcar todas como leídas
-    return () => {
-      if (showNotifications) {
-        setNotifications(prev => prev.map(notif => ({ ...notif, unread: false })))
-      }
-    }
-  }, [showNotifications, NOTIFICATIONS_ENABLED])
+  // NOTA: Ya no marcamos como leídas automáticamente al cerrar el panel
+  // Solo se marcan cuando el usuario entra a la vista de notificaciones
 
   // Inicializar opciones sugeridas del chat cuando entramos en la vista IA
   useEffect(() => {
@@ -1351,7 +1357,17 @@ function App() {
             {NOTIFICATIONS_ENABLED && (
               <div 
                 className={`nav-item ${currentView === 'ayuda' ? 'active' : ''}`} 
-                onClick={() => setCurrentView('ayuda')}
+                onClick={async () => {
+                  setCurrentView('ayuda');
+                  // Marcar todas como leídas cuando se abre
+                  try {
+                    await notificationService.markAllAsRead();
+                    setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+                    setNewNotifPulse(false);
+                  } catch (e) {
+                    console.warn('No se pudo marcar como leídas');
+                  }
+                }}
               >
                 <div className="nav-item-content">
                   <span className={`nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
@@ -1468,7 +1484,18 @@ function App() {
               {NOTIFICATIONS_ENABLED && (
                 <div 
                   className="mobile-nav-item" 
-                  onClick={() => { setCurrentView('ayuda'); setIsMenuOpen(false); }}
+                  onClick={async () => { 
+                    setCurrentView('ayuda'); 
+                    setIsMenuOpen(false);
+                    // Marcar todas como leídas cuando se abre
+                    try {
+                      await notificationService.markAllAsRead();
+                      setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+                      setNewNotifPulse(false);
+                    } catch (e) {
+                      console.warn('No se pudo marcar como leídas');
+                    }
+                  }}
                 >
                 <span className={`mobile-nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
                     <FiBell />
@@ -3180,9 +3207,9 @@ function App() {
             {sortedNotifications.length > 0 ? (
               sortedNotifications.map(notification => (
                 <div 
-                  key={notification.id || `${notification.title}-${notification.createdAt}`}
+                  key={notification._id || notification.id || `${notification.title}-${notification.createdAt}`}
                   className={`notification-item ${notification.unread ? 'unread' : ''}`}
-                  onClick={() => handleNotificationClick(notification.wineId, notification.id)}
+                  onClick={() => handleNotificationClick(notification.wineId, notification._id || notification.id)}
                 >
                   <div className="notification-icon"><AiOutlineWarning size={14} /></div>
                   <div className="notification-content">

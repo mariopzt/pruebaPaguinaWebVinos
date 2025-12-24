@@ -1,4 +1,25 @@
 const Order = require('../models/Order');
+const User = require('../models/User');
+const Notification = require('../models/Notification');
+
+// Helper para crear notificaciones para todos los usuarios excepto uno
+const notifyAllUsersExcept = async (excludeUserId, notificationData) => {
+  try {
+    const users = await User.find({ _id: { $ne: excludeUserId } }).select('_id').lean();
+    const notifications = users.map(user => ({
+      ...notificationData,
+      user: user._id,
+      unread: true,
+      createdAt: new Date()
+    }));
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+      console.log(`[Notificaciones] Creadas ${notifications.length} notificaciones`);
+    }
+  } catch (error) {
+    console.error('[Notificaciones] Error al crear:', error);
+  }
+};
 
 exports.getOrders = async (req, res, next) => {
   try {
@@ -61,11 +82,25 @@ exports.updateOrder = async (req, res, next) => {
     // Recalcular completado
     const items = order.items || [];
     const allCompleted = items.length > 0 && items.every((it) => !!it.completed);
+    const wasCompleted = order.completed;
     order.completed = allCompleted;
     order.status = allCompleted ? 'completed' : 'pending';
 
     const saved = await order.save();
     console.log('[updateOrder] Guardado:', JSON.stringify(saved, null, 2));
+
+    // Si el pedido acaba de completarse, notificar a todos los demás usuarios
+    if (allCompleted && !wasCompleted && req.user) {
+      await notifyAllUsersExcept(req.user._id, {
+        type: 'pedido-completado',
+        icon: 'FiCheckCircle',
+        title: 'Pedido completado',
+        message: `**${req.user.name || 'Un usuario'}** ha completado el pedido **#${saved.orderNumber}** de ${saved.supplier}`,
+        actions: ['Ver pedidos'],
+        metadata: { orderId: saved._id }
+      });
+    }
+
     res.json({ success: true, data: saved });
   } catch (error) {
     console.error('[updateOrder] Error:', error);
