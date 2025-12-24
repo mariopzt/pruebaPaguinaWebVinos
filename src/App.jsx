@@ -15,6 +15,7 @@ import taskService from './api/taskService'
 import orderService from './api/orderService'
 import pendingService from './api/pendingService'
 import userService from './api/userService'
+import { AIChat } from './components/AIChat'
 
 function App() {
   const DEFAULT_AVATARS = useMemo(
@@ -2780,138 +2781,20 @@ function App() {
 
         {/* Vista IA con chat embebido */}
         {currentView === 'ia' && (
-          <div key="ia-view" className="content view-enter" style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100%'}}>
-            <div className="section section-full" style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '95vh'}}>
-              {/* Hero + chips de acciones rápidas: visibles solo antes del primer mensaje */}
-              <div className={`ia-quick-wrapper ${chatMessages.length > 0 ? 'ia-quick-hide' : ''}`}>
-                <div className="ia-hero">
-                  <h2 className="ia-hero-title">Bienvenido a VinosStK IA</h2>
-                  <p className="ia-hero-subtitle">
-                    Explora preguntas sugeridas o pregúntanos lo que quieras sobre tu bodega y tus vinos.
-                  </p>
-                </div>
-
-                <div className="ia-quick-actions">
-                  <button
-                    className="ia-quick-chip"
-                    onClick={() => handleSuggestedOption('Ver vinos disponibles')}
-                  >
-                    <span className="ia-quick-chip-icon"><FiBox size={10} /></span>
-                    <span>Disponibles</span>
-                  </button>
-                  <button
-                    className="ia-quick-chip"
-                    onClick={() => handleSuggestedOption('Vinos agotados')}
-                  >
-                    <span className="ia-quick-chip-icon"><FiSlash size={10} /></span>
-                    <span>Agotados</span>
-                  </button>
-                  <button
-                    className="ia-quick-chip"
-                    onClick={() => handleSuggestedOption('Ofertas especiales')}
-                  >
-                    <span className="ia-quick-chip-icon"><FiTag size={10} /></span>
-                    <span>Ofertas</span>
-                  </button>
-                  <button
-                    className="ia-quick-chip"
-                    onClick={() => handleSuggestedOption('Vinos más vendidos')}
-                  >
-                    <span className="ia-quick-chip-icon"><FiTrendingUp size={10} /></span>
-                    <span>Top ventas</span>
-                  </button>
-                  <button
-                    className="ia-quick-chip"
-                    onClick={() => handleSuggestedOption('Mejores valorados')}
-                  >
-                    <span className="ia-quick-chip-icon"><FiStar size={10} /></span>
-                    <span>Mejor valorados</span>
-                  </button>
-                  <button
-                    className="ia-quick-chip"
-                    onClick={() => handleSuggestedOption('Pedidos pendientes')}
-                  >
-                    <span className="ia-quick-chip-icon"><FiShoppingBag size={10} /></span>
-                    <span>Pedidos</span>
-                  </button>
-                  <button
-                    className="ia-quick-chip"
-                    onClick={() => handleSuggestedOption('Recomendaciones de hoy')}
-                  >
-                    <span className="ia-quick-chip-icon"><FiCpu size={10} /></span>
-                    <span>Recomendados</span>
-                  </button>
-                  <button
-                    className="ia-quick-chip"
-                    onClick={() => handleSuggestedOption('Vinos con poco stock')}
-                  >
-                    <span className="ia-quick-chip-icon"><FiSlash size={10} /></span>
-                    <span>Stock bajo</span>
-                  </button>
-                  <button
-                    className="ia-quick-chip"
-                    onClick={() => handleSuggestedOption('Nuevos vinos en la bodega')}
-                  >
-                    <span className="ia-quick-chip-icon"><FiBox size={10} /></span>
-                    <span>Nuevos vinos</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="ia-chat-container">
-                <div className="chat-messages ia-chat-messages" ref={chatMessagesContainerRef}>
-                  {chatMessages.length > 0 && (
-                    chatMessages.map(msg => (
-                      <div key={msg.id} className={`chat-message-container ${msg.sender}`}>
-                        <span className="chat-message-icon">
-                          {msg.sender === 'user' ? (
-                            <img
-                              src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=80"
-                              alt="User avatar"
-                              className="chat-avatar"
-                            />
-                          ) : (
-                            <FiCpu size={12} />
-                          )}
-                        </span>
-                        <div className="chat-message">
-                          <p>{msg.text}</p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                <div className="chat-input-container ia-chat-input">
-                  <div className="chat-input-wrapper">
-                    <input
-                      type="text"
-                      className="chat-input"
-                      placeholder="Escribe tu mensaje..."
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSendMessage(e.target.value);
-                          e.target.value = '';
-                        }
-                      }}
-                    />
-                    <button
-                      className="chat-send-arrow"
-                      onClick={(e) => {
-                        const button = e.currentTarget;
-                        const input = button.closest('.chat-input-wrapper').querySelector('.chat-input');
-                        if (input.value.trim()) {
-                          handleSendMessage(input.value);
-                          input.value = '';
-                        }
-                      }}
-                    >
-                      <IoSend />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div key="ia-view" className="content view-enter" style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+            <AIChat
+              wines={wines}
+              onWinesChange={setWines}
+              onUIChange={(changes) => {
+                if (changes.currentView) setCurrentView(changes.currentView);
+                if (changes.searchTerm !== undefined) {
+                  // Manejar búsqueda
+                  console.log('Buscar:', changes.searchTerm);
+                }
+              }}
+              currentUser={currentUser}
+              isVisible={true}
+            />
           </div>
         )}
 

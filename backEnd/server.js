@@ -31,6 +31,7 @@ app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/pending', require('./routes/pendingRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/ai', require('./routes/aiRoutes'));
 
 // Ruta de prueba
 app.get('/', (req, res) => {
