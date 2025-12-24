@@ -16,6 +16,11 @@ const orderSchema = new mongoose.Schema(
         name: { type: String, required: true },
         quantity: { type: Number, default: 0 },
         completed: { type: Boolean, default: false },
+        completedBy: {
+          id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+          name: { type: String },
+          avatar: { type: String }
+        }
       },
     ],
     completing: { type: Boolean, default: false },

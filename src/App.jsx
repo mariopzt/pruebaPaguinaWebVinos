@@ -587,11 +587,22 @@ function App() {
     }
 
     // Calcular el nuevo estado del pedido
-    const updatedItems = currentOrder.items.map((item, idx) =>
-      (item.id === itemId || item._id === itemId || idx === itemId)
-        ? { ...item, completed: !item.completed }
-        : item
-    );
+    const updatedItems = currentOrder.items.map((item, idx) => {
+      if (item.id === itemId || item._id === itemId || idx === itemId) {
+        const newCompleted = !item.completed;
+        return {
+          ...item,
+          completed: newCompleted,
+          // Guardar quién lo marcó como completado
+          completedBy: newCompleted ? {
+            id: currentUser?._id || currentUser?.id,
+            name: currentUser?.name || 'Usuario',
+            avatar: currentUser?.avatar || getUserAvatar(currentUser)
+          } : null
+        };
+      }
+      return item;
+    });
 
     const allCompleted = updatedItems.every((item) => item.completed);
     const wasCompleted = currentOrder.items.every((item) => item.completed);
@@ -2094,6 +2105,29 @@ function App() {
                                   Cantidad: {item.quantity}
                                 </div>
                               </div>
+                              {/* Avatar del usuario que completó el item */}
+                              {item.completed && item.completedBy && (
+                                <div 
+                                  style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center',
+                                    gap: '6px'
+                                  }}
+                                  title={`Recibido por ${item.completedBy.name}`}
+                                >
+                                  <img
+                                    src={item.completedBy.avatar}
+                                    alt={item.completedBy.name}
+                                    style={{
+                                      width: '24px',
+                                      height: '24px',
+                                      borderRadius: '50%',
+                                      border: '2px solid #6366f1',
+                                      objectFit: 'cover'
+                                    }}
+                                  />
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>

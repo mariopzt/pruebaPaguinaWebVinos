@@ -52,6 +52,7 @@ exports.updateOrder = async (req, res, next) => {
         name: it.name,
         quantity: it.quantity,
         completed: !!it.completed,
+        completedBy: it.completedBy || null, // guardar quién lo completó
       }));
       // asegurar que mongoose detecte cambio
       order.markModified('items');
