@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
+  avatar: {
+    type: String,
+    default: ''
+  },
   isVerified: {
     type: Boolean,
     default: false
@@ -46,10 +50,10 @@ const userSchema = new mongoose.Schema({
 });
 
 // Encriptar contraseña antes de guardar
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function() {
   // Solo encriptar si la contraseña fue modificada
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
 
   const salt = await bcrypt.genSalt(10);

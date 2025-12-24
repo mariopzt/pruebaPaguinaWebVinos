@@ -14,6 +14,7 @@ import notificationService from './api/notificationService'
 import taskService from './api/taskService'
 import orderService from './api/orderService'
 import pendingService from './api/pendingService'
+import userService from './api/userService'
 
 function App() {
   const DEFAULT_AVATARS = useMemo(
@@ -1233,7 +1234,7 @@ function App() {
             <div className="sidebar-avatar-wrapper">
               <img
                 className="sidebar-avatar"
-                src={getUserAvatar(currentUser)}
+                src={currentUser?.avatar || getUserAvatar(currentUser)}
                 alt={currentUser?.name || 'Avatar'}
               />
             </div>
@@ -2180,11 +2181,11 @@ function App() {
                 {/* Perfil del usuario */}
                 <div className="ajustes-profile">
                   <div className="ajustes-profile-avatar">
-                    <img src={ajustesData.userAvatar} alt="Usuario" />
+                    <img src={currentUser?.avatar || ajustesData.userAvatar || getUserAvatar(currentUser)} alt="Usuario" />
               </div>
                   <div className="ajustes-profile-info">
-                    <h3>{ajustesData.userName}</h3>
-                    <p>{ajustesData.userEmail}</p>
+                    <h3>{currentUser?.name || ajustesData.userName}</h3>
+                    <p>{currentUser?.email || ajustesData.userEmail}</p>
                   </div>
                   <button 
                     className="ajustes-profile-edit"
@@ -3329,10 +3330,54 @@ function App() {
     {showEditProfileModal && (
       <EditProfileModal
         data={ajustesData}
+        currentAvatar={currentUser?.avatar || getUserAvatar(currentUser)}
+        availableAvatars={DEFAULT_AVATARS}
         onClose={() => setShowEditProfileModal(false)}
-        onSave={(newData) => {
-          setAjustesData({...ajustesData, ...newData})
-          setShowEditProfileModal(false)
+        onSave={async (newData) => {
+          try {
+            console.log('Guardando perfil...', { newData, currentUser })
+            
+            // Actualizar el avatar en el backend
+            if (currentUser?._id || currentUser?.id) {
+              const userId = currentUser._id || currentUser.id
+              console.log('Actualizando usuario:', userId)
+              
+              const response = await userService.updateProfile(userId, {
+                name: newData.userName,
+                email: newData.userEmail,
+                avatar: newData.avatar
+              })
+              
+              console.log('Respuesta del servidor:', response)
+              
+              // Actualizar el usuario local
+              const updatedUser = { 
+                ...currentUser, 
+                name: newData.userName,
+                email: newData.userEmail,
+                avatar: newData.avatar 
+              }
+              setCurrentUser(updatedUser)
+              localStorage.setItem('user', JSON.stringify(updatedUser))
+              
+              // Actualizar ajustesData con el nuevo avatar (usando userAvatar para compatibilidad)
+              setAjustesData({
+                ...ajustesData, 
+                userName: newData.userName,
+                userEmail: newData.userEmail,
+                userAvatar: newData.avatar
+              })
+              
+              setShowEditProfileModal(false)
+            } else {
+              console.error('No se encontró el ID del usuario:', currentUser)
+              alert('Error: No se pudo identificar al usuario. Por favor, inicia sesión de nuevo.')
+            }
+          } catch (error) {
+            console.error('Error al actualizar perfil:', error)
+            console.error('Detalles del error:', error.response?.data || error.message)
+            alert(`Error al actualizar el perfil: ${error.response?.data?.message || error.message}`)
+          }
         }}
       />
     )}
@@ -4558,13 +4603,14 @@ function EditReviewModal({ review, onClose, onDelete }) {
 }
 
 // Modal para editar perfil
-function EditProfileModal({ data, onClose, onSave }) {
+function EditProfileModal({ data, onClose, onSave, currentAvatar, availableAvatars }) {
   const [userName, setUserName] = useState(data.userName)
   const [userEmail, setUserEmail] = useState(data.userEmail)
+  const [selectedAvatar, setSelectedAvatar] = useState(currentAvatar)
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSave({ userName, userEmail })
+    onSave({ userName, userEmail, avatar: selectedAvatar })
   }
 
   return (
@@ -4576,6 +4622,30 @@ function EditProfileModal({ data, onClose, onSave }) {
         </div>
 
         <form onSubmit={handleSubmit} className="task-modal-content">
+          <div className="task-modal-field">
+            <label>Avatar</label>
+            <div className="avatar-selector">
+              <div className="avatar-current">
+                <img src={selectedAvatar} alt="Avatar seleccionado" className="avatar-preview" />
+                <span className="avatar-label">Avatar actual</span>
+              </div>
+              <div className="avatar-grid">
+                {availableAvatars.map((avatar, index) => (
+                  <div
+                    key={index}
+                    className={`avatar-option ${selectedAvatar === avatar ? 'selected' : ''}`}
+                    onClick={() => setSelectedAvatar(avatar)}
+                  >
+                    <img src={avatar} alt={`Avatar ${index + 1}`} />
+                    {selectedAvatar === avatar && (
+                      <div className="avatar-check">✓</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           <div className="task-modal-field">
             <label>Nombre completo</label>
             <input

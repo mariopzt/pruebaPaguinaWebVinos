@@ -90,7 +90,7 @@ exports.activatePending = async (req, res, next) => {
     res.json({
       success: true,
       message: 'Cuenta activada correctamente',
-      data: { id: user._id, email: user.email, name: user.name },
+      data: { id: user._id, email: user.email, name: user.name, avatar: user.avatar },
     });
   } catch (error) {
     next(error);
