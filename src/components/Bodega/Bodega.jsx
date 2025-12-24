@@ -248,12 +248,12 @@ function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine, wineLikes, onTogg
       <div className="bodega-grid">
         {currentWines.map((wine) => (
           <WineCard
-            key={wine.id}
+            key={wine._id || wine.id || wine.name}
             wine={wine}
             onClick={(w) => onSelectWine && onSelectWine(w)}
-            likes={wineLikes[wine.id]?.count || 0}
-            liked={wineLikes[wine.id]?.liked || false}
-            onToggleLike={() => onToggleWineLike(wine.id)}
+            likes={wineLikes[wine._id || wine.id]?.count || 0}
+            liked={wineLikes[wine._id || wine.id]?.liked || false}
+            onToggleLike={() => onToggleWineLike(wine._id || wine.id)}
           />
         ))}
       </div>

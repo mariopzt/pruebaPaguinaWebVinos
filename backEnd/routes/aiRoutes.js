@@ -9,16 +9,16 @@ const {
   clearMemory
 } = require('../controllers/aiController');
 
-// Procesar comando de IA (requiere autenticación)
-router.post('/command', protect, processCommand);
+// Procesar comando de IA (acceso con autenticación opcional)
+router.post('/command', optionalAuth, processCommand);
 
-// Búsqueda web (requiere autenticación)
-router.post('/web-search', protect, webSearch);
+// Búsqueda web
+router.post('/web-search', optionalAuth, webSearch);
 
 // Memoria de conversación
 router.get('/memory', optionalAuth, getMemory);
 router.post('/memory', optionalAuth, saveMemory);
-router.delete('/memory', protect, clearMemory);
+router.delete('/memory', optionalAuth, clearMemory);
 
 module.exports = router;
 

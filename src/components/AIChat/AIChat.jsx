@@ -3,6 +3,8 @@ import { FiSend, FiCpu, FiBox, FiSlash, FiTag, FiTrendingUp, FiStar, FiShoppingB
 import { useAI } from '../../hooks/useAI';
 import './AIChat.css';
 
+const MESSAGES_STORAGE_KEY = 'vinosstk_ai_messages';
+
 /**
  * Componente de Chat con IA - Diseño Original
  */
@@ -14,15 +16,34 @@ export function AIChat({
   isVisible = true 
 }) {
   const [inputMessage, setInputMessage] = useState('');
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => {
+    // Cargar mensajes de localStorage al iniciar
+    const saved = localStorage.getItem(MESSAGES_STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved) || [];
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
   const chatMessagesRef = useRef(null);
   const inputRef = useRef(null);
 
   const {
     sendMessage,
     isLoading,
-    error
+    error,
+    clearHistory
   } = useAI({ wines, onWinesChange, onUIChange, currentUser });
+
+  // Guardar mensajes en localStorage cuando cambien
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(messages.slice(-100))); // Últimos 100
+    }
+  }, [messages]);
 
   // Auto-scroll al último mensaje
   useEffect(() => {
@@ -73,6 +94,13 @@ export function AIChat({
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  // Limpiar chat y localStorage
+  const handleClearChat = () => {
+    setMessages([]);
+    localStorage.removeItem(MESSAGES_STORAGE_KEY);
+    clearHistory();
   };
 
   if (!isVisible) return null;

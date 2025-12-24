@@ -1,5 +1,6 @@
 const { openai } = require('@ai-sdk/openai');
 const { generateText } = require('ai');
+const Wine = require('../models/Wine');
 
 // Modelo de memoria en MongoDB (opcional)
 const mongoose = require('mongoose');
@@ -44,52 +45,107 @@ exports.processCommand = async (req, res, next) => {
     }
 
     // Construir contexto de vinos
-    const winesContext = context?.wines?.slice(0, 10).map(w => 
-      `- ${w.name}: ${w.type}, ${w.stock || 0} unidades, €${w.price || 0}`
-    ).join('\n') || 'Sin vinos en contexto';
+    const winesContext = context?.wines?.slice(0, 30).map(w => 
+      `- "${w.name}" | Bodega: ${w.stock || 0} | Restaurante: ${w.restaurantStock || 0} | €${w.price || 0}`
+    ).join('\n') || 'Sin vinos';
 
     // Construir prompt del sistema
-    const systemPrompt = `Eres el asistente IA de VinosStK, una aplicación de gestión de bodega de vinos.
+    const systemPrompt = `Eres el asistente IA de VinosStK con CONTROL TOTAL sobre la bodega de vinos.
 
-CONTEXTO ACTUAL:
-- Usuario: ${context?.user || 'Usuario'}
-- Fecha: ${new Date().toLocaleDateString('es-ES')}
-- Vinos disponibles en la bodega:
+VINOS ACTUALES:
 ${winesContext}
 
-CAPACIDADES:
-1. Buscar y filtrar vinos de la bodega (search_wine, filter_wines)
-2. Gestionar stock (update_wine, add_wine, delete_wine)
-3. Navegar por la aplicación (navigate)
-4. Mostrar estadísticas (show_stats)
-5. Responder preguntas generales sobre vinos con tus conocimientos (none)
+ACCIONES QUE PUEDES EJECUTAR:
 
-FORMATO DE RESPUESTA (JSON obligatorio):
+1. **update_stock** - Modificar stock (uno o varios vinos):
+   Para UN vino: { "wines": [{ "name": "NombreVino", "stockChange": -5, "field": "stock" }] }
+   Para VARIOS: { "wines": [
+     { "name": "Vino1", "stockChange": -2, "field": "stock" },
+     { "name": "Vino2", "stockChange": -2, "field": "stock" },
+     { "name": "Vino3", "stockChange": -2, "field": "stock" }
+   ]}
+   - stockChange: NEGATIVO para quitar, POSITIVO para añadir
+   - field: "stock" (bodega) o "restaurantStock" (restaurante)
+
+2. **set_stock** - Establecer stock exacto:
+   { "wines": [{ "name": "NombreVino", "stock": 50, "field": "stock" }] }
+
+3. **add_wine** - Agregar vino(s):
+   Un vino: { "wines": [{ "name": "Rioja Reserva", "type": "Tinto", "price": 18, "stock": 25 }] }
+   Varios vinos: { "wines": [
+     { "name": "Rioja Reserva", "type": "Tinto", "price": 18, "stock": 25 },
+     { "name": "Albariño", "type": "Blanco", "price": 12, "stock": 30 },
+     { "name": "Ribera del Duero", "type": "Tinto", "price": 22, "stock": 15 }
+   ]}
+   - Cuando pidan "crea X vinos", genera X vinos con nombres realistas españoles
+
+4. **delete_wine** - Eliminar vino:
+   { "name": "NombreVino" }
+
+5. **none** - Solo responder sin acción
+
+FORMATO DE RESPUESTA (JSON):
 {
-  "action": "nombre_accion" | "none",
-  "response": "Tu respuesta conversacional aquí",
-  "data": { /* datos relevantes para la acción */ }
+  "action": "update_stock" | "set_stock" | "add_wine" | "delete_wine" | "none",
+  "response": "Mensaje confirmando la acción",
+  "data": { ... }
 }
 
-ACCIONES DISPONIBLES:
-- search_wine: { "query": "término de búsqueda" }
-- filter_wines: { "type": "tinto|blanco|rosado", "price": { "min": 0, "max": 100 }, "stock": "low|high" }
-- update_wine: { "id": "wine_id", "changes": { "stock": 10, "price": 15 } }
-- add_wine: { "name": "...", "type": "...", "price": 0, "stock": 0 }
-- delete_wine: { "id": "wine_id" }
-- navigate: { "view": "home|bodega|agotados|pedidos|tareas|ajustes" }
-- show_stats: { "type": "ventas|stock|popular" }
-- none: Para respuestas conversacionales o preguntas sobre vinos/regiones
+EJEMPLOS:
 
-REGLAS IMPORTANTES:
-- Responde SIEMPRE en español
-- Sé amable y profesional
-- NUNCA digas "voy a buscar" - responde directamente con tu conocimiento
-- Si te preguntan sobre vinos de una región (Galicia, A Coruña, Ribera, etc.), responde con información útil de tu conocimiento
-- Cuando pregunten sobre vinos específicos, menciona denominaciones de origen, tipos de uva, características, etc.
-- Mantén respuestas informativas pero concisas (máximo 3-4 párrafos)
-- SIEMPRE responde en formato JSON válido
-- NO prometas hacer búsquedas, simplemente responde con la información`;
+Usuario: "Quita 2 del stock a todos los vinos"
+{
+  "action": "update_stock",
+  "response": "He restado 2 unidades del stock de bodega a todos los vinos.",
+  "data": { "wines": [
+    { "name": "Vino1", "stockChange": -2, "field": "stock" },
+    { "name": "Vino2", "stockChange": -2, "field": "stock" },
+    ...
+  ]}
+}
+
+Usuario: "Suma 10 al Rioja y al Ribera"
+{
+  "action": "update_stock", 
+  "response": "He añadido 10 unidades al Rioja y al Ribera.",
+  "data": { "wines": [
+    { "name": "Rioja", "stockChange": 10, "field": "stock" },
+    { "name": "Ribera", "stockChange": 10, "field": "stock" }
+  ]}
+}
+
+Usuario: "Pon el stock del Albariño en 100"
+{
+  "action": "set_stock",
+  "response": "He establecido el stock del Albariño en 100 unidades.",
+  "data": { "wines": [{ "name": "Albariño", "stock": 100, "field": "stock" }] }
+}
+
+Usuario: "Elimina el vino Tempranillo"
+{
+  "action": "delete_wine",
+  "response": "He eliminado el vino Tempranillo de la bodega.",
+  "data": { "name": "Tempranillo" }
+}
+
+Usuario: "Crea 5 vinos nuevos"
+→ Genera 5 vinos ÚNICOS con nombres de bodegas y vinos españoles REALES y VARIADOS
+→ Usa tu conocimiento para crear nombres auténticos (Rioja, Ribera del Duero, Rías Baixas, Rueda, Priorat, Jumilla, Toro, Bierzo, Penedès, etc.)
+→ Varía entre tintos, blancos y rosados
+→ Precios realistas entre 8€ y 45€
+→ Stock aleatorio entre 10 y 50
+
+REGLAS:
+- Responde SIEMPRE en español y JSON válido
+- Usa los nombres EXACTOS de los vinos del contexto cuando modifiques stock
+- Para CREAR vinos: genera nombres CREATIVOS y DIFERENTES cada vez
+- Usa tu conocimiento de vinos españoles reales (bodegas famosas, D.O., variedades)
+- Incluye variedad: Tempranillo, Garnacha, Albariño, Verdejo, Godello, Mencía, Monastrell, etc.
+- Para operaciones múltiples, incluye TODOS los vinos en el array "wines"
+- Cuando pidan "crea X vinos", genera EXACTAMENTE X vinos DIFERENTES y ÚNICOS
+- NO repitas los mismos vinos, sé CREATIVO con los nombres
+- Confirma siempre qué hiciste en "response"
+- Si el usuario dice "todos los vinos", incluye todos los del contexto`;
 
     // Construir historial de mensajes
     const messages = [
@@ -113,14 +169,13 @@ REGLAS IMPORTANTES:
     const { text } = await generateText({
       model: openai('gpt-4o-mini'),
       messages,
-      temperature: 0.7,
-      maxTokens: 500
+      temperature: 0.7, // Más creativo para generar vinos variados
+      maxTokens: 2000
     });
 
     // Parsear respuesta JSON
     let parsedResponse;
     try {
-      // Intentar extraer JSON de la respuesta
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsedResponse = JSON.parse(jsonMatch[0]);
@@ -140,11 +195,10 @@ REGLAS IMPORTANTES:
       };
     }
 
-    // Log para debug
     console.log('[AI Command]', { 
       message, 
       action: parsedResponse.action,
-      responsePreview: parsedResponse.response?.substring(0, 100) 
+      data: parsedResponse.data
     });
 
     res.json({
@@ -164,12 +218,12 @@ REGLAS IMPORTANTES:
 };
 
 /**
- * Búsqueda web
+ * Búsqueda web - Genera imágenes de vinos
  * POST /api/ai/web-search
  */
 exports.webSearch = async (req, res, next) => {
   try {
-    const { query } = req.body;
+    const { query, type = 'image' } = req.body;
     
     if (!query) {
       return res.status(400).json({ 
@@ -178,19 +232,26 @@ exports.webSearch = async (req, res, next) => {
       });
     }
 
-    // Por ahora, retornamos una respuesta simulada
-    // En producción, podrías usar APIs como SerpAPI, Google Custom Search, etc.
+    // Generar URLs de imágenes de vinos usando servicios gratuitos
+    const wineImages = [
+      'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400',
+      'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=400',
+      'https://images.unsplash.com/photo-1586370434639-0fe43b2d32e6?w=400',
+      'https://images.unsplash.com/photo-1567529692333-de9fd6772897?w=400',
+      'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=400',
+      'https://images.unsplash.com/photo-1560148218-1a83060f7b32?w=400',
+      'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=400',
+      'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=400',
+    ];
+
+    // Seleccionar imagen aleatoria
+    const randomImage = wineImages[Math.floor(Math.random() * wineImages.length)];
+
     res.json({
       success: true,
       query,
-      results: [
-        {
-          title: 'Resultado de búsqueda simulado',
-          snippet: `Información sobre "${query}"`,
-          url: '#'
-        }
-      ],
-      message: 'Búsqueda web no implementada completamente. Configura una API de búsqueda.'
+      image: randomImage,
+      results: [{ url: randomImage, title: query }]
     });
 
   } catch (error) {
@@ -237,7 +298,7 @@ exports.saveMemory = async (req, res, next) => {
     await ConversationMemory.findOneAndUpdate(
       { userId: req.user._id },
       { 
-        history: history?.slice(-50) || [], // Limitar a últimas 50 interacciones
+        history: history?.slice(-50) || [],
         updatedAt: new Date()
       },
       { upsert: true, new: true }
@@ -268,4 +329,3 @@ exports.clearMemory = async (req, res, next) => {
     next(error);
   }
 };
-

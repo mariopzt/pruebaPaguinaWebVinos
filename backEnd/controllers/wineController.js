@@ -102,11 +102,11 @@ exports.updateWine = async (req, res) => {
       });
     }
 
-    // Verificar que el vino pertenezca al usuario (si aplica)
-    if (wine.user && req.user && wine.user.toString() !== req.user.id) {
+    // Solo verificar si el vino tiene usuario Y el usuario actual no coincide
+    if (wine.user && req.user && req.user.id && wine.user.toString() !== req.user.id.toString()) {
       return res.status(401).json({
         success: false,
-        message: 'No autorizado'
+        message: 'No autorizado para modificar este vino'
       });
     }
 
@@ -202,7 +202,7 @@ exports.updateWine = async (req, res) => {
 
 // @desc    Eliminar vino
 // @route   DELETE /api/wines/:id
-// @access  Private
+// @access  Public (con optionalAuth)
 exports.deleteWine = async (req, res) => {
   try {
     const wine = await Wine.findById(req.params.id);
@@ -214,11 +214,12 @@ exports.deleteWine = async (req, res) => {
       });
     }
 
-    // Verificar que el vino pertenezca al usuario (si aplica)
-    if (wine.user && req.user && wine.user.toString() !== req.user.id) {
+    // Solo verificar si el vino tiene usuario Y el usuario actual no coincide
+    // Si no hay req.user o el vino no tiene usuario, permitir eliminar
+    if (wine.user && req.user && req.user.id && wine.user.toString() !== req.user.id.toString()) {
       return res.status(401).json({
         success: false,
-        message: 'No autorizado'
+        message: 'No autorizado para eliminar este vino'
       });
     }
 
