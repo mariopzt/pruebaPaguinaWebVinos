@@ -579,58 +579,63 @@ function App() {
   }
 
   const handleToggleOrderItem = async (orderId, itemId) => {
-    let updatedOrder;
-    // Primer update local con animación
-    setOrders((prevOrders) =>
-      prevOrders.map((order) => {
-        if (order.id !== orderId) return order;
-
-        const updatedItems = order.items.map((item, idx) =>
-          (item.id === itemId || item._id === itemId || idx === itemId)
-            ? { ...item, completed: !item.completed }
-            : item
-        );
-
-        const allCompleted = updatedItems.every((item) => item.completed);
-        const wasCompleted = order.items.every((item) => item.completed);
-        const changedCompletionState = allCompleted !== wasCompleted;
-
-        updatedOrder = {
-          ...order,
-          items: updatedItems,
-          completing: changedCompletionState ? true : false,
-          completed: allCompleted,
-          status: allCompleted ? 'completed' : 'pending',
-        };
-        return updatedOrder;
-      })
-    );
-
-    // Persistir en backend con estado final y refrescar
-    if (updatedOrder) {
-      try {
-        const payload = {
-          ...updatedOrder,
-          items: updatedOrder.items.map(({ id, _id, ...rest }) => ({ _id: _id || id, ...rest })),
-        };
-        const resp = await orderService.update(updatedOrder.id || updatedOrder._id, payload);
-        const saved = normalizeOrder(resp.data?.data || resp.data || updatedOrder);
-        setOrders((prev) => prev.map((o) => (o.id === saved.id ? saved : o)));
-      } catch (e) {
-        console.error('No se pudo persistir el pedido', e);
-      }
+    // Buscar el pedido actual
+    const currentOrder = orders.find(o => o.id === orderId || o._id === orderId);
+    if (!currentOrder) {
+      console.error('Pedido no encontrado:', orderId);
+      return;
     }
 
-    // Segundo update: limpiar la animación
+    // Calcular el nuevo estado del pedido
+    const updatedItems = currentOrder.items.map((item, idx) =>
+      (item.id === itemId || item._id === itemId || idx === itemId)
+        ? { ...item, completed: !item.completed }
+        : item
+    );
+
+    const allCompleted = updatedItems.every((item) => item.completed);
+    const wasCompleted = currentOrder.items.every((item) => item.completed);
+    const changedCompletionState = allCompleted !== wasCompleted;
+
+    const updatedOrder = {
+      ...currentOrder,
+      items: updatedItems,
+      completing: changedCompletionState ? true : false,
+      completed: allCompleted,
+      status: allCompleted ? 'completed' : 'pending',
+    };
+
+    // Actualizar estado local inmediatamente
+    setOrders((prevOrders) =>
+      prevOrders.map((order) => (order.id === orderId || order._id === orderId) ? updatedOrder : order)
+    );
+
+    // Persistir en backend
+    try {
+      const payload = {
+        ...updatedOrder,
+        items: updatedOrder.items.map(({ id, _id, ...rest }) => ({ _id: _id || id, ...rest })),
+      };
+      console.log('Enviando update de pedido:', updatedOrder.id || updatedOrder._id, payload);
+      const resp = await orderService.update(updatedOrder.id || updatedOrder._id, payload);
+      console.log('Respuesta del servidor:', resp.data);
+      const saved = normalizeOrder(resp.data?.data || resp.data || updatedOrder);
+      setOrders((prev) => prev.map((o) => (o.id === saved.id ? saved : o)));
+    } catch (e) {
+      console.error('No se pudo persistir el pedido', e);
+      // Revertir cambio local si falla
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => (order.id === orderId || order._id === orderId) ? currentOrder : order)
+      );
+    }
+
+    // Limpiar la animación después de un tiempo
     setTimeout(() => {
       setOrders((prevOrders) =>
         prevOrders.map((order) => {
-          if (order.id !== orderId) return order
-          const allCompleted = order.items.every((item) => item.completed)
-          if (allCompleted) {
-            return { ...order, completing: false, completed: true }
-          }
-          return { ...order, completing: false, completed: false }
+          if (order.id !== orderId && order._id !== orderId) return order
+          const allCompletedNow = order.items.every((item) => item.completed)
+          return { ...order, completing: false, completed: allCompletedNow }
         })
       )
     }, 450)

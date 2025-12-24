@@ -28,9 +28,15 @@ exports.createOrder = async (req, res, next) => {
 
 exports.updateOrder = async (req, res, next) => {
   try {
+    console.log('[updateOrder] id:', req.params.id);
+    console.log('[updateOrder] body:', JSON.stringify(req.body, null, 2));
+    
     const payload = { ...req.body };
     const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
+    if (!order) {
+      console.log('[updateOrder] Pedido no encontrado');
+      return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
+    }
 
     // Campos simples
     if (payload.orderNumber !== undefined) order.orderNumber = payload.orderNumber;
@@ -58,8 +64,10 @@ exports.updateOrder = async (req, res, next) => {
     order.status = allCompleted ? 'completed' : 'pending';
 
     const saved = await order.save();
+    console.log('[updateOrder] Guardado:', JSON.stringify(saved, null, 2));
     res.json({ success: true, data: saved });
   } catch (error) {
+    console.error('[updateOrder] Error:', error);
     next(error);
   }
 };
