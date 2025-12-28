@@ -535,19 +535,29 @@ function App() {
   }
 
   const handleSaveOrder = async (orderData) => {
+    console.log('handleSaveOrder recibido:', orderData)
     try {
-      if (orderData.id) {
+      const orderId = orderData.id || orderData._id;
+      console.log('orderId detectado:', orderId)
+      if (orderId) {
+        // Actualizar pedido existente
         const payload = {
           ...orderData,
           items: (orderData.items || []).map(it => {
             const { id, _id, ...rest } = it;
-            return { _id: _id || id, ...rest };
+            // Solo incluir _id si es un ObjectId válido de MongoDB (24 caracteres hex)
+            const validMongoId = (_id && typeof _id === 'string' && _id.length === 24) ? _id : 
+                                 (id && typeof id === 'string' && id.length === 24) ? id : null;
+            return validMongoId ? { _id: validMongoId, ...rest } : { ...rest };
           })
         }
-        const resp = await orderService.update(orderData.id, payload)
+        console.log('Enviando update con payload:', payload)
+        const resp = await orderService.update(orderId, payload)
+        console.log('Respuesta del servidor:', resp)
         const saved = normalizeOrder(resp.data?.data || resp.data || payload)
-        setOrders(orders.map(o => o.id === saved.id ? saved : o))
+        setOrders(orders.map(o => (o.id === saved.id || o._id === saved._id) ? saved : o))
       } else {
+        // Crear nuevo pedido
         const payload = {
           ...orderData,
           completed: false,
@@ -557,7 +567,9 @@ function App() {
             return { ...rest, completed: !!rest.completed };
           })
         }
+        console.log('Creando nuevo pedido con payload:', payload)
         const resp = await orderService.create(payload)
+        console.log('Respuesta del servidor:', resp)
         const saved = normalizeOrder(resp.data?.data || resp.data || payload)
         setOrders([...orders, saved])
       }
@@ -565,6 +577,7 @@ function App() {
       fetchOrders()
     } catch (e) {
       console.error('Error al guardar pedido', e)
+      alert('Error al guardar el pedido: ' + (e.message || 'Error desconocido'))
     }
     setShowAddOrderModal(false)
     setShowEditOrderModal(false)
@@ -4257,7 +4270,12 @@ function AddOrderModal({ onClose, onSave, wines = [] }) {
 function EditOrderModal({ order, onClose, onSave, onDelete, wines = [] }) {
   const [showOrderDateCalendar, setShowOrderDateCalendar] = useState(false)
   const [showExpectedDateCalendar, setShowExpectedDateCalendar] = useState(false)
-  const [editedOrder, setEditedOrder] = useState(order)
+  // Asegurar que el estado inicial mantiene los ids
+  const [editedOrder, setEditedOrder] = useState({
+    ...order,
+    id: order.id || order._id,
+    _id: order._id || order.id
+  })
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -4354,7 +4372,14 @@ function EditOrderModal({ order, onClose, onSave, onDelete, wines = [] }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (editedOrder.items.length > 0) {
-      onSave(editedOrder)
+      // Asegurar que el id del pedido se mantiene
+      const orderToSave = {
+        ...editedOrder,
+        id: editedOrder.id || editedOrder._id || order.id || order._id,
+        _id: editedOrder._id || editedOrder.id || order._id || order.id,
+      }
+      console.log('Guardando pedido:', orderToSave)
+      onSave(orderToSave)
     } else {
       alert('Debes tener al menos un item en el pedido')
     }
