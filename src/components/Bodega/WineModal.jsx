@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './WineModal.css';
 
-function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine, onStockChange }) {
+function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedWine, setEditedWine] = useState({
     price: wine?.price || 0,
@@ -160,17 +160,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       onWineOutOfStock({ ...wine, ...payload });
     }
 
-    // Notificar a otros usuarios del cambio de stock
-    if (onStockChange) {
-      onStockChange({
-        wine,
-        type: 'stock',
-        action: adjustType,
-        value,
-        oldStock: wine.stock,
-        newStock
-      });
-    }
+    // Las notificaciones de cambio de stock ahora se crean automáticamente en el backend
 
     setShowStockAdjust(false);
     setStockAdjustValue('');
@@ -230,19 +220,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       }
     }
 
-    // Notificar a otros usuarios del cambio de stock de restaurante
-    if (onStockChange) {
-      onStockChange({
-        wine,
-        type: 'restaurante',
-        action: restaurantAdjustType,
-        value,
-        oldStock: currentRestaurantStock,
-        newStock: newRestaurantStock,
-        oldWarehouseStock: currentStock,
-        newWarehouseStock: newStock
-      });
-    }
+    // Las notificaciones de cambio de stock ahora se crean automáticamente en el backend
 
     setShowRestaurantAdjust(false);
     setRestaurantAdjustValue('');

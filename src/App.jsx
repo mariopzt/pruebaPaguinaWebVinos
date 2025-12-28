@@ -832,58 +832,6 @@ function App() {
     }
   }
 
-  // Notificar a otros usuarios cuando se modifica el stock de un vino
-  const handleStockChange = async (changeData) => {
-    const { wine, type, action, value, oldStock, newStock } = changeData;
-    const userName = currentUser?.name || 'Alguien';
-    
-    let title, message, icon;
-    
-    if (type === 'stock') {
-      // Cambio en stock del almacén
-      if (action === 'add') {
-        title = 'Stock añadido';
-        icon = 'FiPackage';
-        message = `**${userName}** añadió **${value}** unidades de **${wine.name}** al almacén. Stock: ${oldStock} → ${newStock}`;
-      } else {
-        title = 'Stock reducido';
-        icon = 'FiBox';
-        message = `**${userName}** restó **${value}** unidades de **${wine.name}** del almacén. Stock: ${oldStock} → ${newStock}`;
-      }
-    } else {
-      // Cambio en stock del restaurante
-      const { oldWarehouseStock, newWarehouseStock } = changeData;
-      if (action === 'add') {
-        title = 'Stock movido a restaurante';
-        icon = 'FiPackage';
-        message = `**${userName}** movió **${value}** unidades de **${wine.name}** al restaurante. Almacén: ${oldWarehouseStock} → ${newWarehouseStock}`;
-      } else {
-        title = 'Stock del restaurante reducido';
-        icon = 'FiBox';
-        message = `**${userName}** restó **${value}** unidades de **${wine.name}** del restaurante. Stock: ${oldStock} → ${newStock}`;
-      }
-    }
-
-    const newNotification = {
-      type: 'stock-change',
-      icon,
-      title,
-      wineId: wine.id || wine._id,
-      wineName: wine.name,
-      message,
-      createdAt: new Date().toISOString(),
-      unread: true,
-      actions: ['Ver bodega']
-    };
-
-    try {
-      await notificationService.create(newNotification);
-      // No añadimos a nuestras notificaciones locales porque se creó para otros usuarios
-    } catch (e) {
-      console.error('Error al crear notificación de cambio de stock', e);
-    }
-  }
-
   // Abrir el panel de notificaciones (ya NO marca como leídas automáticamente)
   const handleOpenNotifications = async () => {
     setShowNotifications(true);
@@ -3310,7 +3258,6 @@ function App() {
         onWineOutOfStock={addNotification}
         onUpdateWine={handleUpdateWine}
         onDeleteWine={handleDeleteWine}
-        onStockChange={handleStockChange}
       />
     )}
 
