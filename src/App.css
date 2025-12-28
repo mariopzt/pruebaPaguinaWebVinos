@@ -7110,3 +7110,122 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     padding: 16px;
   }
 }
+
+/* ============================================
+   RESPONSIVE CHAT IA - MÓVIL
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Mensajes del chat más grandes */
+  .chat-message {
+    font-size: 16px !important;
+    padding: 12px 16px;
+    line-height: 1.6;
+  }
+
+  /* Input del chat más grande */
+  .chat-input {
+    font-size: 14px !important;
+    padding: 10px 50px 10px 14px;
+  }
+
+  .chat-input::placeholder {
+    font-size: 14px;
+  }
+
+  /* Botones de opciones más grandes */
+  .chat-option-button {
+    font-size: 13px !important;
+    padding: 10px 16px;
+    min-height: 44px;
+  }
+
+  /* Header del chat más grande */
+  .ia-hero-title {
+    font-size: 22px;
+  }
+
+  .ia-hero-subtitle {
+    font-size: 14px;
+  }
+
+  .ia-chat-header h3 {
+    font-size: 16px;
+  }
+
+  .ia-chat-subtitle {
+    font-size: 13px;
+  }
+
+  /* Iconos del chat más grandes */
+  .chat-message-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  /* Botón de enviar más grande */
+  .chat-send-arrow {
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+  }
+
+  .chat-send {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  /* Contenedor de input más ancho en móvil */
+  .chat-input-container {
+    width: 95%;
+    max-width: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Mensajes aún más grandes en pantallas muy pequeñas */
+  .chat-message {
+    font-size: 15px !important;
+    padding: 11px 14px;
+    max-width: 85%;
+  }
+
+  /* Input más grande */
+  .chat-input {
+    font-size: 14px !important;
+    padding: 12px 55px 12px 14px;
+  }
+
+  /* Opciones más grandes */
+  .chat-option-button {
+    font-size: 14px !important;
+    padding: 12px 18px;
+    min-height: 48px;
+  }
+
+  /* Hero más grande */
+  .ia-hero-title {
+    font-size: 20px;
+  }
+
+  .ia-hero-subtitle {
+    font-size: 13px;
+  }
+
+  /* Contenedor al 100% en móviles pequeños */
+  .chat-input-container {
+    width: 100%;
+    padding: 0 10px;
+  }
+
+  /* Ajustar márgenes del contenedor de mensajes */
+  .ia-chat-messages {
+    padding: 0 10px;
+  }
+
+  .chat-messages {
+    padding: 0 10px;
+  }
+}
