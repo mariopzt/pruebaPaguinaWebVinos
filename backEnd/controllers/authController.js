@@ -62,9 +62,17 @@ exports.register = async (req, res) => {
 // @access  Public
 exports.login = async (req, res) => {
   try {
-    const { email, identifier: rawIdentifier, password } = req.body;
+    console.log('📱 Login attempt from:', req.ip, '| Origin:', req.headers.origin);
+    console.log('📝 Body recibido:', { ...req.body, password: '***' });
+    
+    // Debug: ver cuántos usuarios hay
+    const allUsers = await User.find({}).select('name email');
+    console.log('👥 Usuarios en BD:', allUsers.length, allUsers.map(u => ({ name: u.name, email: u.email })));
+    
+    const { email, identifier: rawIdentifier, password: rawPassword } = req.body;
     const raw = rawIdentifier || email;
     const identifier = raw ? raw.toLowerCase().trim() : '';
+    const password = rawPassword ? rawPassword.trim() : ''; // Quitar espacios de la contraseña
 
     const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -85,16 +93,20 @@ exports.login = async (req, res) => {
     }).select('+password');
 
     if (!user) {
+      console.log('❌ Usuario no encontrado:', identifier);
       return res.status(401).json({
         success: false,
         message: 'Credenciales inválidas'
       });
     }
 
+    console.log('✅ Usuario encontrado:', user.name, user.email);
+
     // Verificar contraseña
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
+      console.log('❌ Contraseña incorrecta para:', user.name);
       return res.status(401).json({
         success: false,
         message: 'Credenciales inválidas'
