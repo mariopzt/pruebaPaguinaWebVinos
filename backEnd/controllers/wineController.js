@@ -39,13 +39,7 @@ exports.getWine = async (req, res) => {
       });
     }
 
-    // Verificar que el vino pertenezca al usuario (si se guardó un usuario)
-    if (wine.user && req.user && wine.user.toString() !== req.user.id) {
-      return res.status(401).json({
-        success: false,
-        message: 'No autorizado'
-      });
-    }
+    // En una bodega compartida, cualquier usuario autenticado puede ver vinos
 
     res.status(200).json({
       success: true,
@@ -102,13 +96,8 @@ exports.updateWine = async (req, res) => {
       });
     }
 
-    // Solo verificar si el vino tiene usuario Y el usuario actual no coincide
-    if (wine.user && req.user && req.user.id && wine.user.toString() !== req.user.id.toString()) {
-      return res.status(401).json({
-        success: false,
-        message: 'No autorizado para modificar este vino'
-      });
-    }
+    // En una bodega compartida, cualquier usuario autenticado puede modificar vinos
+    // Ya no verificamos propiedad del vino
 
     const prevStock = wine.stock || 0;
     const prevRestaurant = wine.restaurantStock || 0;
@@ -202,7 +191,7 @@ exports.updateWine = async (req, res) => {
 
 // @desc    Eliminar vino
 // @route   DELETE /api/wines/:id
-// @access  Public (con optionalAuth)
+// @access  Private
 exports.deleteWine = async (req, res) => {
   try {
     const wine = await Wine.findById(req.params.id);
@@ -214,14 +203,7 @@ exports.deleteWine = async (req, res) => {
       });
     }
 
-    // Solo verificar si el vino tiene usuario Y el usuario actual no coincide
-    // Si no hay req.user o el vino no tiene usuario, permitir eliminar
-    if (wine.user && req.user && req.user.id && wine.user.toString() !== req.user.id.toString()) {
-      return res.status(401).json({
-        success: false,
-        message: 'No autorizado para eliminar este vino'
-      });
-    }
+    // En una bodega compartida, cualquier usuario autenticado puede eliminar vinos
 
     await wine.deleteOne();
 
