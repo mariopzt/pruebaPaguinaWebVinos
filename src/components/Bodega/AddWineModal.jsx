@@ -102,9 +102,37 @@ function AddWineModal({ onClose, onAddWine }) {
   return (
     <div className="wine-modal-overlay" onClick={onClose}>
       <div className="wine-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="wine-modal-close" onClick={onClose}>
-          ×
-        </button>
+        {/* Header con icono */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '16px 20px',
+          borderBottom: '1px solid rgba(255,255,255,0.1)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img 
+              src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'%3E%3Cpath d='M12 2C9.79 2 8 3.79 8 6v4.5c0 1.38-.56 2.63-1.46 3.54L6 14.59V16h12v-1.41l-.54-.55C16.56 13.13 16 11.88 16 10.5V6c0-2.21-1.79-4-4-4zm0 2c1.1 0 2 .9 2 2v4.5c0 1.77.72 3.45 2 4.67V14H8v1.17c1.28-1.22 2-2.9 2-4.67V6c0-1.1.9-2 2-2zM8 17v1h8v-1H8zm2 2v1h4v-1h-4z'/%3E%3C/svg%3E"
+              alt="Vino"
+              style={{ width: '28px', height: '28px' }}
+            />
+            <span style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Vinos</span>
+          </div>
+          <button 
+            onClick={onClose} 
+            style={{ 
+              background: 'transparent', 
+              border: 'none', 
+              color: '#9ca3c0', 
+              fontSize: '24px', 
+              cursor: 'pointer', 
+              padding: '4px 8px',
+              lineHeight: 1
+            }}
+          >
+            ×
+          </button>
+        </div>
         
         <div className="wine-modal-content">
           <div className="wine-modal-image">

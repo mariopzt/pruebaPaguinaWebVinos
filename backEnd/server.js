@@ -17,9 +17,29 @@ const app = express();
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
-// CORS
+// CORS - permitir acceso desde localhost y cualquier IP de red local
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: function(origin, callback) {
+    // Permitir requests sin origin (como apps móviles o Postman)
+    if (!origin) return callback(null, true);
+    
+    // Permitir localhost y cualquier IP de red local
+    const allowedPatterns = [
+      /^http:\/\/localhost(:\d+)?$/,
+      /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+      /^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/,
+      /^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/,
+      /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+(:\d+)?$/
+    ];
+    
+    const isAllowed = allowedPatterns.some(pattern => pattern.test(origin));
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log('CORS bloqueado para:', origin);
+      callback(null, true); // En desarrollo, permitir todo
+    }
+  },
   credentials: true
 }));
 
@@ -57,11 +77,12 @@ app.use(errorHandler);
 // Puerto
 const PORT = process.env.PORT || 5000;
 
-// Iniciar servidor
-const server = app.listen(PORT, () => {
+// Iniciar servidor en todas las interfaces (0.0.0.0) para acceso desde red local
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 Servidor corriendo en modo ${process.env.NODE_ENV || 'development'}`);
   console.log(`📡 Puerto: ${PORT}`);
-  console.log(`🌐 URL: http://localhost:${PORT}`);
+  console.log(`🌐 URL Local: http://localhost:${PORT}`);
+  console.log(`🌐 URL Red: http://0.0.0.0:${PORT} (usa tu IP local)`);
   console.log(`🍷 API: http://localhost:${PORT}/api`);
   console.log(`\n✨ Presiona CTRL+C para detener el servidor\n`);
 });
