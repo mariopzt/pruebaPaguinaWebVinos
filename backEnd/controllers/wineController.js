@@ -109,69 +109,91 @@ exports.updateWine = async (req, res) => {
 
     const newStock = wine.stock || 0;
     const newRestaurant = wine.restaurantStock || 0;
+    const userName = req.user?.name || 'Alguien';
 
-    // Notificación: se agotó (pasa a 0) - solo al usuario que edita
-    if (prevStock > 0 && newStock === 0 && req.user?._id) {
-      await Notification.create({
-        user: req.user._id,
-        type: 'stock-bajo',
+    // Calcular diferencias
+    const stockDiff = newStock - prevStock;
+    const restaurantDiff = newRestaurant - prevRestaurant;
+
+    // Obtener todos los usuarios EXCEPTO el que hizo el cambio
+    const otherUsers = await User.find({ _id: { $ne: req.user?._id } }, '_id');
+
+    // Notificación cuando cambia el stock del almacén
+    if (stockDiff !== 0 && otherUsers.length > 0) {
+      const action = stockDiff > 0 ? 'sumó' : 'restó';
+      const amount = Math.abs(stockDiff);
+      const icon = stockDiff > 0 ? 'FiPackage' : 'FiBox';
+      const title = stockDiff > 0 ? 'Stock añadido en bodega' : 'Stock reducido en bodega';
+      
+      const docs = otherUsers.map(u => ({
+        user: u._id,
+        createdBy: req.user?._id,
+        type: 'stock-change',
+        icon,
+        title,
+        message: `**${userName}** ${action} **${amount}** unidades de **${wine.name}** en bodega. Stock: ${prevStock} → ${newStock}`,
+        wineId: wine._id,
+        unread: true,
+        actions: ['Ver bodega'],
+        createdAt: new Date(),
+      }));
+      await Notification.insertMany(docs);
+    }
+
+    // Notificación cuando cambia el stock del restaurante
+    if (restaurantDiff !== 0 && otherUsers.length > 0) {
+      const action = restaurantDiff > 0 ? 'sumó' : 'restó';
+      const amount = Math.abs(restaurantDiff);
+      const icon = restaurantDiff > 0 ? 'FiPackage' : 'FiBox';
+      const title = restaurantDiff > 0 ? 'Stock añadido en restaurante' : 'Stock reducido en restaurante';
+      
+      const docs = otherUsers.map(u => ({
+        user: u._id,
+        createdBy: req.user?._id,
+        type: 'stock-change',
+        icon,
+        title,
+        message: `**${userName}** ${action} **${amount}** unidades de **${wine.name}** en restaurante. Stock: ${prevRestaurant} → ${newRestaurant}`,
+        wineId: wine._id,
+        unread: true,
+        actions: ['Ver bodega'],
+        createdAt: new Date(),
+      }));
+      await Notification.insertMany(docs);
+    }
+
+    // Alerta especial: stock muy bajo (<=2) en bodega
+    if (newStock <= 2 && newStock < prevStock && otherUsers.length > 0) {
+      const docs = otherUsers.map(u => ({
+        user: u._id,
+        createdBy: req.user?._id,
+        type: 'stock-bajo-bodega',
         icon: 'FiBox',
-        title: 'Stock agotado',
-        message: `**${wine.name}** se ha quedado en 0 unidades.`,
+        title: '⚠️ Stock bajo en bodega',
+        message: `**${wine.name}** tiene solo **${newStock}** unidades en bodega. Modificado por **${userName}**.`,
         wineId: wine._id,
         unread: true,
         actions: ['Ver bodega', 'Hacer pedido'],
         createdAt: new Date(),
-      });
-    }
-
-    // Notificación: se reabastece (pasa de 0 a >0) - solo al usuario que edita
-    if (prevStock === 0 && newStock > 0 && req.user?._id) {
-      await Notification.create({
-        user: req.user._id,
-        type: 'stock-restaurado',
-        icon: 'FiPackage',
-        title: 'Stock restaurado',
-        message: `**${wine.name}** vuelve a tener stock (${newStock} unidades).`,
-        wineId: wine._id,
-        unread: true,
-        actions: ['Ver bodega'],
-        createdAt: new Date(),
-      });
-    }
-
-    // Aviso global: stock bodega <= 2 y bajó
-    if (newStock <= 2 && newStock < prevStock) {
-      const users = await User.find({}, '_id');
-      const docs = users.map(u => ({
-        user: u._id,
-        type: 'stock-bajo-bodega',
-        icon: 'FiBox',
-        title: 'Stock bajo en bodega',
-        message: `**${wine.name}** tiene ${newStock} unidades en bodega.`,
-        wineId: wine._id,
-        unread: true,
-        actions: ['Ver bodega'],
-        createdAt: new Date(),
       }));
-      if (docs.length) await Notification.insertMany(docs);
+      await Notification.insertMany(docs);
     }
 
-    // Aviso global: stock restaurante <= 2 y bajó
-    if (newRestaurant <= 2 && newRestaurant < prevRestaurant) {
-      const users = await User.find({}, '_id');
-      const docs = users.map(u => ({
+    // Alerta especial: stock muy bajo (<=2) en restaurante
+    if (newRestaurant <= 2 && newRestaurant < prevRestaurant && otherUsers.length > 0) {
+      const docs = otherUsers.map(u => ({
         user: u._id,
+        createdBy: req.user?._id,
         type: 'stock-bajo-restaurante',
         icon: 'FiBox',
-        title: 'Stock bajo en restaurante',
-        message: `**${wine.name}** tiene ${newRestaurant} unidades en restaurante.`,
+        title: '⚠️ Stock bajo en restaurante',
+        message: `**${wine.name}** tiene solo **${newRestaurant}** unidades en restaurante. Modificado por **${userName}**.`,
         wineId: wine._id,
         unread: true,
         actions: ['Ver bodega'],
         createdAt: new Date(),
       }));
-      if (docs.length) await Notification.insertMany(docs);
+      await Notification.insertMany(docs);
     }
 
     res.status(200).json({
