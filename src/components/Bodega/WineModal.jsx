@@ -173,12 +173,39 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       return;
     }
 
-    const newRestaurantStock = restaurantAdjustType === 'add' 
-      ? (wine.restaurantStock || 0) + value 
-      : Math.max(0, (wine.restaurantStock || 0) - value);
+    const currentRestaurantStock = wine.restaurantStock || 0;
+    const currentStock = wine.stock || 0;
+    let newRestaurantStock;
+    let newStock = currentStock;
+    let message = '';
+
+    if (restaurantAdjustType === 'add') {
+      // SUMAR al restaurante = mover del almacén al restaurante
+      if (value > currentStock) {
+        alert(`No hay suficiente stock en almacén. Stock disponible: ${currentStock}`);
+        return;
+      }
+      newRestaurantStock = currentRestaurantStock + value;
+      newStock = currentStock - value;
+      message = `Movido ${value} del almacén al restaurante.\nAlmacén: ${currentStock} → ${newStock}\nRestaurante: ${currentRestaurantStock} → ${newRestaurantStock}`;
+    } else {
+      // RESTAR del restaurante
+      if (value <= currentRestaurantStock) {
+        // Hay suficiente en restaurante, solo restamos del restaurante
+        newRestaurantStock = currentRestaurantStock - value;
+        message = `Stock restaurante: ${currentRestaurantStock} → ${newRestaurantStock}`;
+      } else {
+        // No hay suficiente en restaurante, tomamos del almacén lo que falta
+        const faltante = value - currentRestaurantStock;
+        newRestaurantStock = 0;
+        newStock = Math.max(0, currentStock - faltante);
+        message = `Restado ${value} (${currentRestaurantStock} del restaurante + ${faltante} del almacén).\nAlmacén: ${currentStock} → ${newStock}\nRestaurante: ${currentRestaurantStock} → 0`;
+      }
+    }
 
     const payload = {
       ...wine,
+      stock: newStock,
       restaurantStock: newRestaurantStock,
       updatedAtClient: new Date(),
     };
@@ -186,14 +213,14 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
     if (onUpdateWine) {
       const result = await onUpdateWine(wine.id || wine._id, payload);
       if (!result?.success) {
-        alert(result?.message || 'No se pudo actualizar el stock del restaurante');
+        alert(result?.message || 'No se pudo actualizar el stock');
         return;
       }
     }
 
     setShowRestaurantAdjust(false);
     setRestaurantAdjustValue('');
-    alert(`Stock restaurante actualizado: ${wine.restaurantStock || 0} → ${newRestaurantStock}`);
+    alert(message);
   };
 
   return (
