@@ -718,8 +718,30 @@ function App() {
     }
   }
 
-  // NOTA: Ya no marcamos como leídas automáticamente al salir de la vista
-  // Solo se marcan cuando el usuario entra a la vista de notificaciones
+  // Referencia para guardar la vista anterior
+  const prevViewRef = useRef(currentView)
+
+  // Marcar notificaciones como leídas AL SALIR de la sección de notificaciones
+  useEffect(() => {
+    const prevView = prevViewRef.current
+    
+    // Si estábamos en notificaciones ('ayuda') y ahora estamos en otra vista
+    if (prevView === 'ayuda' && currentView !== 'ayuda') {
+      // Marcar todas como leídas al salir
+      const markAsReadOnExit = async () => {
+        try {
+          await notificationService.markAllAsRead()
+          setNotifications(prev => prev.map(notif => ({ ...notif, unread: false, readAt: new Date() })))
+        } catch (e) {
+          console.warn('No se pudo marcar como leídas al salir')
+        }
+      }
+      markAsReadOnExit()
+    }
+    
+    // Actualizar la referencia con la vista actual
+    prevViewRef.current = currentView
+  }, [currentView])
 
   // Función para toggle like en vinos de bodega
   const handleToggleWineLike = (wineId) => {
@@ -810,15 +832,62 @@ function App() {
     }
   }
 
-  // Abrir el panel de notificaciones y marcarlas como leídas al entrar
+  // Notificar a otros usuarios cuando se modifica el stock de un vino
+  const handleStockChange = async (changeData) => {
+    const { wine, type, action, value, oldStock, newStock } = changeData;
+    const userName = currentUser?.name || 'Alguien';
+    
+    let title, message, icon;
+    
+    if (type === 'stock') {
+      // Cambio en stock del almacén
+      if (action === 'add') {
+        title = 'Stock añadido';
+        icon = 'FiPackage';
+        message = `**${userName}** añadió **${value}** unidades de **${wine.name}** al almacén. Stock: ${oldStock} → ${newStock}`;
+      } else {
+        title = 'Stock reducido';
+        icon = 'FiBox';
+        message = `**${userName}** restó **${value}** unidades de **${wine.name}** del almacén. Stock: ${oldStock} → ${newStock}`;
+      }
+    } else {
+      // Cambio en stock del restaurante
+      const { oldWarehouseStock, newWarehouseStock } = changeData;
+      if (action === 'add') {
+        title = 'Stock movido a restaurante';
+        icon = 'FiPackage';
+        message = `**${userName}** movió **${value}** unidades de **${wine.name}** al restaurante. Almacén: ${oldWarehouseStock} → ${newWarehouseStock}`;
+      } else {
+        title = 'Stock del restaurante reducido';
+        icon = 'FiBox';
+        message = `**${userName}** restó **${value}** unidades de **${wine.name}** del restaurante. Stock: ${oldStock} → ${newStock}`;
+      }
+    }
+
+    const newNotification = {
+      type: 'stock-change',
+      icon,
+      title,
+      wineId: wine.id || wine._id,
+      wineName: wine.name,
+      message,
+      createdAt: new Date().toISOString(),
+      unread: true,
+      actions: ['Ver bodega']
+    };
+
+    try {
+      await notificationService.create(newNotification);
+      // No añadimos a nuestras notificaciones locales porque se creó para otros usuarios
+    } catch (e) {
+      console.error('Error al crear notificación de cambio de stock', e);
+    }
+  }
+
+  // Abrir el panel de notificaciones (ya NO marca como leídas automáticamente)
   const handleOpenNotifications = async () => {
     setShowNotifications(true);
-    try {
-      await notificationService.markAllAsRead();
-      setNotifications(prev => prev.map(notif => ({ ...notif, unread: false, readAt: new Date() })));
-    } catch (e) {
-      console.warn('No se pudo marcar todas como leídas');
-    }
+    // Ya no marcamos como leídas al entrar, el usuario debe hacerlo manualmente
   };
 
   // Manejar click en notificación - marcar solo esa como leída
@@ -1411,16 +1480,9 @@ function App() {
             {NOTIFICATIONS_ENABLED && (
               <div 
                 className={`nav-item ${currentView === 'ayuda' ? 'active' : ''}`} 
-                onClick={async () => {
+                onClick={() => {
                   setCurrentView('ayuda');
-                  // Marcar todas como leídas cuando se abre
-                  try {
-                    await notificationService.markAllAsRead();
-                    setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
-                    setNewNotifPulse(false);
-                  } catch (e) {
-                    console.warn('No se pudo marcar como leídas');
-                  }
+                  setNewNotifPulse(false);
                 }}
               >
                 <div className="nav-item-content">
@@ -1538,17 +1600,10 @@ function App() {
               {NOTIFICATIONS_ENABLED && (
                 <div 
                   className="mobile-nav-item" 
-                  onClick={async () => { 
+                  onClick={() => { 
                     setCurrentView('ayuda'); 
                     setIsMenuOpen(false);
-                    // Marcar todas como leídas cuando se abre
-                    try {
-                      await notificationService.markAllAsRead();
-                      setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
-                      setNewNotifPulse(false);
-                    } catch (e) {
-                      console.warn('No se pudo marcar como leídas');
-                    }
+                    setNewNotifPulse(false);
                   }}
                 >
                 <span className={`mobile-nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
@@ -3255,6 +3310,7 @@ function App() {
         onWineOutOfStock={addNotification}
         onUpdateWine={handleUpdateWine}
         onDeleteWine={handleDeleteWine}
+        onStockChange={handleStockChange}
       />
     )}
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './WineModal.css';
 
-function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine }) {
+function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine, onStockChange }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedWine, setEditedWine] = useState({
     price: wine?.price || 0,
@@ -160,6 +160,18 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       onWineOutOfStock({ ...wine, ...payload });
     }
 
+    // Notificar a otros usuarios del cambio de stock
+    if (onStockChange) {
+      onStockChange({
+        wine,
+        type: 'stock',
+        action: adjustType,
+        value,
+        oldStock: wine.stock,
+        newStock
+      });
+    }
+
     setShowStockAdjust(false);
     setStockAdjustValue('');
     alert(`Stock actualizado: ${wine.stock} → ${newStock}`);
@@ -216,6 +228,20 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
         alert(result?.message || 'No se pudo actualizar el stock');
         return;
       }
+    }
+
+    // Notificar a otros usuarios del cambio de stock de restaurante
+    if (onStockChange) {
+      onStockChange({
+        wine,
+        type: 'restaurante',
+        action: restaurantAdjustType,
+        value,
+        oldStock: currentRestaurantStock,
+        newStock: newRestaurantStock,
+        oldWarehouseStock: currentStock,
+        newWarehouseStock: newStock
+      });
     }
 
     setShowRestaurantAdjust(false);

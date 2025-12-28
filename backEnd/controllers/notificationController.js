@@ -1,4 +1,5 @@
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 
 // GET /api/notifications (solo las del usuario)
 exports.getNotifications = async (req, res, next) => {
@@ -14,16 +15,32 @@ exports.getNotifications = async (req, res, next) => {
 };
 
 // POST /api/notifications
+// Crea notificaciones para TODOS los usuarios EXCEPTO el que la genera
 exports.createNotification = async (req, res, next) => {
   try {
-    const payload = {
+    // Obtener todos los usuarios excepto el actual
+    const otherUsers = await User.find({ _id: { $ne: req.user._id } }).select('_id');
+    
+    if (otherUsers.length === 0) {
+      // Si no hay otros usuarios, no crear nada pero responder éxito
+      return res.status(201).json({ success: true, data: null, message: 'No hay otros usuarios para notificar' });
+    }
+
+    const basePayload = {
       ...req.body,
       unread: true,
       createdAt: req.body.createdAt || new Date(),
-      user: req.user._id,
+      createdBy: req.user._id, // Guardar quién creó la notificación
     };
-    const notification = await Notification.create(payload);
-    res.status(201).json({ success: true, data: notification });
+
+    // Crear una notificación para cada usuario (excepto el creador)
+    const notifications = await Promise.all(
+      otherUsers.map(user => 
+        Notification.create({ ...basePayload, user: user._id })
+      )
+    );
+
+    res.status(201).json({ success: true, data: notifications[0], count: notifications.length });
   } catch (error) {
     next(error);
   }
