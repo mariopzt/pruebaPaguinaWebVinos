@@ -82,17 +82,9 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
     setSearchTerm('');
   };
 
-  // Detectar clics fuera del buscador y del menú de filtros
+  // Detectar clics fuera del menú de filtros (NO del buscador - queremos que permanezca abierto)
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Cerrar buscador si se hace clic fuera
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        if (isSearchOpen) {
-          setIsSearchOpen(false);
-          setSearchTerm('');
-        }
-      }
-
       // Cerrar menú de filtros si se hace clic fuera
       if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
         if (isFilterMenuOpen) {
@@ -105,7 +97,7 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isSearchOpen, isFilterMenuOpen]);
+  }, [isFilterMenuOpen]);
 
   // Generar números de páginas para mostrar (memorizado)
   const pageNumbers = useMemo(() => {
