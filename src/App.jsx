@@ -588,10 +588,16 @@ function App() {
       return;
     }
 
+    // Encontrar el item que se está actualizando
+    let toggledItem = null;
+    let newCompletedState = false;
+
     // Calcular el nuevo estado del pedido
     const updatedItems = currentOrder.items.map((item, idx) => {
       if (item.id === itemId || item._id === itemId || idx === itemId) {
         const newCompleted = !item.completed;
+        toggledItem = item;
+        newCompletedState = newCompleted;
         return {
           ...item,
           completed: newCompleted,
@@ -622,6 +628,35 @@ function App() {
     setOrders((prevOrders) =>
       prevOrders.map((order) => (order.id === orderId || order._id === orderId) ? updatedOrder : order)
     );
+
+    // Actualizar stock del vino si se encontró el item
+    if (toggledItem) {
+      // Buscar el vino correspondiente por nombre
+      const matchingWine = wines.find(wine => 
+        wine.name.toLowerCase() === toggledItem.name.toLowerCase()
+      );
+      
+      if (matchingWine) {
+        const quantityChange = newCompletedState ? toggledItem.quantity : -toggledItem.quantity;
+        const newStock = Math.max(0, (matchingWine.stock || 0) + quantityChange);
+        
+        try {
+          // Actualizar el stock del vino en el backend
+          const payload = { stock: newStock };
+          const response = await wineService.updateWine(matchingWine.id || matchingWine._id, payload);
+          const updatedWine = normalizeWine(response.data?.data || response.data);
+          
+          // Actualizar el estado local de vinos
+          setWines(prev => prev.map(w => 
+            (w.id === matchingWine.id || w._id === matchingWine._id) ? updatedWine : w
+          ));
+          
+          console.log(`Stock de "${matchingWine.name}" actualizado: ${matchingWine.stock} → ${newStock}`);
+        } catch (error) {
+          console.error('Error al actualizar stock del vino:', error);
+        }
+      }
+    }
 
     // Persistir en backend
     try {
@@ -3244,6 +3279,7 @@ function App() {
       <AddOrderModal
         onClose={() => setShowAddOrderModal(false)}
         onSave={handleSaveOrder}
+        wines={wines}
       />
     )}
 
@@ -3257,6 +3293,7 @@ function App() {
         }}
         onSave={handleSaveOrder}
         onDelete={handleDeleteOrder}
+        wines={wines}
       />
     )}
 
@@ -3839,7 +3876,7 @@ function AddTaskModal({ onClose, onSave }) {
 }
 
 // Componente Modal de Agregar Pedido
-function AddOrderModal({ onClose, onSave }) {
+function AddOrderModal({ onClose, onSave, wines = [] }) {
   const [showOrderDateCalendar, setShowOrderDateCalendar] = useState(false)
   const [showExpectedDateCalendar, setShowExpectedDateCalendar] = useState(false)
   const [newOrder, setNewOrder] = useState({
@@ -3851,18 +3888,87 @@ function AddOrderModal({ onClose, onSave }) {
   })
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [filteredWines, setFilteredWines] = useState([])
+  const [justSelected, setJustSelected] = useState(false)
+  const inputRef = useRef(null)
+
+  // Filtrar vinos disponibles en stock cuando el usuario escribe
+  useEffect(() => {
+    if (justSelected) {
+      // Si acabamos de seleccionar un vino, no mostrar sugerencias
+      return
+    }
+    
+    if (newItemName.trim().length > 0) {
+      const searchTerm = newItemName.toLowerCase()
+      
+      // Si el nombre coincide exactamente con un vino, no mostrar sugerencias
+      const exactMatch = wines.find(wine => 
+        wine.name.toLowerCase() === searchTerm && wine.stock > 0
+      )
+      
+      if (exactMatch) {
+        setFilteredWines([])
+        setShowSuggestions(false)
+        return
+      }
+      
+      const filtered = wines.filter(wine => 
+        wine.stock > 0 && 
+        wine.name.toLowerCase().includes(searchTerm)
+      ).slice(0, 5) // Máximo 5 sugerencias
+      setFilteredWines(filtered)
+      setShowSuggestions(filtered.length > 0)
+    } else {
+      setFilteredWines([])
+      setShowSuggestions(false)
+    }
+  }, [newItemName, wines, justSelected])
+
+  // Cerrar sugerencias al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (inputRef.current && !inputRef.current.contains(event.target)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSelectWine = (wine) => {
+    setJustSelected(true)
+    setShowSuggestions(false)
+    setFilteredWines([])
+    setNewItemName(wine.name)
+    // Reset justSelected después de un pequeño delay
+    setTimeout(() => setJustSelected(false), 100)
+  }
 
   const handleAddItem = () => {
     if (newItemName && newItemQuantity) {
+      // Validar que el vino existe en la bodega con stock
+      const wineExists = wines.find(wine => 
+        wine.name.toLowerCase() === newItemName.toLowerCase() && wine.stock > 0
+      )
+      
+      if (!wineExists) {
+        alert('⚠️ Solo puedes agregar vinos que están en la bodega. Por favor, selecciona un vino de la lista de sugerencias.')
+        return
+      }
+
       const newItem = {
         id: Date.now(),
-        name: newItemName,
+        name: wineExists.name, // Usar el nombre exacto del vino
         quantity: parseInt(newItemQuantity),
         completed: false
       }
       setNewOrder({ ...newOrder, items: [...newOrder.items, newItem] })
       setNewItemName('')
       setNewItemQuantity('')
+      setShowSuggestions(false)
+      setFilteredWines([])
     }
   }
 
@@ -4013,21 +4119,83 @@ function AddOrderModal({ onClose, onSave }) {
               ))}
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <input
-                type="text"
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                placeholder="Nombre del item"
-                style={{
-                  flex: 2,
-                  padding: '8px 12px',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '8px',
-                  color: '#ffffff',
-                  fontSize: '13px',
-                }}
-              />
+              <div ref={inputRef} style={{ flex: 2, position: 'relative' }}>
+                <input
+                  type="text"
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  onFocus={() => {
+                    if (filteredWines.length > 0) setShowSuggestions(true)
+                  }}
+                  placeholder="Buscar vino en stock..."
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    fontSize: '13px',
+                  }}
+                />
+                {showSuggestions && filteredWines.length > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    marginTop: '4px',
+                    background: 'rgba(30, 33, 45, 0.98)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: '8px',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    zIndex: 1000,
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                  }}>
+                    {filteredWines.map(wine => (
+                      <div
+                        key={wine.id}
+                        onClick={() => handleSelectWine(wine)}
+                        style={{
+                          padding: '10px 12px',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(102, 126, 234, 0.15)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent'
+                        }}
+                      >
+                        <div style={{ 
+                          fontSize: '13px', 
+                          color: '#ffffff', 
+                          fontWeight: '500',
+                          marginBottom: '2px'
+                        }}>
+                          {wine.name}
+                        </div>
+                        <div style={{ 
+                          fontSize: '11px', 
+                          color: '#9ca3c0',
+                          display: 'flex',
+                          justifyContent: 'space-between'
+                        }}>
+                          <span>{wine.type} {wine.year}</span>
+                          <span style={{ 
+                            color: wine.stock > 10 ? '#10b981' : wine.stock > 5 ? '#f59e0b' : '#ef4444'
+                          }}>
+                            Stock: {wine.stock}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <input
                 type="number"
                 value={newItemQuantity}
@@ -4086,24 +4254,93 @@ function AddOrderModal({ onClose, onSave }) {
 }
 
 // Componente Modal de Editar Pedido
-function EditOrderModal({ order, onClose, onSave, onDelete }) {
+function EditOrderModal({ order, onClose, onSave, onDelete, wines = [] }) {
   const [showOrderDateCalendar, setShowOrderDateCalendar] = useState(false)
   const [showExpectedDateCalendar, setShowExpectedDateCalendar] = useState(false)
   const [editedOrder, setEditedOrder] = useState(order)
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [filteredWines, setFilteredWines] = useState([])
+  const [justSelected, setJustSelected] = useState(false)
+  const inputRef = useRef(null)
+
+  // Filtrar vinos disponibles en stock cuando el usuario escribe
+  useEffect(() => {
+    if (justSelected) {
+      // Si acabamos de seleccionar un vino, no mostrar sugerencias
+      return
+    }
+    
+    if (newItemName.trim().length > 0) {
+      const searchTerm = newItemName.toLowerCase()
+      
+      // Si el nombre coincide exactamente con un vino, no mostrar sugerencias
+      const exactMatch = wines.find(wine => 
+        wine.name.toLowerCase() === searchTerm && wine.stock > 0
+      )
+      
+      if (exactMatch) {
+        setFilteredWines([])
+        setShowSuggestions(false)
+        return
+      }
+      
+      const filtered = wines.filter(wine => 
+        wine.stock > 0 && 
+        wine.name.toLowerCase().includes(searchTerm)
+      ).slice(0, 5) // Máximo 5 sugerencias
+      setFilteredWines(filtered)
+      setShowSuggestions(filtered.length > 0)
+    } else {
+      setFilteredWines([])
+      setShowSuggestions(false)
+    }
+  }, [newItemName, wines, justSelected])
+
+  // Cerrar sugerencias al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (inputRef.current && !inputRef.current.contains(event.target)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSelectWine = (wine) => {
+    setJustSelected(true)
+    setShowSuggestions(false)
+    setFilteredWines([])
+    setNewItemName(wine.name)
+    // Reset justSelected después de un pequeño delay
+    setTimeout(() => setJustSelected(false), 100)
+  }
 
   const handleAddItem = () => {
     if (newItemName && newItemQuantity) {
+      // Validar que el vino existe en la bodega con stock
+      const wineExists = wines.find(wine => 
+        wine.name.toLowerCase() === newItemName.toLowerCase() && wine.stock > 0
+      )
+      
+      if (!wineExists) {
+        alert('⚠️ Solo puedes agregar vinos que están en la bodega. Por favor, selecciona un vino de la lista de sugerencias.')
+        return
+      }
+
       const newItem = {
         id: Date.now(),
-        name: newItemName,
+        name: wineExists.name, // Usar el nombre exacto del vino
         quantity: parseInt(newItemQuantity),
         completed: false
       }
       setEditedOrder({ ...editedOrder, items: [...editedOrder.items, newItem] })
       setNewItemName('')
       setNewItemQuantity('')
+      setShowSuggestions(false)
+      setFilteredWines([])
     }
   }
 
@@ -4254,21 +4491,83 @@ function EditOrderModal({ order, onClose, onSave, onDelete }) {
               ))}
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <input
-                type="text"
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                placeholder="Nombre del item"
-                style={{
-                  flex: 2,
-                  padding: '8px 12px',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '8px',
-                  color: '#ffffff',
-                  fontSize: '13px',
-                }}
-              />
+              <div ref={inputRef} style={{ flex: 2, position: 'relative' }}>
+                <input
+                  type="text"
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  onFocus={() => {
+                    if (filteredWines.length > 0) setShowSuggestions(true)
+                  }}
+                  placeholder="Buscar vino en stock..."
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    fontSize: '13px',
+                  }}
+                />
+                {showSuggestions && filteredWines.length > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    marginTop: '4px',
+                    background: 'rgba(30, 33, 45, 0.98)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: '8px',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    zIndex: 1000,
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                  }}>
+                    {filteredWines.map(wine => (
+                      <div
+                        key={wine.id}
+                        onClick={() => handleSelectWine(wine)}
+                        style={{
+                          padding: '10px 12px',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(102, 126, 234, 0.15)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent'
+                        }}
+                      >
+                        <div style={{ 
+                          fontSize: '13px', 
+                          color: '#ffffff', 
+                          fontWeight: '500',
+                          marginBottom: '2px'
+                        }}>
+                          {wine.name}
+                        </div>
+                        <div style={{ 
+                          fontSize: '11px', 
+                          color: '#9ca3c0',
+                          display: 'flex',
+                          justifyContent: 'space-between'
+                        }}>
+                          <span>{wine.type} {wine.year}</span>
+                          <span style={{ 
+                            color: wine.stock > 10 ? '#10b981' : wine.stock > 5 ? '#f59e0b' : '#ef4444'
+                          }}>
+                            Stock: {wine.stock}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <input
                 type="number"
                 value={newItemQuantity}
