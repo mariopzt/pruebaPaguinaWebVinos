@@ -281,25 +281,6 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
                 </div>
                 
                 <div className="wine-info-item half-width">
-                  <span className="wine-info-label">Stock:</span>
-                  {isEditMode ? (
-                    <div className="wine-editable-field">
-                      <input 
-                        type="number" 
-                        className="wine-editable-input"
-                        value={editedWine.stock}
-                        onChange={(e) => handleChange('stock', e.target.value)}
-                      />
-                      <span className="wine-input-unit">unidades</span>
-                    </div>
-                  ) : (
-                    <span className="wine-info-value">{wine.stock} unidades</span>
-                  )}
-                </div>
-              </div>
-              
-              <div className="wine-info-row wine-price-stock-row">
-                <div className="wine-info-item">
                   <span className="wine-info-label">Precio:</span>
                   {isEditMode ? (
                     <div className="wine-editable-field">
@@ -314,6 +295,28 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
                     </div>
                   ) : (
                     <span className="wine-info-value">{wine.price.toFixed(2)}€</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Sección: Stock General */}
+            <div className="wine-modal-info-section">
+              <div className="wine-info-row wine-price-stock-row">
+                <div className="wine-info-item">
+                  <span className="wine-info-label">Stock:</span>
+                  {isEditMode ? (
+                    <div className="wine-editable-field">
+                      <input 
+                        type="number" 
+                        className="wine-editable-input"
+                        value={editedWine.stock}
+                        onChange={(e) => handleChange('stock', e.target.value)}
+                      />
+                      <span className="wine-input-unit">unidades</span>
+                    </div>
+                  ) : (
+                    <span className="wine-info-value">{wine.stock} unidades</span>
                   )}
                 </div>
 
