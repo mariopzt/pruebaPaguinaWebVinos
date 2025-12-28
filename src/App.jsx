@@ -3668,110 +3668,248 @@ function CustomCalendar({ selectedDate, onDateSelect, onClose }) {
 
 // Componente Modal de Tarea
 function TaskModal({ task, onClose, onSave, onDelete }) {
+  const [isEditing, setIsEditing] = useState(false)
   const [editedTask, setEditedTask] = useState(task)
   const [showCalendar, setShowCalendar] = useState(false)
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  const handleSave = () => {
     onSave(editedTask)
+    setIsEditing(false)
+  }
+
+  const handleCancelEdit = () => {
+    setEditedTask(task)
+    setIsEditing(false)
   }
 
   return (
     <div className="task-modal-overlay" onClick={onClose}>
-      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="task-modal-header">
-          <h3>Detalles de la Tarea</h3>
-          <button className="task-modal-close" onClick={onClose}>✕</button>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px', width: '90%', overflowX: 'hidden' }}>
+        {/* Header con botón editar */}
+        <div className="task-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ margin: 0 }}>{isEditing ? 'Editar Tarea' : 'Detalles de la Tarea'}</h3>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {!isEditing && (
+              <button 
+                onClick={() => setIsEditing(true)}
+                style={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none',
+                  color: '#fff',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '600'
+                }}
+              >
+                ✎ Editar
+              </button>
+            )}
+            <button className="task-modal-close" onClick={onClose}>✕</button>
+          </div>
         </div>
         
-        <form className="task-modal-content" onSubmit={handleSubmit}>
-          <div className="task-modal-field">
-            <label>Título</label>
-            <input
-              type="text"
-              value={editedTask.title}
-              onChange={(e) => setEditedTask({...editedTask, title: e.target.value})}
-              required
-            />
-          </div>
-
-          <div className="task-modal-field">
-            <label>Descripción</label>
-            <textarea
-              value={editedTask.description}
-              onChange={(e) => setEditedTask({...editedTask, description: e.target.value})}
-              rows="4"
-              required
-            />
-          </div>
-
-          <div className="task-modal-row">
-            <div className="task-modal-field">
-              <label>Fecha</label>
-              <div 
-                className="date-display-field"
-                onClick={() => setShowCalendar(true)}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/>
-                  <line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                <span>{editedTask.date}</span>
-              </div>
-              {showCalendar && (
-                <CustomCalendar
-                  selectedDate={editedTask.dateValue}
-                  onDateSelect={(date) => {
-                    const year = date.getFullYear()
-                    const month = String(date.getMonth() + 1).padStart(2, '0')
-                    const day = String(date.getDate()).padStart(2, '0')
-                    const dateValue = `${year}-${month}-${day}`
-                    
-                    const formattedDate = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
-                    setEditedTask({
-                      ...editedTask,
-                      date: formattedDate,
-                      dateValue: dateValue
-                    })
+        {/* Contenido */}
+        <div className="task-modal-content" style={{ padding: '20px', overflowX: 'hidden', wordWrap: 'break-word' }}>
+          {isEditing ? (
+            /* MODO EDICIÓN */
+            <>
+              <div className="task-modal-field" style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: '#9ca3c0' }}>Título</label>
+                <input
+                  type="text"
+                  value={editedTask.title}
+                  onChange={(e) => setEditedTask({...editedTask, title: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word'
                   }}
-                  onClose={() => setShowCalendar(false)}
                 />
-              )}
-            </div>
+              </div>
 
-          </div>
+              <div className="task-modal-field" style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: '#9ca3c0' }}>Descripción</label>
+                <textarea
+                  value={editedTask.description}
+                  onChange={(e) => setEditedTask({...editedTask, description: e.target.value})}
+                  rows="4"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '14px',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word'
+                  }}
+                />
+              </div>
 
-          <div className="task-modal-actions">
-            <button
-              type="button"
-              className="task-modal-btn task-modal-btn-delete"
-              onClick={() => {
-                if (confirm('¿Estás seguro de eliminar esta tarea?')) {
-                  onDelete(task.id)
-                }
-              }}
-            >
-              Eliminar
-            </button>
-            <div className="task-modal-actions-right">
-              <button
-                type="button"
-                className="task-modal-btn task-modal-btn-cancel"
-                onClick={onClose}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="task-modal-btn task-modal-btn-save"
-              >
-                Guardar
-              </button>
-            </div>
-          </div>
-        </form>
+              <div className="task-modal-field" style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: '#9ca3c0' }}>Fecha</label>
+                <div 
+                  onClick={() => setShowCalendar(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 14px',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    color: '#fff'
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  <span>{editedTask.date}</span>
+                </div>
+                {showCalendar && (
+                  <CustomCalendar
+                    selectedDate={editedTask.dateValue}
+                    onDateSelect={(date) => {
+                      const year = date.getFullYear()
+                      const month = String(date.getMonth() + 1).padStart(2, '0')
+                      const day = String(date.getDate()).padStart(2, '0')
+                      const dateValue = `${year}-${month}-${day}`
+                      const formattedDate = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
+                      setEditedTask({ ...editedTask, date: formattedDate, dateValue: dateValue })
+                    }}
+                    onClose={() => setShowCalendar(false)}
+                  />
+                )}
+              </div>
+
+              {/* Botones de edición */}
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={handleCancelEdit}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'rgba(255,255,255,0.1)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSave}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  Guardar
+                </button>
+              </div>
+            </>
+          ) : (
+            /* MODO SOLO LECTURA */
+            <>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#9ca3c0', textTransform: 'uppercase' }}>Título</label>
+                <p style={{ margin: 0, fontSize: '18px', color: '#fff', fontWeight: '600', wordWrap: 'break-word', overflowWrap: 'break-word' }}>{task.title}</p>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#9ca3c0', textTransform: 'uppercase' }}>Descripción</label>
+                <p style={{ margin: 0, fontSize: '14px', color: '#e5e7eb', lineHeight: '1.6', whiteSpace: 'pre-wrap', wordWrap: 'break-word', overflowWrap: 'break-word' }}>{task.description || 'Sin descripción'}</p>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#9ca3c0', textTransform: 'uppercase' }}>Fecha</label>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3c0" strokeWidth="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  <span style={{ color: '#fff', fontSize: '14px' }}>{task.date}</span>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#9ca3c0', textTransform: 'uppercase' }}>Estado</label>
+                <span style={{
+                  display: 'inline-block',
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  background: task.status === 'completed' ? 'rgba(16,185,129,0.15)' : 'rgba(251,191,36,0.15)',
+                  color: task.status === 'completed' ? '#10b981' : '#fbbf24'
+                }}>
+                  {task.status === 'completed' ? '✓ Completada' : '⏳ Pendiente'}
+                </span>
+              </div>
+
+              {/* Botones de acciones */}
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'space-between', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <button
+                  onClick={() => {
+                    if (confirm('¿Estás seguro de eliminar esta tarea?')) {
+                      onDelete(task.id)
+                    }
+                  }}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'rgba(239,68,68,0.15)',
+                    border: '1px solid rgba(239,68,68,0.3)',
+                    borderRadius: '8px',
+                    color: '#ef4444',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  Eliminar
+                </button>
+                <button
+                  onClick={onClose}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'rgba(255,255,255,0.1)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  Cerrar
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

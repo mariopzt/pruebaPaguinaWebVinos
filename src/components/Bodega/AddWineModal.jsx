@@ -9,6 +9,7 @@ function AddWineModal({ onClose, onAddWine }) {
     year: new Date().getFullYear(),
     price: 0,
     stock: 0,
+    restaurantStock: 0,
     alcoholContent: '13%',
     location: '',
     image: '',
@@ -79,6 +80,10 @@ function AddWineModal({ onClose, onAddWine }) {
     }
     if (newWine.stock < 0) {
       alert('El stock no puede ser negativo');
+      return;
+    }
+    if (newWine.restaurantStock < 0) {
+      alert('El stock del restaurante no puede ser negativo');
       return;
     }
 
@@ -206,21 +211,22 @@ function AddWineModal({ onClose, onAddWine }) {
               </div>
             </div>
 
-            {/* Precio y Stock */}
-            <div className="wine-form-row">
-              <div className="wine-form-group">
-                <label className="wine-form-label">Precio (€) *</label>
-                <input
-                  type="number"
-                  className="wine-editable-input"
-                  value={newWine.price}
-                  onChange={(e) => handleChange('price', parseFloat(e.target.value))}
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                />
-              </div>
+            {/* Precio */}
+            <div className="wine-form-group">
+              <label className="wine-form-label">Precio (€) *</label>
+              <input
+                type="number"
+                className="wine-editable-input"
+                value={newWine.price}
+                onChange={(e) => handleChange('price', parseFloat(e.target.value))}
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+              />
+            </div>
 
+            {/* Stock Almacén y Restaurante */}
+            <div className="wine-form-row">
               <div className="wine-form-group">
                 <label className="wine-form-label">Stock (unidades) *</label>
                 <input
@@ -228,6 +234,18 @@ function AddWineModal({ onClose, onAddWine }) {
                   className="wine-editable-input"
                   value={newWine.stock}
                   onChange={(e) => handleChange('stock', parseInt(e.target.value))}
+                  min="0"
+                  placeholder="0"
+                />
+              </div>
+
+              <div className="wine-form-group">
+                <label className="wine-form-label">Stock Restaurante *</label>
+                <input
+                  type="number"
+                  className="wine-editable-input"
+                  value={newWine.restaurantStock}
+                  onChange={(e) => handleChange('restaurantStock', parseInt(e.target.value))}
                   min="0"
                   placeholder="0"
                 />
