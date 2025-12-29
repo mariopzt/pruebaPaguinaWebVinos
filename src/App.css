@@ -3668,7 +3668,6 @@ body {
 /* Wrapper para hero + chips: se oculta cuando hay mensajes en el chat */
 .ia-quick-wrapper {
   transition: opacity 0.2s ease, max-height 0.2s ease, transform 0.2s ease;
-  max-height: 200px;
 }
 
 .ia-quick-wrapper.ia-quick-hide {
