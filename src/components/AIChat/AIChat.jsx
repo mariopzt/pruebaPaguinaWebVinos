@@ -4,6 +4,139 @@ import { useAI } from '../../hooks/useAI';
 import './AIChat.css';
 
 /**
+ * Formatea texto plano a HTML con estilos
+ */
+function formatMessage(text) {
+  if (!text) return '';
+  
+  let formatted = text;
+  
+  // Detectar y formatear bloques de código (texto entre ```)
+  formatted = formatted.replace(/```([\s\S]*?)```/g, (match, code) => {
+    return `<code>${code.trim()}</code>`;
+  });
+  
+  // Detectar código inline (texto entre `)
+  formatted = formatted.replace(/`([^`]+)`/g, '<code class="inline">$1</code>');
+  
+  // Detectar texto en negritas (**texto** o __texto__)
+  formatted = formatted.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  formatted = formatted.replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
+  
+  // Detectar separadores (--- o ***)
+  formatted = formatted.replace(/^[\-*]{3,}$/gm, '<hr>');
+  
+  // Detectar títulos (# Título)
+  formatted = formatted.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
+  formatted = formatted.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+  formatted = formatted.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+  formatted = formatted.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+  
+  // Dividir en líneas para procesar listas
+  const lines = formatted.split('\n');
+  const processedLines = [];
+  let inNumberedList = false;
+  let inBulletList = false;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    
+    // Detectar lista numerada
+    const numberedMatch = trimmed.match(/^(\d+)\.\s+(.+)$/);
+    if (numberedMatch) {
+      if (!inNumberedList) {
+        processedLines.push('<ol>');
+        inNumberedList = true;
+      }
+      processedLines.push(`<li>${numberedMatch[2]}</li>`);
+      continue;
+    } else if (inNumberedList) {
+      processedLines.push('</ol>');
+      inNumberedList = false;
+    }
+    
+    // Detectar lista sin orden
+    const bulletMatch = trimmed.match(/^[•\-→]\s+(.+)$/);
+    if (bulletMatch) {
+      if (!inBulletList) {
+        processedLines.push('<ul>');
+        inBulletList = true;
+      }
+      processedLines.push(`<li>${bulletMatch[1]}</li>`);
+      continue;
+    } else if (inBulletList) {
+      processedLines.push('</ul>');
+      inBulletList = false;
+    }
+    
+    // Línea normal
+    if (trimmed) {
+      processedLines.push(line);
+    } else if (processedLines.length > 0) {
+      processedLines.push('</p><p>');
+    }
+  }
+  
+  // Cerrar listas si quedaron abiertas
+  if (inNumberedList) processedLines.push('</ol>');
+  if (inBulletList) processedLines.push('</ul>');
+  
+  // Unir líneas
+  formatted = processedLines.join('\n');
+  
+  // Envolver en párrafo si no hay ya elementos de bloque
+  if (!formatted.includes('<ol>') && !formatted.includes('<ul>') && 
+      !formatted.includes('<h1>') && !formatted.includes('<h2>') &&
+      !formatted.includes('<h3>') && !formatted.includes('<h4>') &&
+      !formatted.includes('<code>')) {
+    formatted = `<p>${formatted}</p>`;
+  }
+  
+  // Limpiar párrafos vacíos
+  formatted = formatted.replace(/<p>\s*<\/p>/g, '');
+  formatted = formatted.replace(/<p>\n+<\/p>/g, '');
+  
+  return formatted;
+}
+
+/**
+ * Componente de texto con efecto typing
+ */
+function TypingText({ text, speed = 15, onComplete }) {
+  const [displayedText, setDisplayedText] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    if (!text) return;
+    
+    let index = 0;
+    setDisplayedText('');
+    setIsComplete(false);
+
+    const timer = setInterval(() => {
+      if (index < text.length) {
+        setDisplayedText(text.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(timer);
+        setIsComplete(true);
+        onComplete?.();
+      }
+    }, speed);
+
+    return () => clearInterval(timer);
+  }, [text, speed, onComplete]);
+
+  return (
+    <span className={`typing-text ${isComplete ? 'complete' : 'typing'}`}>
+      {displayedText}
+      {!isComplete && <span className="typing-cursor">|</span>}
+    </span>
+  );
+}
+
+/**
  * Componente de Chat con IA - Diseño Original
  * Los mensajes se pasan desde el padre para persistir entre vistas
  */
@@ -17,6 +150,7 @@ export function AIChat({
   onMessagesChange
 }) {
   const [inputMessage, setInputMessage] = useState('');
+  const [typingMessageId, setTypingMessageId] = useState(null);
   const chatMessagesRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -27,12 +161,24 @@ export function AIChat({
     clearHistory
   } = useAI({ wines, onWinesChange, onUIChange, currentUser });
 
-  // Auto-scroll al último mensaje
+  // Auto-scroll al último mensaje y durante el typing
   useEffect(() => {
     if (chatMessagesRef.current) {
       chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Scroll continuo durante typing
+  useEffect(() => {
+    if (typingMessageId && chatMessagesRef.current) {
+      const scrollInterval = setInterval(() => {
+        if (chatMessagesRef.current) {
+          chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+        }
+      }, 50);
+      return () => clearInterval(scrollInterval);
+    }
+  }, [typingMessageId]);
 
   // Enviar mensaje
   const handleSendMessage = useCallback(async (text) => {
@@ -50,11 +196,14 @@ export function AIChat({
 
     try {
       const response = await sendMessage(message);
+      const aiMsgId = `ai-${Date.now()}`;
+      setTypingMessageId(aiMsgId);
       onMessagesChange(prev => [...prev, {
-        id: `ai-${Date.now()}`,
+        id: aiMsgId,
         text: response?.response || 'Lo siento, no pude procesar tu mensaje.',
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(),
+        isNew: true
       }]);
     } catch (err) {
       onMessagesChange(prev => [...prev, {
@@ -155,8 +304,20 @@ export function AIChat({
                     <FiCpu size={14} />
                   )}
                 </span>
-                <div className="chat-message">
-                  <p>{msg.text}</p>
+                <div className={`chat-message ${msg.sender}`}>
+                  {msg.sender === 'ai' && msg.id === typingMessageId ? (
+                    <p>
+                      <TypingText 
+                        text={msg.text} 
+                        speed={12}
+                        onComplete={() => setTypingMessageId(null)}
+                      />
+                    </p>
+                  ) : msg.sender === 'ai' ? (
+                    <div dangerouslySetInnerHTML={{ __html: formatMessage(msg.text) }} />
+                  ) : (
+                    <p>{msg.text}</p>
+                  )}
                 </div>
               </div>
             ))
@@ -172,7 +333,6 @@ export function AIChat({
                   <span></span>
                   <span></span>
                 </div>
-                <span className="ai-thinking-text">Pensando...</span>
               </div>
             </div>
           )}
