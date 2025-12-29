@@ -163,13 +163,16 @@ export function AIChat({
           )}
           {isLoading && (
             <div className="chat-message-container ai">
-              <span className="chat-message-icon"><FiCpu size={14} /></span>
-              <div className="chat-message">
+              <span className="chat-message-icon">
+                <FiCpu size={16} className="ai-icon-pulse" />
+              </span>
+              <div className="chat-message ai-thinking">
                 <div className="ia-typing">
                   <span></span>
                   <span></span>
                   <span></span>
                 </div>
+                <span className="ai-thinking-text">Pensando...</span>
               </div>
             </div>
           )}
