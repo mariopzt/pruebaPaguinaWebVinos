@@ -3990,7 +3990,7 @@ body {
 
 .chat-send-arrow:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.199);
   background: linear-gradient(135deg, #7c8ef5 0%, #8b5bb8 100%);
 }
 
