@@ -181,7 +181,7 @@ export function AIChat({
             behavior: 'smooth'
           });
         }
-      }, 100); // Aumentado a 100ms para dar tiempo a la animación suave
+      }, 10); // Aumentado a 100ms para dar tiempo a la animación suave
       return () => clearInterval(scrollInterval);
     }
   }, [typingMessageId]);
