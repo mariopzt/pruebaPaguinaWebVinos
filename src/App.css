@@ -7469,7 +7469,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   /* Contenedor al 100% en móviles pequeños */
   .chat-input-container {
     width: 100%;
-    padding: 0 10px;
+    padding: 10px;
   }
 
   /* Ajustar márgenes del contenedor de mensajes */

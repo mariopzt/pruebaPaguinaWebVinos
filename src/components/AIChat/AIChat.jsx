@@ -161,21 +161,27 @@ export function AIChat({
     clearHistory
   } = useAI({ wines, onWinesChange, onUIChange, currentUser });
 
-  // Auto-scroll al último mensaje y durante el typing
+  // Auto-scroll al último mensaje con animación suave
   useEffect(() => {
     if (chatMessagesRef.current) {
-      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+      chatMessagesRef.current.scrollTo({
+        top: chatMessagesRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }, [messages]);
 
-  // Scroll continuo durante typing
+  // Scroll continuo durante typing con animación suave
   useEffect(() => {
     if (typingMessageId && chatMessagesRef.current) {
       const scrollInterval = setInterval(() => {
         if (chatMessagesRef.current) {
-          chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+          chatMessagesRef.current.scrollTo({
+            top: chatMessagesRef.current.scrollHeight,
+            behavior: 'smooth'
+          });
         }
-      }, 50);
+      }, 100); // Aumentado a 100ms para dar tiempo a la animación suave
       return () => clearInterval(scrollInterval);
     }
   }, [typingMessageId]);
