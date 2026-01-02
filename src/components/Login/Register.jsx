@@ -51,7 +51,12 @@ function Register({ onRegister, onBackToLogin }) {
         email: formData.email
       })
 
-      const activationLink = pendingResp?.data?.data?.activationLink || `${window.location.origin}/activate`
+      // Obtener el token y generar el link en el frontend (no usar el del backend)
+      const token = pendingResp?.data?.data?.token
+      const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
+      const activationLink = token 
+        ? `${frontendUrl}/activate?token=${token}`
+        : `${frontendUrl}/activate`
 
       setRegisteredEmail(formData.email)
       
