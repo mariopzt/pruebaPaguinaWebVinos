@@ -396,12 +396,17 @@ function App() {
     fetchWines()
   }, [])
 
-  // Inicializar likes cuando llegan vinos desde el backend
+  // Referencia para saber si ya se inicializaron los likes
+  const likesInitializedRef = useRef(false);
+
+  // Inicializar likes SOLO UNA VEZ cuando llegan los vinos por primera vez
   useEffect(() => {
     if (!wines || wines.length === 0) return
+    if (likesInitializedRef.current) return; // Ya se inicializó, no volver a hacerlo
+    
     const initialLikes = {}
     wines.forEach((wine) => {
-      const id = wine.id || wine._id
+      const id = wine._id || wine.id
       // Usar likes del backend si existen
       initialLikes[id] = {
         count: wine.likes?.count || 0,
@@ -409,8 +414,9 @@ function App() {
       }
     })
     setWineLikes(initialLikes)
+    likesInitializedRef.current = true; // Marcar como inicializado
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wines, currentUser])
+  }, [wines.length, currentUser?._id])
 
   // Actualizar Top Vinos cuando cambien los likes
   useEffect(() => {
@@ -418,8 +424,8 @@ function App() {
     // Crear array de vinos con sus likes
     const winesWithLikes = wines.map(wine => ({
       wine,
-      likes: wineLikes[wine.id]?.count || 0,
-      liked: wineLikes[wine.id]?.liked || false
+      likes: wineLikes[wine._id || wine.id]?.count || 0,
+      liked: wineLikes[wine._id || wine.id]?.liked || false
     }));
 
     // Ordenar por likes (descendente) y tomar los top 8
@@ -758,31 +764,24 @@ function App() {
   const handleToggleWineLike = async (wineId) => {
     if (!wineId) return
     
-    try {
-      console.log('🔵 Click en like, wineId:', wineId);
-      console.log('🔵 Estado actual wineLikes:', wineLikes[wineId]);
-      
-      // Actualizar optimistamente en el UI (solo el corazón)
-      setWineLikes(prev => {
-        const newLikesState = {
-          ...prev,
-          [wineId]: {
-            count: prev[wineId]?.liked ? prev[wineId].count - 1 : (prev[wineId]?.count || 0) + 1,
-            liked: !prev[wineId]?.liked
-          }
-        };
-        console.log('✅ Actualización optimista:', newLikesState[wineId]);
-        return newLikesState;
-      });
+    // Actualizar inmediatamente en el UI (el corazón se llena al instante)
+    const wasLiked = wineLikes[wineId]?.liked || false;
+    const prevCount = wineLikes[wineId]?.count || 0;
+    
+    setWineLikes(prev => ({
+      ...prev,
+      [wineId]: {
+        count: wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1,
+        liked: !wasLiked
+      }
+    }));
 
-      // Enviar al backend
-      console.log('📡 Enviando al backend...');
+    // Enviar al backend (sin bloquear la UI)
+    try {
       const response = await wineService.toggleLike(wineId);
-      console.log('📡 Respuesta del backend:', response);
       
-      // Actualizar con la respuesta del servidor
       if (response.success) {
-        // Actualizar el estado de likes (para el corazón)
+        // Sincronizar con la respuesta del servidor
         setWineLikes(prev => ({
           ...prev,
           [wineId]: {
@@ -791,8 +790,7 @@ function App() {
           }
         }));
 
-        // Actualizar el array de vinos con los datos del backend
-        // (esto NO cambiará el orden hasta recargar porque usamos wine.likes directamente)
+        // Actualizar el array de vinos para persistir el cambio
         setWines(prevWines => 
           prevWines.map(wine => 
             (wine._id || wine.id) === wineId 
@@ -800,19 +798,11 @@ function App() {
               : wine
           )
         );
-        console.log('✅ Estado actualizado con respuesta del servidor');
       }
     } catch (error) {
-      console.error('❌ Error al dar like:', error);
-      // Revertir el cambio optimista en caso de error
-      setWineLikes(prev => ({
-        ...prev,
-        [wineId]: {
-          count: prev[wineId]?.liked ? prev[wineId].count + 1 : prev[wineId].count - 1,
-          liked: !prev[wineId]?.liked
-        }
-      }));
-      console.log('⏪ Cambio revertido por error');
+      // Si falla el backend, NO revertimos - el usuario ve su like inmediatamente
+      // Solo mostramos un warning en consola
+      console.warn('No se pudo sincronizar like con el servidor:', error.message);
     }
   }
 
@@ -1374,6 +1364,9 @@ function App() {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     localStorage.removeItem('currentView')
+    // Resetear likes para que se reinicialicen en próximo login
+    likesInitializedRef.current = false
+    setWineLikes({})
   }
 
   // Si no está autenticado, mostrar Login

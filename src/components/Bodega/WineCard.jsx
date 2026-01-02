@@ -21,11 +21,6 @@ function WineCard({ wine, onClick, isHighlighted, likes = 0, liked = false, onTo
   const cardRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
 
-  // Debug: ver cuando cambia liked
-  useEffect(() => {
-    console.log(`💙 WineCard ${wine.name}: liked=${liked}, likes=${likes}`);
-  }, [liked, likes, wine.name]);
-
   useEffect(() => {
     const el = cardRef.current;
     if (!el) return undefined;
