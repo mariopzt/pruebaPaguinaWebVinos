@@ -48,8 +48,13 @@ function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine, wineLikes, onTogg
   // Manejar cambio de página
   const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
-    // Scroll al inicio de la sección (sin animación para evitar tirones)
-    window.scrollTo(0, 0);
+    // Scroll suave al inicio - buscar el contenedor principal .app
+    const appContainer = document.querySelector('.app');
+    if (appContainer) {
+      appContainer.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }, []);
 
   // Manejar tecla ESC para cerrar búsqueda

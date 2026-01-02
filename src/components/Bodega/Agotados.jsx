@@ -54,7 +54,13 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
   // Manejar cambio de página
   const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
-    window.scrollTo(0, 0);
+    // Scroll suave al inicio - buscar el contenedor principal .app
+    const appContainer = document.querySelector('.app');
+    if (appContainer) {
+      appContainer.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }, []);
 
   // Manejar tecla ESC para cerrar búsqueda
