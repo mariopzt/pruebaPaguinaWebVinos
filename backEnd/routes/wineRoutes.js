@@ -5,7 +5,8 @@ const {
   getWine,
   createWine,
   updateWine,
-  deleteWine
+  deleteWine,
+  toggleLike
 } = require('../controllers/wineController');
 const { protect, optionalAuth } = require('../middleware/auth');
 
@@ -18,6 +19,9 @@ router.route('/:id')
   .get(optionalAuth, getWine)
   .put(optionalAuth, updateWine)
   .delete(optionalAuth, deleteWine);
+
+// Toggle like en un vino
+router.post('/:id/like', protect, toggleLike);
 
 module.exports = router;
 

@@ -244,3 +244,57 @@ exports.deleteWine = async (req, res) => {
   }
 };
 
+// @desc    Toggle like en un vino
+// @route   POST /api/wines/:id/like
+// @access  Private
+exports.toggleLike = async (req, res) => {
+  try {
+    const wine = await Wine.findById(req.params.id);
+
+    if (!wine) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vino no encontrado'
+      });
+    }
+
+    const userId = req.user.id;
+
+    // Inicializar likes si no existe
+    if (!wine.likes) {
+      wine.likes = { count: 0, users: [] };
+    }
+
+    // Verificar si el usuario ya dio like
+    const userIndex = wine.likes.users.indexOf(userId);
+
+    if (userIndex > -1) {
+      // Si ya dio like, removerlo
+      wine.likes.users.splice(userIndex, 1);
+      wine.likes.count = Math.max(0, wine.likes.count - 1);
+    } else {
+      // Si no ha dado like, agregarlo
+      wine.likes.users.push(userId);
+      wine.likes.count += 1;
+    }
+
+    await wine.save();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        wineId: wine._id,
+        likes: wine.likes.count,
+        liked: wine.likes.users.includes(userId)
+      }
+    });
+  } catch (error) {
+    console.error('Error en toggleLike:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al procesar like',
+      error: error.message
+    });
+  }
+};
+

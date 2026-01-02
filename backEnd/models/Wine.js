@@ -103,6 +103,17 @@ const wineSchema = new mongoose.Schema(
         },
       },
     ],
+    likes: {
+      count: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      users: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      }],
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

@@ -396,20 +396,21 @@ function App() {
     fetchWines()
   }, [])
 
-  // Inicializar likes cuando llegan vinos
+  // Inicializar likes cuando llegan vinos desde el backend
   useEffect(() => {
     if (!wines || wines.length === 0) return
     const initialLikes = {}
     wines.forEach((wine) => {
       const id = wine.id || wine._id
-      initialLikes[id] = wineLikes[id] || {
-        count: Math.floor(Math.random() * 150) + 20,
-        liked: false
+      // Usar likes del backend si existen
+      initialLikes[id] = {
+        count: wine.likes?.count || 0,
+        liked: wine.likes?.users?.includes(currentUser?._id || currentUser?.id) || false
       }
     })
     setWineLikes(initialLikes)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wines])
+  }, [wines, currentUser])
 
   // Actualizar Top Vinos cuando cambien los likes
   useEffect(() => {
@@ -754,15 +755,43 @@ function App() {
   }, [currentView])
 
   // Función para toggle like en vinos de bodega
-  const handleToggleWineLike = (wineId) => {
+  const handleToggleWineLike = async (wineId) => {
     if (!wineId) return
-    setWineLikes(prev => ({
-      ...prev,
-      [wineId]: {
-        count: prev[wineId]?.liked ? prev[wineId].count - 1 : (prev[wineId]?.count || 0) + 1,
-        liked: !prev[wineId]?.liked
+    
+    try {
+      // Actualizar optimistamente en el UI
+      setWineLikes(prev => ({
+        ...prev,
+        [wineId]: {
+          count: prev[wineId]?.liked ? prev[wineId].count - 1 : (prev[wineId]?.count || 0) + 1,
+          liked: !prev[wineId]?.liked
+        }
+      }));
+
+      // Enviar al backend
+      const response = await wineService.toggleLike(wineId);
+      
+      // Actualizar con la respuesta del servidor
+      if (response.success) {
+        setWineLikes(prev => ({
+          ...prev,
+          [wineId]: {
+            count: response.data.likes,
+            liked: response.data.liked
+          }
+        }));
       }
-    }));
+    } catch (error) {
+      console.error('Error al dar like:', error);
+      // Revertir el cambio optimista en caso de error
+      setWineLikes(prev => ({
+        ...prev,
+        [wineId]: {
+          count: prev[wineId]?.liked ? prev[wineId].count + 1 : prev[wineId].count - 1,
+          liked: !prev[wineId]?.liked
+        }
+      }));
+    }
   }
 
   const handleReviewClick = (review) => {

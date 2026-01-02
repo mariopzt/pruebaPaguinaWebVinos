@@ -54,6 +54,16 @@ const wineService = {
     } catch (error) {
       throw error.response?.data || { message: 'Error al eliminar vino' };
     }
+  },
+
+  // Toggle like en un vino
+  toggleLike: async (id) => {
+    try {
+      const response = await api.post(`/wines/${id}/like`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error al procesar like' };
+    }
   }
 };
 
