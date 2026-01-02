@@ -88,7 +88,17 @@ function App() {
   }, [])
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [currentView, setCurrentView] = useState('home') // 'home', 'bodega', o 'agotados'
+  // Restaurar la vista anterior al recargar la página
+  const [currentView, setCurrentView] = useState(() => {
+    const savedView = localStorage.getItem('currentView')
+    return savedView || 'home'
+  })
+
+  // Guardar la vista actual en localStorage cuando cambie
+  useEffect(() => {
+    localStorage.setItem('currentView', currentView)
+  }, [currentView])
+
   const [selectedWine, setSelectedWine] = useState(null)
   const [showAddWineModal, setShowAddWineModal] = useState(false)
   const [wineListVersion, setWineListVersion] = useState(0)
@@ -1309,6 +1319,10 @@ function App() {
     setCurrentUser(null)
     setCurrentView('home')
     setIsMenuOpen(false)
+    // Limpiar localStorage al cerrar sesión
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    localStorage.removeItem('currentView')
   }
 
   // Si no está autenticado, mostrar Login
