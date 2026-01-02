@@ -36,4 +36,6 @@ services:
     envVars:
       - key: VITE_API_URL
         sync: false
+      - key: VITE_FRONTEND_URL
+        sync: false
 

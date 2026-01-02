@@ -25,7 +25,7 @@ npm install
 
 3. **Configurar variables de entorno:**
 
-Copia el archivo `.env.example` a `.env` y configura tus credenciales:
+Crea un archivo `.env` en la carpeta `backEnd` con las siguientes variables:
 
 ```env
 PORT=5000
@@ -33,8 +33,15 @@ NODE_ENV=development
 MONGODB_URI=tu_connection_string_de_mongodb_atlas
 JWT_SECRET=tu_clave_secreta_super_segura
 JWT_EXPIRE=7d
+
+# URL del frontend para emails de activación
+# En desarrollo:
 FRONTEND_URL=http://localhost:5173
+# En producción (Render):
+# FRONTEND_URL=https://vinosstk-rdsr.onrender.com
 ```
+
+**⚠️ IMPORTANTE:** La variable `FRONTEND_URL` es crítica para que los emails de activación de usuarios contengan el link correcto. En producción, debe apuntar a la URL del frontend desplegado.
 
 ## 🔧 Configurar MongoDB Atlas
 

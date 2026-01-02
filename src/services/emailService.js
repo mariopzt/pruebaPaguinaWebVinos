@@ -11,9 +11,11 @@ const EMAIL_CONFIG = {
 // Función para enviar email de bienvenida
 export const sendWelcomeEmail = async (userData) => {
   try {
+    // Usar la URL del frontend desde variables de entorno o el link proporcionado
+    const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin;
     const activationLink =
       userData.activationLink ||
-      (userData.token ? `${window.location.origin}/activate?token=${userData.token}` : window.location.origin);
+      (userData.token ? `${frontendUrl}/activate?token=${userData.token}` : frontendUrl);
 
     const templateParams = {
       to_name: userData.name,
