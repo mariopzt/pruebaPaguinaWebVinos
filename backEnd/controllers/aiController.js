@@ -636,16 +636,41 @@ exports.processCommand = async (req, res, next) => {
       }
     }
 
-    // Construir contexto de vinos
-    const winesContext = context?.wines?.slice(0, 30).map(w => 
-      `- "${w.name}" | Bodega: ${w.stock || 0} | Restaurante: ${w.restaurantStock || 0} | €${w.price || 0}`
-    ).join('\n') || 'Sin vinos';
+    // Construir contexto de vinos CON TODA LA INFORMACIÓN
+    const allWines = context?.wines || [];
+    const winesContext = allWines.slice(0, 30).map(w => {
+      const parts = [
+        `"${w.name}"`,
+        w.type ? `Tipo: ${w.type}` : null,
+        w.year ? `Año: ${w.year}` : null,
+        w.region ? `Región: ${w.region}` : null,
+        w.grape ? `Uvas: ${w.grape}` : null,
+        w.alcoholContent ? `Alcohol: ${w.alcoholContent}` : null,
+        w.description ? `Desc: ${w.description.substring(0, 100)}` : null,
+        `Stock Bodega: ${w.stock || 0}`,
+        `Stock Restaurante: ${w.restaurantStock || 0}`,
+        `Precio: €${w.price || 0}`,
+        w.likes?.count ? `❤️ Likes: ${w.likes.count}` : null,
+        w.rating ? `⭐ Rating: ${w.rating}` : null
+      ].filter(Boolean);
+      return `- ${parts.join(' | ')}`;
+    }).join('\n') || 'Sin vinos';
+    
+    // Contar vinos agotados
+    const agotadosCount = allWines.filter(w => (w.stock || 0) === 0).length;
+    const agotadosList = agotadosCount > 0 
+      ? allWines.filter(w => (w.stock || 0) === 0).map(w => w.name).join(', ')
+      : 'NO HAY VINOS AGOTADOS';
 
     // Construir prompt del sistema
     const systemPrompt = `Eres el asistente IA EXPERTO EN VINOS de VinosStK con CONTROL TOTAL sobre la bodega.
 ${webSearchInfo}
 VINOS EN LA BODEGA:
 ${winesContext}
+
+VINOS AGOTADOS (stock = 0):
+${agotadosList}
+${agotadosCount === 0 ? '⚠️ IMPORTANTE: NO hay vinos agotados actualmente. NO inventes vinos agotados que no existen en la lista.' : `Hay ${agotadosCount} vino(s) agotado(s).`}
 
 ACCIONES QUE PUEDES EJECUTAR:
 
@@ -698,7 +723,32 @@ FORMATO DE RESPUESTA (JSON):
   "data": { ... }
 }
 
-EJEMPLOS:
+EJEMPLOS DE PREGUNTAS QUE PUEDES RESPONDER:
+
+Usuario: "¿Qué vinos tienen poco stock?"
+"Aquí tienes los vinos con poco stock en la bodega:
+1. 'Vino A' - Stock: 5
+2. 'Vino B' - Stock: 8"
+⚠️ NOTA: Ordenados de MENOR a MAYOR stock
+
+Usuario: "¿Qué vinos son de Rioja?"
+"Tenemos estos vinos de Rioja:
+- 'Muga Reserva' (2019) - Tempranillo, Garnacha | €22 | Stock: 25"
+
+Usuario: "¿Cuánto cuesta el Albariño?"
+"El 'Martín Códax Albariño' cuesta €14 y tenemos 35 unidades en bodega."
+
+Usuario: "¿Qué vinos de Mencía tenemos?"
+"Los vinos con uva Mencía son:
+- 'Pétalos del Bierzo' (D.O. Bierzo) | €16 | Stock: 30
+- 'Guímaro' (D.O. Ribeira Sacra) | €18 | Stock: 20"
+
+Usuario: "¿Cuáles son los vinos más valorados?" (si tienen likes/rating)
+"Los vinos con más likes son:
+1. 'Vino X' - 45 likes
+2. 'Vino Y' - 38 likes"
+
+EJEMPLOS DE OPERACIONES:
 
 Usuario: "Quita 2 del stock a todos los vinos"
 {
@@ -779,12 +829,19 @@ REGLAS GENERALES:
 - Responde SIEMPRE en español
 - Para operaciones de stock/vinos: responde en JSON válido
 - Para preguntas sobre vinos: responde en texto normal (NO JSON)
+- ⚠️ CRÍTICO: NUNCA inventes vinos que no están en la lista de "VINOS EN LA BODEGA"
+- Si te preguntan por vinos agotados y NO HAY ninguno, di claramente "No hay vinos agotados actualmente"
+- Si preguntan por un vino que no existe, di "Ese vino no está en la bodega actualmente"
+- ⚠️ ORDEN DE LISTADOS: Cuando listes vinos por stock (poco stock, bajo stock, etc.), SIEMPRE ordénalos de MENOR a MAYOR stock (ej: stock 10 antes que stock 15, stock 15 antes que stock 25)
 
 REGLAS PARA PREGUNTAS SOBRE VINOS:
-- **SI HAY "INFORMACIÓN DE BÚSQUEDA WEB" ARRIBA**: USA esos datos para responder
-- Ejemplo: Si dice "D.O.: Ribeiro | Uvas: Treixadura", responde: "El vino X es de la D.O. Ribeiro, elaborado con uvas Treixadura"
-- **SI NO HAY información de búsqueda**: di "No encontré información verificada sobre este vino"
-- Sé BREVE y DIRECTO: solo menciona D.O., uvas, bodega
+- **TIENES ACCESO COMPLETO** a toda la información de los vinos en "VINOS EN LA BODEGA" (región, uvas, año, descripción, precio, stock, likes, etc.)
+- **SIEMPRE revisa primero** la información en "VINOS EN LA BODEGA" antes de buscar en web
+- Puedes responder preguntas sobre: D.O., uvas, región, año, precio, stock, descripción, likes, ratings
+- **SI HAY "INFORMACIÓN DE BÚSQUEDA WEB" ARRIBA**: USA esos datos ADICIONALES para complementar
+- **SI un vino está en la bodega**: usa TODA su información para responder
+- **SI un vino NO está en la bodega y NO hay info web**: di "Ese vino no está en la bodega actualmente"
+- Sé INFORMATIVO pero BREVE: menciona los datos más relevantes (D.O., uvas, año, precio si preguntan)
 
 REGLAS PARA OPERACIONES DE BODEGA:
 - Usa los nombres EXACTOS de los vinos del contexto

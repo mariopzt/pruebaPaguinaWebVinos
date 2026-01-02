@@ -289,9 +289,22 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
             id: w._id || w.id,
             name: w.name,
             type: w.type,
+            year: w.year,
+            region: w.region,
+            grape: w.grape,
+            grapeVariety: w.grapeVariety,
+            alcoholContent: w.alcoholContent,
+            location: w.location,
+            description: w.description,
             stock: w.stock || 0,
             restaurantStock: w.restaurantStock || 0,
-            price: w.price || 0
+            price: w.price || 0,
+            image: w.image,
+            awards: w.awards,
+            rating: w.rating,
+            likes: w.likes,
+            updatedAt: w.updatedAt,
+            createdAt: w.createdAt
           })),
           user: currentUser?.name || 'Usuario',
           timestamp: new Date().toISOString()
