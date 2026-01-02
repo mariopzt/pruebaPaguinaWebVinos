@@ -759,20 +759,30 @@ function App() {
     if (!wineId) return
     
     try {
-      // Actualizar optimistamente en el UI
-      setWineLikes(prev => ({
-        ...prev,
-        [wineId]: {
-          count: prev[wineId]?.liked ? prev[wineId].count - 1 : (prev[wineId]?.count || 0) + 1,
-          liked: !prev[wineId]?.liked
-        }
-      }));
+      console.log('🔵 Click en like, wineId:', wineId);
+      console.log('🔵 Estado actual wineLikes:', wineLikes[wineId]);
+      
+      // Actualizar optimistamente en el UI (solo el corazón)
+      setWineLikes(prev => {
+        const newLikesState = {
+          ...prev,
+          [wineId]: {
+            count: prev[wineId]?.liked ? prev[wineId].count - 1 : (prev[wineId]?.count || 0) + 1,
+            liked: !prev[wineId]?.liked
+          }
+        };
+        console.log('✅ Actualización optimista:', newLikesState[wineId]);
+        return newLikesState;
+      });
 
       // Enviar al backend
+      console.log('📡 Enviando al backend...');
       const response = await wineService.toggleLike(wineId);
+      console.log('📡 Respuesta del backend:', response);
       
       // Actualizar con la respuesta del servidor
       if (response.success) {
+        // Actualizar el estado de likes (para el corazón)
         setWineLikes(prev => ({
           ...prev,
           [wineId]: {
@@ -780,9 +790,20 @@ function App() {
             liked: response.data.liked
           }
         }));
+
+        // Actualizar el array de vinos con los datos del backend
+        // (esto NO cambiará el orden hasta recargar porque usamos wine.likes directamente)
+        setWines(prevWines => 
+          prevWines.map(wine => 
+            (wine._id || wine.id) === wineId 
+              ? { ...wine, likes: { count: response.data.likes, users: wine.likes?.users || [] } }
+              : wine
+          )
+        );
+        console.log('✅ Estado actualizado con respuesta del servidor');
       }
     } catch (error) {
-      console.error('Error al dar like:', error);
+      console.error('❌ Error al dar like:', error);
       // Revertir el cambio optimista en caso de error
       setWineLikes(prev => ({
         ...prev,
@@ -791,6 +812,7 @@ function App() {
           liked: !prev[wineId]?.liked
         }
       }));
+      console.log('⏪ Cambio revertido por error');
     }
   }
 
@@ -1836,6 +1858,7 @@ function App() {
                       onWineOutOfStock={addNotification}
                       highlightedWineId={highlightedWineId}
                       wines={wines}
+                      wineLikes={wineLikes}
                     />
                   </div>
                 )}

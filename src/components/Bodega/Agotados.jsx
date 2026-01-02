@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import WineCard from './WineCard';
 import './Bodega.css';
 
-function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedWineId, wines = [] }) {
+function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedWineId, wines = [], wineLikes = {} }) {
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,11 +14,27 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
   const searchRef = useRef(null);
   const filterDropdownRef = useRef(null);
 
+  // Guardar el orden inicial de los vinos al cargar (solo una vez por sesión)
+  const initialOrderRef = useRef(null);
+
   // Lista base de vinos agotados (memorizada)
   const agotadosWines = useMemo(
     () => wines.filter((wine) => wine.stock === 0),
     [wines]
   );
+
+  // Establecer el orden inicial solo cuando cambian los vinos agotados
+  useEffect(() => {
+    if (agotadosWines.length > 0 && !initialOrderRef.current) {
+      // Crear una copia ordenada por likes del backend
+      const sortedWines = [...agotadosWines].sort((a, b) => {
+        const likesA = a.likes?.count || 0;
+        const likesB = b.likes?.count || 0;
+        return likesB - likesA;
+      });
+      initialOrderRef.current = sortedWines.map(w => w._id || w.id);
+    }
+  }, [agotadosWines.length]);
 
   // Filtro por tipo + búsqueda (memorizado)
   const filteredWines = useMemo(() => {
@@ -27,10 +43,32 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
         ? agotadosWines
         : agotadosWines.filter((wine) => wine.type === activeFilter);
 
-    if (!searchTerm.trim()) return byType;
+    let resultList = byType;
 
-    const lowered = searchTerm.toLowerCase();
-    return byType.filter((wine) => wine.name.toLowerCase().includes(lowered));
+    // Filtrar por búsqueda si hay término
+    if (searchTerm.trim()) {
+      const lowered = searchTerm.toLowerCase();
+      resultList = byType.filter((wine) => wine.name.toLowerCase().includes(lowered));
+    }
+
+    // Mantener el orden inicial establecido al cargar la página
+    if (initialOrderRef.current) {
+      return resultList.sort((a, b) => {
+        const idA = a._id || a.id;
+        const idB = b._id || b.id;
+        const indexA = initialOrderRef.current.indexOf(idA);
+        const indexB = initialOrderRef.current.indexOf(idB);
+        
+        // Si no están en el orden inicial, ponerlos al final
+        if (indexA === -1 && indexB === -1) return 0;
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+        
+        return indexA - indexB;
+      });
+    }
+
+    return resultList;
   }, [activeFilter, searchTerm, agotadosWines]);
 
   // Calcular la paginación (memorizado)

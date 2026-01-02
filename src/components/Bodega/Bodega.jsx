@@ -14,17 +14,55 @@ function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine, wineLikes, onTogg
   const searchRef = useRef(null);
   const filterDropdownRef = useRef(null);
 
-  // Filtrar vinos según el tipo seleccionado y término de búsqueda (memorizado)
+  // Guardar el orden inicial de los vinos al cargar (solo una vez por sesión)
+  const initialOrderRef = useRef(null);
+  
+  // Establecer el orden inicial solo cuando cambian los vinos desde el backend
+  useEffect(() => {
+    if (wines.length > 0 && !initialOrderRef.current) {
+      // Crear una copia ordenada por likes del backend
+      const sortedWines = [...wines].sort((a, b) => {
+        const likesA = a.likes?.count || 0;
+        const likesB = b.likes?.count || 0;
+        return likesB - likesA;
+      });
+      initialOrderRef.current = sortedWines.map(w => w._id || w.id);
+    }
+  }, [wines.length]); // Solo cuando cambia la cantidad de vinos
+
+  // Filtrar y ordenar vinos según el tipo seleccionado, término de búsqueda (memorizado)
   const filteredWines = useMemo(() => {
     const baseList =
       activeFilter === 'Todos'
         ? wines.filter((wine) => wine.stock > 0)
         : wines.filter((wine) => wine.type === activeFilter && wine.stock > 0);
 
-    if (!searchTerm.trim()) return baseList;
+    let resultList = baseList;
 
-    const lowered = searchTerm.toLowerCase();
-    return baseList.filter((wine) => wine.name.toLowerCase().includes(lowered));
+    // Filtrar por búsqueda si hay término
+    if (searchTerm.trim()) {
+      const lowered = searchTerm.toLowerCase();
+      resultList = baseList.filter((wine) => wine.name.toLowerCase().includes(lowered));
+    }
+
+    // Mantener el orden inicial establecido al cargar la página
+    if (initialOrderRef.current) {
+      return resultList.sort((a, b) => {
+        const idA = a._id || a.id;
+        const idB = b._id || b.id;
+        const indexA = initialOrderRef.current.indexOf(idA);
+        const indexB = initialOrderRef.current.indexOf(idB);
+        
+        // Si no están en el orden inicial, ponerlos al final
+        if (indexA === -1 && indexB === -1) return 0;
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+        
+        return indexA - indexB;
+      });
+    }
+
+    return resultList;
   }, [activeFilter, searchTerm, wines]);
 
   // Calcular la paginación (memorizado)
