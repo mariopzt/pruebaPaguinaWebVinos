@@ -51,15 +51,15 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
     setCurrentPage(1);
   }, []);
 
+  // Referencia al contenedor para el scroll
+  const containerRef = useRef(null);
+
   // Manejar cambio de página
   const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
-    // Scroll suave al inicio - buscar el contenedor principal .app
-    const appContainer = document.querySelector('.app');
-    if (appContainer) {
-      appContainer.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll suave al inicio del contenedor
+    if (containerRef.current) {
+      containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, []);
 
@@ -147,7 +147,7 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
   };
 
   return (
-    <div className="bodega-container">
+    <div className="bodega-container" ref={containerRef}>
       <div className="bodega-filters">
         {/* Botones de filtro individuales (solo desktop) */}
         <div className="filter-buttons-desktop">

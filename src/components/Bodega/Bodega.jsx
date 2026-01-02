@@ -45,15 +45,15 @@ function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine, wineLikes, onTogg
     setCurrentPage(1); // Reset a la primera página al cambiar filtro
   }, []);
 
+  // Referencia al contenedor de bodega para el scroll
+  const bodegaContainerRef = useRef(null);
+
   // Manejar cambio de página
   const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
-    // Scroll suave al inicio - buscar el contenedor principal .app
-    const appContainer = document.querySelector('.app');
-    if (appContainer) {
-      appContainer.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll suave al inicio del contenedor de bodega
+    if (bodegaContainerRef.current) {
+      bodegaContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, []);
 
@@ -145,7 +145,7 @@ function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine, wineLikes, onTogg
   };
 
   return (
-    <div className="bodega-container">
+    <div className="bodega-container" ref={bodegaContainerRef}>
       {/* Botón agregar vino - Posición superior derecha */}
       <button 
         className="add-wine-button add-wine-button-top"
