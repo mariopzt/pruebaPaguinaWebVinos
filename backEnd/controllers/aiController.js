@@ -656,10 +656,21 @@ exports.processCommand = async (req, res, next) => {
       return `- ${parts.join(' | ')}`;
     }).join('\n') || 'Sin vinos';
     
-    // Contar vinos agotados
-    const agotadosCount = allWines.filter(w => (w.stock || 0) === 0).length;
+    // Contar vinos agotados y formatear con TODA su información
+    const agotadosWines = allWines.filter(w => (w.stock || 0) === 0);
+    const agotadosCount = agotadosWines.length;
     const agotadosList = agotadosCount > 0 
-      ? allWines.filter(w => (w.stock || 0) === 0).map(w => w.name).join(', ')
+      ? agotadosWines.map(w => {
+          const parts = [
+            `"${w.name}"`,
+            w.type ? `(${w.type})` : null,
+            w.year ? `${w.year}` : null,
+            w.region ? `D.O. ${w.region}` : null,
+            w.grape ? `Uvas: ${w.grape}` : null,
+            w.price ? `€${w.price}` : null
+          ].filter(Boolean);
+          return parts.join(' - ');
+        }).join('\n')
       : 'NO HAY VINOS AGOTADOS';
 
     // Construir prompt del sistema
@@ -668,9 +679,14 @@ ${webSearchInfo}
 VINOS EN LA BODEGA:
 ${winesContext}
 
-VINOS AGOTADOS (stock = 0):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VINOS AGOTADOS (stock = 0 en bodega):
 ${agotadosList}
-${agotadosCount === 0 ? '⚠️ IMPORTANTE: NO hay vinos agotados actualmente. NO inventes vinos agotados que no existen en la lista.' : `Hay ${agotadosCount} vino(s) agotado(s).`}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${agotadosCount === 0 
+  ? '⚠️ IMPORTANTE: NO hay vinos agotados actualmente. NO inventes vinos agotados que no existen en la lista.' 
+  : `✅ HAY ${agotadosCount} VINO(S) AGOTADO(S) LISTADOS ARRIBA. Cuando te pregunten por vinos agotados, DEBES listar estos vinos con su información completa.`}
 
 ACCIONES QUE PUEDES EJECUTAR:
 
@@ -747,6 +763,18 @@ Usuario: "¿Cuáles son los vinos más valorados?" (si tienen likes/rating)
 "Los vinos con más likes son:
 1. 'Vino X' - 45 likes
 2. 'Vino Y' - 38 likes"
+
+Usuario: "Vinos agotados" o "¿Qué vinos están agotados?"
+SI HAY vinos agotados en la lista ARRIBA:
+"Los vinos que se encuentran agotados en la bodega son:
+
+1. 'Clos Mogador' - Tinto 2018 - D.O. Priorat - Uvas: Garnacha, Cariñena - €45
+2. 'El Nido' - Tinto 2019 - D.O. Jumilla - Uvas: Monastrell - €38
+
+Si necesitas realizar alguna acción con estos vinos, házmelo saber."
+
+SI NO HAY vinos agotados:
+"No hay vinos agotados actualmente en la bodega. Todos los vinos tienen stock disponible."
 
 EJEMPLOS DE OPERACIONES:
 
@@ -830,7 +858,10 @@ REGLAS GENERALES:
 - Para operaciones de stock/vinos: responde en JSON válido
 - Para preguntas sobre vinos: responde en texto normal (NO JSON)
 - ⚠️ CRÍTICO: NUNCA inventes vinos que no están en la lista de "VINOS EN LA BODEGA"
-- Si te preguntan por vinos agotados y NO HAY ninguno, di claramente "No hay vinos agotados actualmente"
+- ⚠️ VINOS AGOTADOS: Si preguntan por vinos agotados:
+  * SI HAY vinos en la sección "VINOS AGOTADOS", DEBES listarlos con toda su información
+  * SI NO HAY vinos en esa sección (dice "NO HAY VINOS AGOTADOS"), di "No hay vinos agotados actualmente"
+  * NUNCA digas "No tengo información" si la lista de vinos agotados está visible arriba
 - Si preguntan por un vino que no existe, di "Ese vino no está en la bodega actualmente"
 - ⚠️ ORDEN DE LISTADOS: Cuando listes vinos por stock (poco stock, bajo stock, etc.), SIEMPRE ordénalos de MENOR a MAYOR stock (ej: stock 10 antes que stock 15, stock 15 antes que stock 25)
 
