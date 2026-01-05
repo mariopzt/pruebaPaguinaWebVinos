@@ -676,13 +676,13 @@ exports.processCommand = async (req, res, next) => {
       return parts.join(' | ');
     }).join('\n') || 'Sin vinos';
     
-    // LOG DEBUG: Mostrar vinos con descripción VÁLIDA
+    // Vinos con descripción VÁLIDA (pre-filtrados para la IA)
     const winesWithDesc = allWines.filter(w => isValidDescription(w.description));
-    console.log('\n🔍 [DEBUG] Vinos con descripción VÁLIDA en BD:');
-    winesWithDesc.forEach(w => {
-      console.log(`  - "${w.name}" → Desc: ${w.description.substring(0, 50)}...`);
-    });
-    console.log(`📊 Total: ${winesWithDesc.length} vinos con descripción válida\n`);
+    const winesWithDescList = winesWithDesc.length > 0
+      ? winesWithDesc.map(w => `"${w.name}" | ${w.type} | ${w.region || ''} | €${w.price} | Desc: ${w.description}`).join('\n')
+      : 'NINGUNO - No hay vinos con descripción registrada';
+    
+    console.log(`\n📊 [DEBUG] ${winesWithDesc.length} vinos con descripción válida\n`);
     
     // Contar vinos agotados y formatear con TODA su información
     const agotadosWines = allWines.filter(w => (w.stock || 0) === 0);
@@ -711,6 +711,10 @@ VINOS DISPONIBLES (${allWines.slice(0, 50).length} vinos):
 ${winesContext}
 
 ${agotadosCount > 0 ? `AGOTADOS (${agotadosCount}): ${agotadosList}` : 'Sin vinos agotados.'}
+
+📝 VINOS CON DESCRIPCIÓN (${winesWithDesc.length} vinos):
+${winesWithDescList}
+(Si preguntan "¿qué vinos tienen descripción?" → copia SOLO esta lista, NO agregues otros)
 
 ACCIONES (responde en JSON cuando modifiques stock/vinos):
 
@@ -772,10 +776,9 @@ FORMATO DE RESPUESTA (JSON):
 - Si NO ves "Desc:" → NO tiene descripción
 
 **CUANDO PREGUNTEN "¿QUÉ VINOS TIENEN DESCRIPCIÓN?"**:
-- Lista SOLO los vinos que tienen "Desc:" en su línea
-- NO listes vinos que no tienen "Desc:"
-- NO pongas "no tiene descripción" - simplemente NO lo incluyas en la lista
-- Ejemplo: Si solo 2 vinos tienen "Desc:", lista solo esos 2
+- COPIA EXACTAMENTE la sección "📝 VINOS CON DESCRIPCIÓN" de arriba
+- NO agregues otros vinos que no estén en esa sección
+- Si dice "${winesWithDesc.length} vinos", lista EXACTAMENTE ${winesWithDesc.length}, ni más ni menos
 
 **CUANDO PREGUNTEN POR UN VINO ESPECÍFICO**:
 - Si tiene "Desc:" → muestra esa descripción
