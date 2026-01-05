@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import api from '../api/axios';
 import wineService from '../api/wineService';
+import statsService from '../api/statsService';
 
 /**
  * Hook para comunicación con la IA
@@ -41,13 +42,17 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
   }, [wines]);
 
   // Ejecutar acción de modificar stock (uno o varios vinos)
-  const executeUpdateStock = useCallback(async (data) => {
+  const executeUpdateStock = useCallback(async (data, originalMessage = '') => {
     const winesList = data.wines || [data];
     const results = [];
     const updatedWines = [...wines];
 
+    // Detectar si es venta o pérdida basándose en keywords del mensaje
+    const isLoss = /roto|rompi[óo]|perdid[oa]|jefe.*llev[óo]|se.*llev[óo].*jefe/i.test(originalMessage);
+    const isSale = /vend|vendid[oa]|compr[óo]|cliente|mesa/i.test(originalMessage);
+
     for (const item of winesList) {
-      const { name, wineName, stockChange, stock, field = 'stock' } = item;
+      const { name, wineName, stockChange, stock, field = 'stock', reason } = item;
       const targetName = name || wineName;
       
       if (!targetName) continue;
@@ -61,11 +66,14 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
       const wineId = wine._id || wine.id;
       const currentStock = wine[field] || 0;
       let newStock;
+      let actualChange = 0;
 
       if (stockChange !== undefined) {
         newStock = Math.max(0, currentStock + stockChange);
+        actualChange = newStock - currentStock;
       } else if (stock !== undefined) {
         newStock = Math.max(0, stock);
+        actualChange = newStock - currentStock;
       } else {
         continue;
       }
@@ -73,6 +81,29 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
       try {
         // Actualizar en BD
         await wineService.updateWine(wineId, { [field]: newStock });
+        
+        // Si se redujo el stock, registrar en estadísticas
+        if (actualChange < 0 && field === 'stock') {
+          const quantity = Math.abs(actualChange);
+          
+          // Determinar si es pérdida o venta
+          if (isLoss || reason === 'loss') {
+            try {
+              await statsService.registerLoss(wineId, quantity, reason || originalMessage);
+              console.log(`📉 Pérdida registrada: ${wine.name} -${quantity}`);
+            } catch (statErr) {
+              console.warn('Error registrando pérdida:', statErr);
+            }
+          } else {
+            // Por defecto, si se reduce stock, es venta
+            try {
+              await statsService.registerSale(wineId, quantity);
+              console.log(`💰 Venta registrada: ${wine.name} -${quantity}`);
+            } catch (statErr) {
+              console.warn('Error registrando venta:', statErr);
+            }
+          }
+        }
         
         // Actualizar en array local
         const idx = updatedWines.findIndex(w => (w._id || w.id) === wineId);
@@ -86,7 +117,7 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
           field,
           oldStock: currentStock, 
           newStock,
-          change: stockChange 
+          change: actualChange 
         });
         
         console.log(`✅ ${wine.name}: ${field} ${currentStock} → ${newStock}`);
@@ -230,7 +261,7 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
   }, [wines, findWineByName, onWinesChange]);
 
   // Ejecutar comando de la IA
-  const executeCommand = useCallback(async (command) => {
+  const executeCommand = useCallback(async (command, originalMessage = '') => {
     if (!command || !command.action) return null;
 
     const { action, data } = command;
@@ -239,7 +270,7 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
       switch (action) {
         case 'update_stock':
         case 'set_stock':
-          return await executeUpdateStock(data);
+          return await executeUpdateStock(data, originalMessage);
 
         case 'add_wine':
           return await executeAddWine(data);
@@ -325,7 +356,7 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
 
       // Ejecutar acción si existe
       if (result.action && result.action !== 'none' && result.action !== 'response') {
-        const actionResult = await executeCommand(result);
+        const actionResult = await executeCommand(result, message);
         result.actionResult = actionResult;
         
         // Log de resultados

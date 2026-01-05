@@ -15,6 +15,7 @@ import taskService from './api/taskService'
 import orderService from './api/orderService'
 import pendingService from './api/pendingService'
 import userService from './api/userService'
+import statsService from './api/statsService'
 import { AIChat } from './components/AIChat'
 
 function App() {
@@ -70,6 +71,13 @@ function App() {
   const [wines, setWines] = useState([])
   const [winesLoading, setWinesLoading] = useState(false)
   const [winesError, setWinesError] = useState('')
+
+  // Estadísticas (ventas y pérdidas)
+  const [stats, setStats] = useState({
+    sales: { total: 0, tinto: 0, blanco: 0, rosado: 0, espumoso: 0, dulce: 0 },
+    losses: { total: 0, tinto: 0, blanco: 0, rosado: 0, espumoso: 0, dulce: 0 },
+    trends: { total: 0, tinto: 0, blanco: 0, rosado: 0, espumoso: 0, dulce: 0, losses: 0 }
+  })
 
   // Hidratar sesión desde localStorage al cargar
   useEffect(() => {
@@ -393,7 +401,28 @@ function App() {
         setWinesLoading(false)
       }
     }
+
+    const fetchStats = async () => {
+      try {
+        const response = await statsService.getStats()
+        if (response.success && response.data) {
+          setStats({
+            sales: response.data.sales || { total: 0, tinto: 0, blanco: 0, rosado: 0, espumoso: 0, dulce: 0 },
+            losses: response.data.losses || { total: 0, tinto: 0, blanco: 0, rosado: 0, espumoso: 0, dulce: 0 },
+            trends: response.data.trends || { total: 0, tinto: 0, blanco: 0, rosado: 0, espumoso: 0, dulce: 0, losses: 0 }
+          })
+        }
+      } catch (error) {
+        console.error('Error al cargar estadísticas:', error)
+      }
+    }
+
     fetchWines()
+    fetchStats()
+
+    // Recargar estadísticas cada 10 segundos
+    const statsInterval = setInterval(fetchStats, 10000)
+    return () => clearInterval(statsInterval)
   }, [])
 
   // Referencia para saber si ya se inicializaron los likes
@@ -1793,34 +1822,42 @@ function App() {
               <div className="home-metrics-row">
                 <div className="home-metric">
                   <span className="home-metric-label">Vinos vendidos</span>
-                  <span className="home-metric-value">5.097</span>
-                  <div className="home-metric-trend home-metric-trend-positive">
-                    <span className="home-metric-trend-icon">▲</span>
-                    <span>+12,4%</span>
+                  <span className="home-metric-value">{stats.sales.total.toLocaleString('es-ES')}</span>
+                  <div className={`home-metric-trend ${parseFloat(stats.trends.total) >= 0 ? 'home-metric-trend-positive' : 'home-metric-trend-negative'}`}>
+                    <span className="home-metric-trend-icon">{parseFloat(stats.trends.total) >= 0 ? '▲' : '▼'}</span>
+                    <span>{parseFloat(stats.trends.total) >= 0 ? '+' : ''}{stats.trends.total}%</span>
                   </div>
                 </div>
                 <div className="home-metric">
                   <span className="home-metric-label">Tintos vendidos</span>
-                  <span className="home-metric-value">2.843</span>
-                  <div className="home-metric-trend home-metric-trend-positive">
-                    <span className="home-metric-trend-icon">▲</span>
-                    <span>+8,9%</span>
+                  <span className="home-metric-value">{stats.sales.tinto.toLocaleString('es-ES')}</span>
+                  <div className={`home-metric-trend ${parseFloat(stats.trends.tinto) >= 0 ? 'home-metric-trend-positive' : 'home-metric-trend-negative'}`}>
+                    <span className="home-metric-trend-icon">{parseFloat(stats.trends.tinto) >= 0 ? '▲' : '▼'}</span>
+                    <span>{parseFloat(stats.trends.tinto) >= 0 ? '+' : ''}{stats.trends.tinto}%</span>
                   </div>
                 </div>
                 <div className="home-metric">
                   <span className="home-metric-label">Blancos vendidos</span>
-                  <span className="home-metric-value">1.562</span>
-                  <div className="home-metric-trend home-metric-trend-negative">
-                    <span className="home-metric-trend-icon">▼</span>
-                    <span>-3,1%</span>
+                  <span className="home-metric-value">{stats.sales.blanco.toLocaleString('es-ES')}</span>
+                  <div className={`home-metric-trend ${parseFloat(stats.trends.blanco) >= 0 ? 'home-metric-trend-positive' : 'home-metric-trend-negative'}`}>
+                    <span className="home-metric-trend-icon">{parseFloat(stats.trends.blanco) >= 0 ? '▲' : '▼'}</span>
+                    <span>{parseFloat(stats.trends.blanco) >= 0 ? '+' : ''}{stats.trends.blanco}%</span>
                   </div>
                 </div>
                 <div className="home-metric">
                   <span className="home-metric-label">Espumosos vendidos</span>
-                  <span className="home-metric-value">692</span>
-                  <div className="home-metric-trend home-metric-trend-positive">
-                    <span className="home-metric-trend-icon">▲</span>
-                    <span>+4,6%</span>
+                  <span className="home-metric-value">{stats.sales.espumoso.toLocaleString('es-ES')}</span>
+                  <div className={`home-metric-trend ${parseFloat(stats.trends.espumoso) >= 0 ? 'home-metric-trend-positive' : 'home-metric-trend-negative'}`}>
+                    <span className="home-metric-trend-icon">{parseFloat(stats.trends.espumoso) >= 0 ? '▲' : '▼'}</span>
+                    <span>{parseFloat(stats.trends.espumoso) >= 0 ? '+' : ''}{stats.trends.espumoso}%</span>
+                  </div>
+                </div>
+                <div className="home-metric">
+                  <span className="home-metric-label">Vinos perdidos</span>
+                  <span className="home-metric-value">{stats.losses.total.toLocaleString('es-ES')}</span>
+                  <div className={`home-metric-trend ${parseFloat(stats.trends.losses) <= 0 ? 'home-metric-trend-positive' : 'home-metric-trend-negative'}`}>
+                    <span className="home-metric-trend-icon">{parseFloat(stats.trends.losses) <= 0 ? '▼' : '▲'}</span>
+                    <span>{parseFloat(stats.trends.losses) >= 0 ? '+' : ''}{stats.trends.losses}%</span>
                   </div>
                 </div>
               </div>
