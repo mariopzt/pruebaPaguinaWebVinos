@@ -10,7 +10,8 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
     location: wine?.location || '',
     image: wine?.image || '',
     grape: wine?.grape || '',
-    grapeVariety: Array.isArray(wine?.grapeVariety) ? [...wine.grapeVariety] : []
+    grapeVariety: Array.isArray(wine?.grapeVariety) ? [...wine.grapeVariety] : [],
+    description: wine?.description || ''
   });
   const [showStockAdjust, setShowStockAdjust] = useState(false);
   const [stockAdjustValue, setStockAdjustValue] = useState('');
@@ -90,6 +91,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       image: editedWine.image,
       grape: editedWine.grape,
       grapeVariety: editedWine.grapeVariety,
+      description: editedWine.description,
       updatedAtClient: new Date(),
     };
 
@@ -128,7 +130,8 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       location: wine.location,
       image: wine.image,
       grape: wine.grape || '',
-      grapeVariety: Array.isArray(wine.grapeVariety) ? [...wine.grapeVariety] : []
+      grapeVariety: Array.isArray(wine.grapeVariety) ? [...wine.grapeVariety] : [],
+      description: wine.description || ''
     });
     setIsEditMode(false);
   };
@@ -926,6 +929,68 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Sección de Descripción */}
+            <div className="wine-modal-info-section" style={{ 
+              marginTop: '20px',
+              padding: '20px',
+              background: 'rgba(20,20,35,0.5)',
+              borderRadius: '12px',
+              border: '1px solid rgba(99,102,241,0.15)'
+            }}>
+              <h3 style={{ 
+                fontSize: '16px', 
+                fontWeight: '600', 
+                color: '#9ca3c0',
+                marginBottom: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span style={{ fontSize: '18px' }}>📝</span>
+                Descripción:
+              </h3>
+              {isEditMode ? (
+                <textarea
+                  className="wine-editable-input"
+                  value={editedWine.description}
+                  onChange={(e) => handleChange('description', e.target.value)}
+                  placeholder="Describe el vino: aroma, sabor, maridaje recomendado, cuerpo, etc..."
+                  style={{
+                    width: '100%',
+                    minHeight: '100px',
+                    padding: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.6',
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    border: '1.5px solid rgba(99,102,241,0.3)',
+                    borderRadius: '10px',
+                    color: '#fff',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#6366f1';
+                    e.target.style.backgroundColor = 'rgba(99,102,241,0.08)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(99,102,241,0.3)';
+                    e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                  }}
+                />
+              ) : (
+                <p style={{
+                  fontSize: '14px',
+                  lineHeight: '1.6',
+                  color: wine.description ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)',
+                  fontStyle: wine.description ? 'normal' : 'italic',
+                  margin: 0
+                }}>
+                  {wine.description || 'Sin descripción'}
+                </p>
+              )}
             </div>
 
             <div className="wine-varieties-section">

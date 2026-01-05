@@ -648,7 +648,7 @@ exports.processCommand = async (req, res, next) => {
       }
     }
 
-    // Construir contexto de vinos OPTIMIZADO (solo info esencial)
+    // Construir contexto de vinos OPTIMIZADO (solo info esencial + descripción para recomendaciones)
     const allWines = context?.wines || [];
     const winesContext = allWines.slice(0, 50).map(w => {
       // Solo enviar la info más importante para reducir tokens
@@ -659,7 +659,8 @@ exports.processCommand = async (req, res, next) => {
         w.grape || '',
         `Stock: ${w.stock || 0}`,
         `Rest: ${w.restaurantStock || 0}`,
-        `€${w.price || 0}`
+        `€${w.price || 0}`,
+        w.description ? `Desc: ${w.description}` : null
       ].filter(Boolean);
       return parts.join(' | ');
     }).join('\n') || 'Sin vinos';
@@ -745,7 +746,8 @@ REGLAS RÁPIDAS:
 - Responde EN ESPAÑOL siempre
 - Si hay "🔍 INFORMACIÓN DE BÚSQUEDA WEB" arriba: USA esos datos para responder
 - Si preguntan por vino NO en bodega: usa info web o di "no está en bodega"
-- Vinos en bodega: usa su info completa (región, uvas, precio, stock)
+- Vinos en bodega: usa su info completa (región, uvas, precio, stock, descripción)
+- **RECOMENDACIONES**: Cuando te pidan recomendaciones, usa las descripciones (Desc:) de los vinos para sugerir según: maridaje, sabor, aroma, ocasión, etc.
 - Lista vinos por stock: de MENOR a MAYOR
 - Operaciones: JSON { "action", "response", "data" }
 - Preguntas: texto normal (no JSON)`;
