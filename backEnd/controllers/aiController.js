@@ -750,36 +750,25 @@ REGLAS RÁPIDAS:
 - Si preguntan por vino NO en bodega: usa info web o di "no está en bodega"
 - Vinos en bodega: usa su info completa (región, uvas, precio, stock, descripción)
 
-⚠️ **IMPORTANTE - ANTES DE RESPONDER**:
-- SIEMPRE revisa TODA la lista completa de "VINOS DISPONIBLES" arriba
-- Cuando busques vinos con características específicas (descripción, D.O., uvas, etc.): REVISA TODOS los vinos de la lista UNO POR UNO
-- NO te detengas en el primer resultado, continúa revisando hasta el final de la lista
-- Si preguntan "¿cuántos vinos tienen X?", cuenta TODOS antes de responder
-- Ejemplo: "¿vinos con descripción?" → Revisa los 50 vinos, cuenta cuántos tienen "Desc:", lista TODOS los que encuentres
+⚠️ **FORMATO DE LOS VINOS EN LA LISTA**:
+Cada vino tiene este formato: "Nombre" | Tipo | Región | Uvas | Stock: X | Rest: Y | €precio | Desc: texto
+- **SOLO los vinos que tienen "Desc:" tienen descripción**
+- Si un vino NO tiene "Desc:" en su línea, entonces NO TIENE descripción
+- Ejemplo CON descripción: "Finca" | Tinto | Rioja | Tempranillo | Stock: 5 | €25 | Desc: vino afrutado...
+- Ejemplo SIN descripción: "Mar de Frades" | Blanco | Rías Baixas | Albariño | Stock: 10 | €22
+  (Este vino NO tiene descripción porque NO aparece "Desc:" en su línea)
 
-**RECOMENDACIONES**: 
-- Cuando te pidan recomendaciones, revisa las descripciones (Desc:) de TODOS los vinos
-- Sugiere según: maridaje, sabor, aroma, ocasión, características solicitadas
-- Menciona TODOS los vinos que cumplan los criterios, no solo el primero
+**REGLA CRÍTICA PARA DESCRIPCIONES**:
+- Cuando pregunten "¿qué vinos tienen descripción?" → SOLO lista los que tengan "Desc:" en su línea
+- NO asumas que un vino tiene descripción si no ves "Desc:" explícitamente
+- Verifica CADA línea de vino buscando la palabra exacta "Desc:"
 
-**PROCESO DE RESPUESTA** (SIGUE ESTOS PASOS):
-1. Lee la pregunta del usuario
-2. Identifica qué estás buscando (ej: "vinos con descripción", "vinos de Rioja", etc.)
-3. Revisa TODA la lista de vinos COMPLETA desde el principio hasta el final
-4. Anota mentalmente TODOS los vinos que cumplan el criterio
-5. Cuenta el total de vinos encontrados
-6. Responde incluyendo TODOS los resultados, con su conteo correcto
-
-EJEMPLO CORRECTO:
-Usuario: "¿Qué vinos tienen descripción?"
-Proceso mental: 
-- Busco "Desc:" en la lista
-- Vino 1: tiene "Desc:" ✓
-- Vino 2: no tiene ✗
-- Vino 3: tiene "Desc:" ✓
-- ... continúo hasta el final de los ${allWines.slice(0, 50).length} vinos
-- Total encontrados: X vinos
-Respuesta: "Hay X vinos con descripción: [lista completa de todos]"
+**PROCESO DE RESPUESTA**:
+1. Lee la pregunta
+2. Revisa TODA la lista de vinos línea por línea
+3. Para cada vino, verifica si cumple el criterio EXACTO (ej: contiene "Desc:")
+4. Lista SOLO los que SÍ cumplen, NO los que no cumplen
+5. Cuenta correctamente cuántos encontraste
 
 - Lista vinos por stock: de MENOR a MAYOR
 - Operaciones: JSON { "action", "response", "data" }
