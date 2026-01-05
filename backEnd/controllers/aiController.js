@@ -648,7 +648,18 @@ exports.processCommand = async (req, res, next) => {
       }
     }
 
-    // Construir contexto de vinos OPTIMIZADO (solo info esencial + descripción para recomendaciones)
+    // Función para validar si una descripción es real (no basura)
+    const isValidDescription = (desc) => {
+      if (!desc || typeof desc !== 'string') return false;
+      const cleaned = desc.trim();
+      if (cleaned.length < 15) return false; // Mínimo 15 caracteres
+      // Rechazar si es solo caracteres repetidos (ej: "qsdasdasd", "aaaaaaa")
+      const uniqueChars = new Set(cleaned.toLowerCase().replace(/\s/g, ''));
+      if (uniqueChars.size < 5) return false; // Debe tener al menos 5 caracteres únicos
+      return true;
+    };
+
+    // Construir contexto de vinos OPTIMIZADO (solo info esencial + descripción VÁLIDA)
     const allWines = context?.wines || [];
     const winesContext = allWines.slice(0, 50).map(w => {
       // Solo enviar la info más importante para reducir tokens
@@ -660,18 +671,18 @@ exports.processCommand = async (req, res, next) => {
         `Stock: ${w.stock || 0}`,
         `Rest: ${w.restaurantStock || 0}`,
         `€${w.price || 0}`,
-        w.description ? `Desc: ${w.description}` : null
+        isValidDescription(w.description) ? `Desc: ${w.description}` : null
       ].filter(Boolean);
       return parts.join(' | ');
     }).join('\n') || 'Sin vinos';
     
-    // LOG DEBUG: Mostrar vinos con descripción
-    const winesWithDesc = allWines.filter(w => w.description && w.description.trim() !== '');
-    console.log('\n🔍 [DEBUG] Vinos con descripción en BD:');
+    // LOG DEBUG: Mostrar vinos con descripción VÁLIDA
+    const winesWithDesc = allWines.filter(w => isValidDescription(w.description));
+    console.log('\n🔍 [DEBUG] Vinos con descripción VÁLIDA en BD:');
     winesWithDesc.forEach(w => {
       console.log(`  - "${w.name}" → Desc: ${w.description.substring(0, 50)}...`);
     });
-    console.log(`📊 Total: ${winesWithDesc.length} vinos con descripción\n`);
+    console.log(`📊 Total: ${winesWithDesc.length} vinos con descripción válida\n`);
     
     // Contar vinos agotados y formatear con TODA su información
     const agotadosWines = allWines.filter(w => (w.stock || 0) === 0);
