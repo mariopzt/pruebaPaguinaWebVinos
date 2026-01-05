@@ -616,18 +616,35 @@ exports.processCommand = async (req, res, next) => {
     const isWineQuestion = wineQuestionPatterns.some(pattern => pattern.test(message)) || looksLikeWineName;
     let webSearchInfo = '';
     
-    // DESACTIVADO: Búsqueda web (es muy lenta - solo usa info de la bodega)
-    // Solo buscar en web si el usuario EXPLÍCITAMENTE pide buscar en internet
-    const needsWebSearch = /busca\s+(en\s+)?(internet|web|google)|información\s+de\s+internet/i.test(message);
-    
-    if (isWineQuestion && needsWebSearch) {
+    if (isWineQuestion) {
       // Extraer posible nombre de vino de la pregunta
       const cleanedMessage = message.replace(/[?¿!¡.,]/g, '').trim();
-      console.log('[AI] Búsqueda web solicitada para:', cleanedMessage);
-      const searchResult = await searchWineInfo(cleanedMessage);
-      if (searchResult.combined && searchResult.combined.length > 50) {
-        webSearchInfo = `\n\n🔍 INFORMACIÓN DE BÚSQUEDA WEB (USA ESTOS DATOS):\n${searchResult.combined}`;
-        console.log('[AI] ✅ Info encontrada:', searchResult.combined.substring(0, 200));
+      const allWines = context?.wines || [];
+      
+      // Revisar si el vino está en la bodega
+      const wineInBodega = allWines.some(w => 
+        cleanedMessage.toLowerCase().includes(w.name.toLowerCase()) ||
+        w.name.toLowerCase().includes(cleanedMessage.toLowerCase())
+      );
+      
+      // Solo buscar en web si:
+      // 1. El usuario explícitamente pide buscar en internet, O
+      // 2. El vino NO está en la bodega (para responder preguntas sobre vinos externos)
+      const explicitWebRequest = /busca\s+(en\s+)?(internet|web|google)|información\s+de\s+internet/i.test(message);
+      const needsWebSearch = explicitWebRequest || !wineInBodega;
+      
+      if (needsWebSearch) {
+        console.log('[AI] Buscando info web para:', cleanedMessage, wineInBodega ? '(búsqueda explícita)' : '(vino no en bodega)');
+        const searchResult = await searchWineInfo(cleanedMessage);
+        if (searchResult.combined && searchResult.combined.length > 50) {
+          webSearchInfo = `\n\n🔍 INFORMACIÓN DE BÚSQUEDA WEB (USA ESTOS DATOS):\n${searchResult.combined}`;
+          console.log('[AI] ✅ Info encontrada:', searchResult.combined.substring(0, 200));
+        } else {
+          webSearchInfo = `\n\n⚠️ No encontré información adicional en internet.`;
+          console.log('[AI] ⚠️ Info limitada para:', cleanedMessage);
+        }
+      } else {
+        console.log('[AI] ✅ Vino encontrado en bodega, sin búsqueda web:', cleanedMessage);
       }
     }
 
@@ -726,12 +743,12 @@ FORMATO DE RESPUESTA (JSON):
 
 REGLAS RÁPIDAS:
 - Responde EN ESPAÑOL siempre
+- Si hay "🔍 INFORMACIÓN DE BÚSQUEDA WEB" arriba: USA esos datos para responder
+- Si preguntan por vino NO en bodega: usa info web o di "no está en bodega"
+- Vinos en bodega: usa su info completa (región, uvas, precio, stock)
 - Lista vinos por stock: de MENOR a MAYOR
-- Agotados: si hay en lista, responde con ellos; si no hay, di "no hay"
-- Operaciones: responde en JSON { "action", "response", "data" }
-- Preguntas: responde en texto normal
-
-Responde en español. JSON para operaciones, texto para preguntas. Usa SOLO vinos de la lista.`;
+- Operaciones: JSON { "action", "response", "data" }
+- Preguntas: texto normal (no JSON)`;
 
     // Construir historial de mensajes
     const messages = [
