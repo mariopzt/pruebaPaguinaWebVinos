@@ -1,4 +1,4 @@
-import api from './axiosConfig';
+import api from './axios';
 
 const statsService = {
   // Obtener estadísticas actuales
