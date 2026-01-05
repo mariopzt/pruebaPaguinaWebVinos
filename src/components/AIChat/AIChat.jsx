@@ -106,8 +106,19 @@ function formatMessage(text) {
 function TypingText({ text, speed = 15, onComplete }) {
   const [displayedText, setDisplayedText] = useState('');
   const [isComplete, setIsComplete] = useState(false);
+  const onCompleteRef = useRef(onComplete);
+  const textRef = useRef(text);
+
+  // Actualizar refs sin causar re-render
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
+    // Solo reiniciar si el texto realmente cambió
+    if (textRef.current === text && displayedText) return;
+    textRef.current = text;
+    
     if (!text) return;
     
     let index = 0;
@@ -121,12 +132,13 @@ function TypingText({ text, speed = 15, onComplete }) {
       } else {
         clearInterval(timer);
         setIsComplete(true);
-        onComplete?.();
+        onCompleteRef.current?.();
       }
     }, speed);
 
     return () => clearInterval(timer);
-  }, [text, speed, onComplete]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, speed]);
 
   return (
     <span className={`typing-text ${isComplete ? 'complete' : 'typing'}`}>
@@ -315,7 +327,7 @@ export function AIChat({
                     <p>
                       <TypingText 
                         text={msg.text} 
-                        speed={12}
+                        speed={5}
                         onComplete={() => setTypingMessageId(null)}
                       />
                     </p>
