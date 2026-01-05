@@ -402,6 +402,13 @@ function App() {
       }
     }
 
+    fetchWines()
+  }, [])
+
+  // useEffect separado para cargar estadísticas solo si el usuario está autenticado
+  useEffect(() => {
+    if (!currentUser) return;
+
     const fetchStats = async () => {
       try {
         const response = await statsService.getStats()
@@ -413,17 +420,18 @@ function App() {
           })
         }
       } catch (error) {
-        console.error('Error al cargar estadísticas:', error)
+        // Solo mostrar error si no es 401 (no autorizado)
+        if (error.message !== 'No autorizado para acceder a esta ruta') {
+          console.error('Error al cargar estadísticas:', error)
+        }
       }
     }
 
-    fetchWines()
     fetchStats()
-
-    // Recargar estadísticas cada 3 segundos para mostrar cambios en tiempo real
+    // Recargar estadísticas cada 3 segundos
     const statsInterval = setInterval(fetchStats, 3000)
     return () => clearInterval(statsInterval)
-  }, [])
+  }, [currentUser])
 
   // Referencia para saber si ya se inicializaron los likes
   const likesInitializedRef = useRef(false);
