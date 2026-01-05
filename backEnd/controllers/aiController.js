@@ -616,44 +616,35 @@ exports.processCommand = async (req, res, next) => {
     const isWineQuestion = wineQuestionPatterns.some(pattern => pattern.test(message)) || looksLikeWineName;
     let webSearchInfo = '';
     
-    if (isWineQuestion) {
+    // DESACTIVADO: Búsqueda web (es muy lenta - solo usa info de la bodega)
+    // Solo buscar en web si el usuario EXPLÍCITAMENTE pide buscar en internet
+    const needsWebSearch = /busca\s+(en\s+)?(internet|web|google)|información\s+de\s+internet/i.test(message);
+    
+    if (isWineQuestion && needsWebSearch) {
       // Extraer posible nombre de vino de la pregunta
       const cleanedMessage = message.replace(/[?¿!¡.,]/g, '').trim();
-      console.log('[AI] Detectada pregunta sobre vino, buscando info para:', cleanedMessage);
+      console.log('[AI] Búsqueda web solicitada para:', cleanedMessage);
       const searchResult = await searchWineInfo(cleanedMessage);
       if (searchResult.combined && searchResult.combined.length > 50) {
         webSearchInfo = `\n\n🔍 INFORMACIÓN DE BÚSQUEDA WEB (USA ESTOS DATOS):\n${searchResult.combined}`;
         console.log('[AI] ✅ Info encontrada:', searchResult.combined.substring(0, 200));
-      } else {
-        // Si el usuario está dando información, aceptarla
-        const isUserGivingInfo = /es\s+(un|de|del|la|el)|menc[ií]a|tinto|blanco|bodega|adega/i.test(message);
-        if (isUserGivingInfo) {
-          webSearchInfo = `\n\n✅ El usuario te está dando información sobre el vino. ACEPTA lo que dice y confirma que has aprendido esa información.`;
-        } else {
-          webSearchInfo = `\n\n⚠️ No encontré información verificada. Puedes preguntar al usuario o responder con tu conocimiento general si lo tienes.`;
-        }
-        console.log('[AI] ⚠️ Info limitada para:', cleanedMessage);
       }
     }
 
-    // Construir contexto de vinos CON TODA LA INFORMACIÓN
+    // Construir contexto de vinos OPTIMIZADO (solo info esencial)
     const allWines = context?.wines || [];
-    const winesContext = allWines.slice(0, 30).map(w => {
+    const winesContext = allWines.slice(0, 50).map(w => {
+      // Solo enviar la info más importante para reducir tokens
       const parts = [
         `"${w.name}"`,
-        w.type ? `Tipo: ${w.type}` : null,
-        w.year ? `Año: ${w.year}` : null,
-        w.region ? `Región: ${w.region}` : null,
-        w.grape ? `Uvas: ${w.grape}` : null,
-        w.alcoholContent ? `Alcohol: ${w.alcoholContent}` : null,
-        w.description ? `Desc: ${w.description.substring(0, 100)}` : null,
-        `Stock Bodega: ${w.stock || 0}`,
-        `Stock Restaurante: ${w.restaurantStock || 0}`,
-        `Precio: €${w.price || 0}`,
-        w.likes?.count ? `❤️ Likes: ${w.likes.count}` : null,
-        w.rating ? `⭐ Rating: ${w.rating}` : null
+        w.type || 'Vino',
+        w.region || '',
+        w.grape || '',
+        `Stock: ${w.stock || 0}`,
+        `Rest: ${w.restaurantStock || 0}`,
+        `€${w.price || 0}`
       ].filter(Boolean);
-      return `- ${parts.join(' | ')}`;
+      return parts.join(' | ');
     }).join('\n') || 'Sin vinos';
     
     // Contar vinos agotados y formatear con TODA su información
@@ -673,22 +664,16 @@ exports.processCommand = async (req, res, next) => {
         }).join('\n')
       : 'NO HAY VINOS AGOTADOS';
 
-    // Construir prompt del sistema
-    const systemPrompt = `Eres el asistente IA EXPERTO EN VINOS de VinosStK con CONTROL TOTAL sobre la bodega.
+    // Construir prompt del sistema OPTIMIZADO
+    const systemPrompt = `Asistente IA de VinosStK con control total de la bodega.
 ${webSearchInfo}
-VINOS EN LA BODEGA:
+
+VINOS DISPONIBLES:
 ${winesContext}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-VINOS AGOTADOS (stock = 0 en bodega):
-${agotadosList}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${agotadosCount > 0 ? `AGOTADOS (${agotadosCount}): ${agotadosList}` : 'Sin vinos agotados.'}
 
-${agotadosCount === 0 
-  ? '⚠️ IMPORTANTE: NO hay vinos agotados actualmente. NO inventes vinos agotados que no existen en la lista.' 
-  : `✅ HAY ${agotadosCount} VINO(S) AGOTADO(S) LISTADOS ARRIBA. Cuando te pregunten por vinos agotados, DEBES listar estos vinos con su información completa.`}
-
-ACCIONES QUE PUEDES EJECUTAR:
+ACCIONES (responde en JSON cuando modifiques stock/vinos):
 
 1. **update_stock** - Modificar stock (uno o varios vinos):
    Para UN vino: { "wines": [{ "name": "NombreVino", "stockChange": -5, "field": "stock" }] }
@@ -739,154 +724,23 @@ FORMATO DE RESPUESTA (JSON):
   "data": { ... }
 }
 
-EJEMPLOS DE PREGUNTAS QUE PUEDES RESPONDER:
+REGLAS RÁPIDAS:
+- Responde EN ESPAÑOL siempre
+- Lista vinos por stock: de MENOR a MAYOR
+- Agotados: si hay en lista, responde con ellos; si no hay, di "no hay"
+- Operaciones: responde en JSON { "action", "response", "data" }
+- Preguntas: responde en texto normal
 
-Usuario: "¿Qué vinos tienen poco stock?"
-"Aquí tienes los vinos con poco stock en la bodega:
-1. 'Vino A' - Stock: 5
-2. 'Vino B' - Stock: 8"
-⚠️ NOTA: Ordenados de MENOR a MAYOR stock
-
-Usuario: "¿Qué vinos son de Rioja?"
-"Tenemos estos vinos de Rioja:
-- 'Muga Reserva' (2019) - Tempranillo, Garnacha | €22 | Stock: 25"
-
-Usuario: "¿Cuánto cuesta el Albariño?"
-"El 'Martín Códax Albariño' cuesta €14 y tenemos 35 unidades en bodega."
-
-Usuario: "¿Qué vinos de Mencía tenemos?"
-"Los vinos con uva Mencía son:
-- 'Pétalos del Bierzo' (D.O. Bierzo) | €16 | Stock: 30
-- 'Guímaro' (D.O. Ribeira Sacra) | €18 | Stock: 20"
-
-Usuario: "¿Cuáles son los vinos más valorados?" (si tienen likes/rating)
-"Los vinos con más likes son:
-1. 'Vino X' - 45 likes
-2. 'Vino Y' - 38 likes"
-
-Usuario: "Vinos agotados" o "¿Qué vinos están agotados?"
-SI HAY vinos agotados en la lista ARRIBA:
-"Los vinos que se encuentran agotados en la bodega son:
-
-1. 'Clos Mogador' - Tinto 2018 - D.O. Priorat - Uvas: Garnacha, Cariñena - €45
-2. 'El Nido' - Tinto 2019 - D.O. Jumilla - Uvas: Monastrell - €38
-
-Si necesitas realizar alguna acción con estos vinos, házmelo saber."
-
-SI NO HAY vinos agotados:
-"No hay vinos agotados actualmente en la bodega. Todos los vinos tienen stock disponible."
-
-EJEMPLOS DE OPERACIONES:
-
-Usuario: "Quita 2 del stock a todos los vinos"
-{
-  "action": "update_stock",
-  "response": "He restado 2 unidades del stock de bodega a todos los vinos.",
-  "data": { "wines": [
-    { "name": "Vino1", "stockChange": -2, "field": "stock" },
-    { "name": "Vino2", "stockChange": -2, "field": "stock" },
-    ...
-  ]}
-}
-
-Usuario: "Suma 10 al Rioja y al Ribera"
-{
-  "action": "update_stock", 
-  "response": "He añadido 10 unidades al Rioja y al Ribera.",
-  "data": { "wines": [
-    { "name": "Rioja", "stockChange": 10, "field": "stock" },
-    { "name": "Ribera", "stockChange": 10, "field": "stock" }
-  ]}
-}
-
-Usuario: "Pon el stock del Albariño en 100"
-{
-  "action": "set_stock",
-  "response": "He establecido el stock del Albariño en 100 unidades.",
-  "data": { "wines": [{ "name": "Albariño", "stock": 100, "field": "stock" }] }
-}
-
-Usuario: "Elimina el vino Tempranillo"
-{
-  "action": "delete_wine",
-  "response": "He eliminado el vino Tempranillo de la bodega.",
-  "data": { "name": "Tempranillo" }
-}
-
-Usuario: "Elimina todos los vinos"
-{
-  "action": "delete_wine",
-  "response": "He eliminado todos los vinos de la bodega.",
-  "data": { "all": true }
-}
-
-Usuario: "Crea 5 vinos nuevos"
-{
-  "action": "add_wine",
-  "response": "He añadido 5 vinos a la bodega.",
-  "data": { "wines": [
-    { "name": "Protos Reserva", "type": "Tinto", "year": 2018, "region": "D.O. Ribera del Duero", "grape": "Tempranillo", "price": 28, "stock": 20, "restaurantStock": 8 },
-    { "name": "Martín Códax", "type": "Blanco", "year": 2022, "region": "D.O. Rías Baixas", "grape": "Albariño", "price": 14, "stock": 35, "restaurantStock": 12 },
-    { "name": "Muga Reserva", "type": "Tinto", "year": 2019, "region": "D.O.Ca. Rioja", "grape": "Tempranillo, Garnacha", "price": 22, "stock": 25, "restaurantStock": 10 },
-    { "name": "Pétalos del Bierzo", "type": "Tinto", "year": 2021, "region": "D.O. Bierzo", "grape": "Mencía", "price": 16, "stock": 30, "restaurantStock": 6 },
-    { "name": "Rueda Verdejo", "type": "Blanco", "year": 2023, "region": "D.O. Rueda", "grape": "Verdejo", "price": 10, "stock": 40, "restaurantStock": 15 }
-  ]}
-}
-
-BODEGAS Y VINOS ESPAÑOLES REALES para usar:
-- Rioja: Marqués de Riscal, Muga, La Rioja Alta, CVNE, López de Heredia, Roda
-- Ribera del Duero: Vega Sicilia, Protos, Pesquera, Pingus, Emilio Moro, Pago de Carraovejas
-- Rías Baixas: Martín Códax, Pazo de Señorans, Terras Gauda, Mar de Frades
-- Rueda: José Pariente, Belondrade, Menade, Naia
-- Priorat: Álvaro Palacios, Clos Mogador, Clos Figueras
-- Bierzo: Descendientes de J. Palacios, Dominio de Tares, Pittacum
-- Ribeira Sacra: Guímaro, Envínate, Regina Viarum
-- Ribeiro: Coto de Gomariz, Viña Meín, Casal de Armán
-- Somontano: Enate, Viñas del Vero, Pirineos
-- Jumilla: Juan Gil, Casa Castillo, El Nido
-
-UVAS por región:
-- Rioja/Ribera: Tempranillo, Garnacha, Graciano, Mazuelo
-- Rías Baixas: Albariño
-- Rueda: Verdejo, Sauvignon Blanc
-- Priorat: Garnacha, Cariñena
-- Bierzo/Ribeira Sacra: Mencía, Godello
-- Ribeiro: Treixadura, Godello, Albariño
-
-REGLAS GENERALES:
-- Responde SIEMPRE en español
-- Para operaciones de stock/vinos: responde en JSON válido
-- Para preguntas sobre vinos: responde en texto normal (NO JSON)
-- ⚠️ CRÍTICO: NUNCA inventes vinos que no están en la lista de "VINOS EN LA BODEGA"
-- ⚠️ VINOS AGOTADOS: Si preguntan por vinos agotados:
-  * SI HAY vinos en la sección "VINOS AGOTADOS", DEBES listarlos con toda su información
-  * SI NO HAY vinos en esa sección (dice "NO HAY VINOS AGOTADOS"), di "No hay vinos agotados actualmente"
-  * NUNCA digas "No tengo información" si la lista de vinos agotados está visible arriba
-- Si preguntan por un vino que no existe, di "Ese vino no está en la bodega actualmente"
-- ⚠️ ORDEN DE LISTADOS: Cuando listes vinos por stock (poco stock, bajo stock, etc.), SIEMPRE ordénalos de MENOR a MAYOR stock (ej: stock 10 antes que stock 15, stock 15 antes que stock 25)
-
-REGLAS PARA PREGUNTAS SOBRE VINOS:
-- **TIENES ACCESO COMPLETO** a toda la información de los vinos en "VINOS EN LA BODEGA" (región, uvas, año, descripción, precio, stock, likes, etc.)
-- **SIEMPRE revisa primero** la información en "VINOS EN LA BODEGA" antes de buscar en web
-- Puedes responder preguntas sobre: D.O., uvas, región, año, precio, stock, descripción, likes, ratings
-- **SI HAY "INFORMACIÓN DE BÚSQUEDA WEB" ARRIBA**: USA esos datos ADICIONALES para complementar
-- **SI un vino está en la bodega**: usa TODA su información para responder
-- **SI un vino NO está en la bodega y NO hay info web**: di "Ese vino no está en la bodega actualmente"
-- Sé INFORMATIVO pero BREVE: menciona los datos más relevantes (D.O., uvas, año, precio si preguntan)
-
-REGLAS PARA OPERACIONES DE BODEGA:
-- Usa los nombres EXACTOS de los vinos del contexto
-- Para CREAR vinos: genera nombres CREATIVOS de bodegas españolas reales
-- Confirma siempre qué hiciste en "response"`;
+Responde en español. JSON para operaciones, texto para preguntas. Usa SOLO vinos de la lista.`;
 
     // Construir historial de mensajes
     const messages = [
       { role: 'system', content: systemPrompt }
     ];
 
-    // Agregar historial previo (limitado)
+    // Agregar historial previo (limitado a 3 para velocidad)
     if (history && Array.isArray(history)) {
-      history.slice(-6).forEach(msg => {
+      history.slice(-3).forEach(msg => {
         messages.push({
           role: msg.role,
           content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)
@@ -897,12 +751,12 @@ REGLAS PARA OPERACIONES DE BODEGA:
     // Agregar mensaje actual
     messages.push({ role: 'user', content: message });
 
-    // Llamar a OpenAI
+    // Llamar a OpenAI con configuración optimizada para velocidad
     const { text } = await generateText({
       model: openai('gpt-4o-mini'),
       messages,
-      temperature: 0.7, // Más creativo para generar vinos variados
-      maxTokens: 2000
+      temperature: 0.3, // Más directo y rápido
+      maxTokens: 800 // Reducido para respuestas más concisas y rápidas
     });
 
     // Parsear respuesta JSON
