@@ -665,6 +665,14 @@ exports.processCommand = async (req, res, next) => {
       return parts.join(' | ');
     }).join('\n') || 'Sin vinos';
     
+    // LOG DEBUG: Mostrar vinos con descripción
+    const winesWithDesc = allWines.filter(w => w.description && w.description.trim() !== '');
+    console.log('\n🔍 [DEBUG] Vinos con descripción en BD:');
+    winesWithDesc.forEach(w => {
+      console.log(`  - "${w.name}" → Desc: ${w.description.substring(0, 50)}...`);
+    });
+    console.log(`📊 Total: ${winesWithDesc.length} vinos con descripción\n`);
+    
     // Contar vinos agotados y formatear con TODA su información
     const agotadosWines = allWines.filter(w => (w.stock || 0) === 0);
     const agotadosCount = agotadosWines.length;
