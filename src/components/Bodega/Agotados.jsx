@@ -16,6 +16,7 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
 
   // Guardar el orden inicial de los vinos al cargar (solo una vez por sesión)
   const initialOrderRef = useRef(null);
+  const hasInitializedRef = useRef(false);
 
   // Lista base de vinos agotados (memorizada)
   const agotadosWines = useMemo(
@@ -23,18 +24,17 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
     [wines]
   );
 
-  // Establecer el orden inicial solo cuando cambian los vinos agotados
-  useEffect(() => {
-    if (agotadosWines.length > 0 && !initialOrderRef.current) {
-      // Crear una copia ordenada por likes del backend
-      const sortedWines = [...agotadosWines].sort((a, b) => {
-        const likesA = a.likes?.count || 0;
-        const likesB = b.likes?.count || 0;
-        return likesB - likesA;
-      });
-      initialOrderRef.current = sortedWines.map(w => w._id || w.id);
-    }
-  }, [agotadosWines.length]);
+  // Establecer el orden inicial INMEDIATAMENTE cuando hay vinos agotados
+  if (agotadosWines.length > 0 && !hasInitializedRef.current) {
+    // Crear una copia ordenada por likes del backend
+    const sortedWines = [...agotadosWines].sort((a, b) => {
+      const likesA = a.likes?.count || 0;
+      const likesB = b.likes?.count || 0;
+      return likesB - likesA;
+    });
+    initialOrderRef.current = sortedWines.map(w => w._id || w.id);
+    hasInitializedRef.current = true;
+  }
 
   // Filtro por tipo + búsqueda (memorizado)
   const filteredWines = useMemo(() => {

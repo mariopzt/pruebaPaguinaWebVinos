@@ -16,19 +16,19 @@ function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine, wineLikes, onTogg
 
   // Guardar el orden inicial de los vinos al cargar (solo una vez por sesión)
   const initialOrderRef = useRef(null);
+  const hasInitializedRef = useRef(false);
   
-  // Establecer el orden inicial solo cuando cambian los vinos desde el backend
-  useEffect(() => {
-    if (wines.length > 0 && !initialOrderRef.current) {
-      // Crear una copia ordenada por likes del backend
-      const sortedWines = [...wines].sort((a, b) => {
-        const likesA = a.likes?.count || 0;
-        const likesB = b.likes?.count || 0;
-        return likesB - likesA;
-      });
-      initialOrderRef.current = sortedWines.map(w => w._id || w.id);
-    }
-  }, [wines.length]); // Solo cuando cambia la cantidad de vinos
+  // Establecer el orden inicial INMEDIATAMENTE cuando hay vinos
+  if (wines.length > 0 && !hasInitializedRef.current) {
+    // Crear una copia ordenada por likes del backend
+    const sortedWines = [...wines].sort((a, b) => {
+      const likesA = a.likes?.count || 0;
+      const likesB = b.likes?.count || 0;
+      return likesB - likesA;
+    });
+    initialOrderRef.current = sortedWines.map(w => w._id || w.id);
+    hasInitializedRef.current = true;
+  }
 
   // Filtrar y ordenar vinos según el tipo seleccionado, término de búsqueda (memorizado)
   const filteredWines = useMemo(() => {
