@@ -420,8 +420,8 @@ function App() {
     fetchWines()
     fetchStats()
 
-    // Recargar estadísticas cada 10 segundos
-    const statsInterval = setInterval(fetchStats, 10000)
+    // Recargar estadísticas cada 3 segundos para mostrar cambios en tiempo real
+    const statsInterval = setInterval(fetchStats, 3000)
     return () => clearInterval(statsInterval)
   }, [])
 

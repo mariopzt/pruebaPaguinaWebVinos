@@ -18,6 +18,10 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
   const [showRestaurantAdjust, setShowRestaurantAdjust] = useState(false);
   const [restaurantAdjustValue, setRestaurantAdjustValue] = useState('');
   const [restaurantAdjustType, setRestaurantAdjustType] = useState('add');
+  const [showLossAdjust, setShowLossAdjust] = useState(false);
+  const [lossAdjustValue, setLossAdjustValue] = useState('');
+  const [lossReason, setLossReason] = useState('roto'); // 'roto', 'jefe', 'otro'
+  const [isClosingLossForm, setIsClosingLossForm] = useState(false);
 
   if (!wine) return null;
 
@@ -155,6 +159,17 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       }
     }
 
+    // Si se resta stock, registrar como venta
+    if (adjustType === 'subtract') {
+      try {
+        const statsService = await import('../../api/statsService').then(m => m.default);
+        await statsService.registerSale(wine._id || wine.id, value);
+        console.log(`✅ Venta registrada: ${value} unidades de ${wine.name}`);
+      } catch (err) {
+        console.warn('No se pudo registrar la venta en estadísticas:', err);
+      }
+    }
+
     // Si el vino pasa a stock 0, crear notificación
     if (wine.stock > 0 && newStock === 0 && onWineOutOfStock) {
       onWineOutOfStock({ ...wine, ...payload });
@@ -191,7 +206,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       newStock = currentStock - value;
       message = `Movido ${value} del almacén al restaurante.\nAlmacén: ${currentStock} → ${newStock}\nRestaurante: ${currentRestaurantStock} → ${newRestaurantStock}`;
     } else {
-      // RESTAR del restaurante
+      // RESTAR del restaurante = VENTA
       if (value <= currentRestaurantStock) {
         // Hay suficiente en restaurante, solo restamos del restaurante
         newRestaurantStock = currentRestaurantStock - value;
@@ -202,6 +217,15 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
         newRestaurantStock = 0;
         newStock = Math.max(0, currentStock - faltante);
         message = `Restado ${value} (${currentRestaurantStock} del restaurante + ${faltante} del almacén).\nAlmacén: ${currentStock} → ${newStock}\nRestaurante: ${currentRestaurantStock} → 0`;
+      }
+
+      // Registrar venta cuando se resta del restaurante
+      try {
+        const statsService = await import('../../api/statsService').then(m => m.default);
+        await statsService.registerSale(wine._id || wine.id, value);
+        console.log(`✅ Venta registrada: ${value} unidades de ${wine.name}`);
+      } catch (err) {
+        console.warn('No se pudo registrar la venta en estadísticas:', err);
       }
     }
 
@@ -225,6 +249,83 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
     setShowRestaurantAdjust(false);
     setRestaurantAdjustValue('');
     alert(message);
+  };
+
+  // Manejar ajuste de pérdidas (rotos/sacados por el jefe)
+  const handleLossAdjust = async () => {
+    const value = parseInt(lossAdjustValue);
+    if (isNaN(value) || value <= 0) {
+      alert('Por favor ingresa un número válido');
+      return;
+    }
+
+    const currentRestaurantStock = wine.restaurantStock || 0;
+    const currentStock = wine.stock || 0;
+    const totalAvailable = currentRestaurantStock + currentStock;
+
+    // Verificar si hay suficiente stock total
+    if (value > totalAvailable) {
+      alert(`No hay suficiente stock. Total disponible: ${totalAvailable} (Restaurante: ${currentRestaurantStock} + Almacén: ${currentStock})`);
+      return;
+    }
+
+    let newRestaurantStock;
+    let newStock;
+    let message;
+    const reasonText = lossReason === 'roto' ? 'rotos' : lossReason === 'jefe' ? 'llevados por el jefe' : 'perdidos';
+
+    if (value <= currentRestaurantStock) {
+      // Hay suficiente en el restaurante
+      newRestaurantStock = currentRestaurantStock - value;
+      newStock = currentStock;
+      message = `${value} unidades ${reasonText}\nRestaurante: ${currentRestaurantStock} → ${newRestaurantStock}\nAlmacén: ${currentStock} (sin cambios)`;
+    } else {
+      // No hay suficiente en restaurante, tomar del almacén la diferencia
+      const fromRestaurant = currentRestaurantStock;
+      const fromStock = value - currentRestaurantStock;
+      newRestaurantStock = 0;
+      newStock = currentStock - fromStock;
+      message = `${value} unidades ${reasonText}\n- ${fromRestaurant} del restaurante (${currentRestaurantStock} → 0)\n- ${fromStock} del almacén (${currentStock} → ${newStock})`;
+    }
+
+    const payload = {
+      ...wine,
+      stock: newStock,
+      restaurantStock: newRestaurantStock,
+      updatedAtClient: new Date(),
+    };
+
+    if (onUpdateWine) {
+      const result = await onUpdateWine(wine.id || wine._id, payload);
+      if (!result?.success) {
+        alert(result?.message || 'No se pudo actualizar el stock');
+        return;
+      }
+    }
+
+    // Registrar la pérdida en estadísticas
+    try {
+      const statsService = await import('../../api/statsService').then(m => m.default);
+      await statsService.registerLoss(wine._id || wine.id, value, reasonText);
+    } catch (err) {
+      console.warn('No se pudo registrar la pérdida en estadísticas:', err);
+    }
+
+    setShowLossAdjust(false);
+    setLossAdjustValue('');
+    setIsClosingLossForm(false);
+    alert(message);
+  };
+
+  // Manejar cierre con animación del formulario de pérdidas
+  const handleCloseLossForm = () => {
+    setIsClosingLossForm(true);
+    setTimeout(() => {
+      setShowLossAdjust(false);
+      setLossAdjustValue('');
+      setLossReason('roto');
+      setIsClosingLossForm(false);
+    }, 250); // Duración de la animación
   };
 
   return (
@@ -465,6 +566,365 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
                     )}
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Nueva sección: Pérdidas (Rotos/Sacados) */}
+            <div className="wine-modal-info-section" style={{ 
+              borderTop: '1px solid rgba(255,255,255,0.1)', 
+              paddingTop: '14px',
+              marginTop: '14px',
+              background: 'radial-gradient(circle at top right, rgba(99,102,241,0.05) 0%, rgba(20,20,35,0.4) 60%)',
+              borderRadius: '12px',
+              padding: '16px',
+              border: '1px solid rgba(99,102,241,0.12)'
+            }}>
+              <div className="wine-info-row">
+                <div className="wine-info-item" style={{ width: '100%' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    gap: '8px',
+                    marginBottom: '12px'
+                  }}>
+                    <span style={{
+                      fontSize: '18px',
+                      filter: 'grayscale(0%)'
+                    }}>⚠️</span>
+                    <span className="wine-info-label" style={{ 
+                      color: 'rgba(255,255,255,0.8)', 
+                      fontWeight: '600',
+                      fontSize: '13px',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
+                    }}>
+                      Rotos / Retirados
+                    </span>
+                  </div>
+                  
+                  {!isEditMode && (
+                    <div className="wine-stock-adjust-section">
+                      {!showLossAdjust ? (
+                        <button 
+                          style={{ 
+                            width: '100%',
+                            maxWidth: '280px',
+                            margin: '0 auto',
+                            display: 'flex',
+                            padding: '10px 20px',
+                            background: 'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(129,140,248,0.15) 100%)',
+                            border: '1.5px solid rgba(99,102,241,0.4)',
+                            borderRadius: '10px',
+                            color: '#fff',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 8px rgba(99,102,241,0.15)',
+                            backdropFilter: 'blur(10px)'
+                          }}
+                          onClick={() => setShowLossAdjust(true)}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = 'linear-gradient(135deg, rgba(99,102,241,0.35) 0%, rgba(129,140,248,0.25) 100%)';
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 4px 12px rgba(99,102,241,0.3)';
+                            e.target.style.borderColor = 'rgba(99,102,241,0.6)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = 'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(129,140,248,0.15) 100%)';
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 2px 8px rgba(99,102,241,0.15)';
+                            e.target.style.borderColor = 'rgba(99,102,241,0.4)';
+                          }}
+                        >
+                          <span style={{ fontSize: '16px' }}>−</span>
+                          <span>Registrar pérdida</span>
+                        </button>
+                      ) : (
+                        <div style={{ 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          gap: '16px',
+                          padding: '4px 0',
+                          maxWidth: '380px',
+                          margin: '0 auto',
+                          width: '100%',
+                          animation: isClosingLossForm ? 'slideUpFade 0.25s ease-in' : 'slideDownFade 0.4s ease-out',
+                          overflow: 'hidden'
+                        }}>
+                          {/* Input de cantidad */}
+                          <div style={{ width: '100%' }}>
+                            <label style={{ 
+                              display: 'block',
+                              color: 'rgba(255,255,255,0.6)',
+                              fontSize: '11px',
+                              fontWeight: '600',
+                              marginBottom: '6px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px',
+                              textAlign: 'center'
+                            }}>
+                              Cantidad:
+                            </label>
+                            <input 
+                              type="number"
+                              value={lossAdjustValue}
+                              onChange={(e) => setLossAdjustValue(e.target.value)}
+                              placeholder="Ingresa cantidad"
+                              autoFocus
+                              min="1"
+                              style={{ 
+                                width: '100%',
+                                padding: '12px',
+                                fontSize: '16px',
+                                fontWeight: '600',
+                                backgroundColor: 'rgba(20,20,35,0.6)',
+                                border: '1.5px solid rgba(99,102,241,0.3)',
+                                borderRadius: '10px',
+                                color: '#fff',
+                                textAlign: 'center',
+                                outline: 'none',
+                                transition: 'all 0.2s ease',
+                                boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.2)'
+                              }}
+                              onFocus={(e) => {
+                                e.target.style.borderColor = '#6366f1';
+                                e.target.style.backgroundColor = 'rgba(99,102,241,0.08)';
+                                e.target.style.boxShadow = 'inset 0 1px 4px rgba(0,0,0,0.2), 0 0 0 3px rgba(99,102,241,0.1)';
+                              }}
+                              onBlur={(e) => {
+                                e.target.style.borderColor = 'rgba(99,102,241,0.3)';
+                                e.target.style.backgroundColor = 'rgba(20,20,35,0.6)';
+                                e.target.style.boxShadow = 'inset 0 1px 4px rgba(0,0,0,0.2)';
+                              }}
+                            />
+                          </div>
+                          
+                          {/* Motivos */}
+                          <div>
+                            <label style={{ 
+                              display: 'block',
+                              color: 'rgba(255,255,255,0.6)',
+                              fontSize: '11px',
+                              fontWeight: '600',
+                              marginBottom: '8px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px',
+                              textAlign: 'center'
+                            }}>
+                              Motivo:
+                            </label>
+                            <div style={{ 
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+                              gap: '8px'
+                            }}>
+                              <button 
+                                onClick={() => setLossReason('roto')}
+                                style={{
+                                  padding: '10px 12px',
+                                  borderRadius: '8px',
+                                  border: lossReason === 'roto' ? '2px solid #6366f1' : '1.5px solid rgba(255,255,255,0.15)',
+                                  background: lossReason === 'roto' 
+                                    ? 'linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(129,140,248,0.15) 100%)' 
+                                    : 'rgba(20,20,35,0.4)',
+                                  color: '#fff',
+                                  cursor: 'pointer',
+                                  fontSize: '13px',
+                                  fontWeight: '600',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px',
+                                  transition: 'all 0.2s ease',
+                                  boxShadow: lossReason === 'roto' ? '0 2px 8px rgba(99,102,241,0.3)' : 'none',
+                                  backdropFilter: 'blur(10px)'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.transform = 'translateY(-2px)';
+                                  e.target.style.borderColor = '#818cf8';
+                                  e.target.style.boxShadow = '0 3px 12px rgba(99,102,241,0.3)';
+                                  e.target.style.background = 'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(129,140,248,0.12) 100%)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.transform = 'translateY(0)';
+                                  if (lossReason !== 'roto') {
+                                    e.target.style.borderColor = 'rgba(255,255,255,0.15)';
+                                    e.target.style.boxShadow = 'none';
+                                    e.target.style.background = 'rgba(20,20,35,0.4)';
+                                  }
+                                }}
+                              >
+                                <span style={{ fontSize: '16px' }}>🔴</span>
+                                <span>Roto</span>
+                              </button>
+                              
+                              <button 
+                                onClick={() => setLossReason('jefe')}
+                                style={{
+                                  padding: '10px 12px',
+                                  borderRadius: '8px',
+                                  border: lossReason === 'jefe' ? '2px solid #6366f1' : '1.5px solid rgba(255,255,255,0.15)',
+                                  background: lossReason === 'jefe' 
+                                    ? 'linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(129,140,248,0.15) 100%)' 
+                                    : 'rgba(20,20,35,0.4)',
+                                  color: '#fff',
+                                  cursor: 'pointer',
+                                  fontSize: '13px',
+                                  fontWeight: '600',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px',
+                                  transition: 'all 0.2s ease',
+                                  boxShadow: lossReason === 'jefe' ? '0 2px 8px rgba(99,102,241,0.3)' : 'none',
+                                  backdropFilter: 'blur(10px)'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.transform = 'translateY(-2px)';
+                                  e.target.style.borderColor = '#818cf8';
+                                  e.target.style.boxShadow = '0 3px 12px rgba(99,102,241,0.3)';
+                                  e.target.style.background = 'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(129,140,248,0.12) 100%)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.transform = 'translateY(0)';
+                                  if (lossReason !== 'jefe') {
+                                    e.target.style.borderColor = 'rgba(255,255,255,0.15)';
+                                    e.target.style.boxShadow = 'none';
+                                    e.target.style.background = 'rgba(20,20,35,0.4)';
+                                  }
+                                }}
+                              >
+                                <span style={{ fontSize: '16px' }}>👤</span>
+                                <span>Jefe</span>
+                              </button>
+                              
+                              <button 
+                                onClick={() => setLossReason('otro')}
+                                style={{
+                                  padding: '10px 12px',
+                                  borderRadius: '8px',
+                                  border: lossReason === 'otro' ? '2px solid #6366f1' : '1.5px solid rgba(255,255,255,0.15)',
+                                  background: lossReason === 'otro' 
+                                    ? 'linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(129,140,248,0.15) 100%)' 
+                                    : 'rgba(20,20,35,0.4)',
+                                  color: '#fff',
+                                  cursor: 'pointer',
+                                  fontSize: '13px',
+                                  fontWeight: '600',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px',
+                                  transition: 'all 0.2s ease',
+                                  boxShadow: lossReason === 'otro' ? '0 2px 8px rgba(99,102,241,0.3)' : 'none',
+                                  backdropFilter: 'blur(10px)'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.transform = 'translateY(-2px)';
+                                  e.target.style.borderColor = '#818cf8';
+                                  e.target.style.boxShadow = '0 3px 12px rgba(99,102,241,0.3)';
+                                  e.target.style.background = 'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(129,140,248,0.12) 100%)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.transform = 'translateY(0)';
+                                  if (lossReason !== 'otro') {
+                                    e.target.style.borderColor = 'rgba(255,255,255,0.15)';
+                                    e.target.style.boxShadow = 'none';
+                                    e.target.style.background = 'rgba(20,20,35,0.4)';
+                                  }
+                                }}
+                              >
+                                <span style={{ fontSize: '16px' }}>❓</span>
+                                <span>Otro</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Botones de acción */}
+                          <div style={{ 
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: '10px',
+                            marginTop: '8px'
+                          }}>
+                            <button 
+                              onClick={handleLossAdjust}
+                              style={{ 
+                                padding: '10px 14px',
+                                background: 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)',
+                                border: '1.5px solid #4caf50',
+                                borderRadius: '8px',
+                                color: '#fff',
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 2px 8px rgba(76,175,80,0.3)'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.background = 'linear-gradient(135deg, #45a049 0%, #3d8b40 100%)';
+                                e.target.style.transform = 'translateY(-2px)';
+                                e.target.style.boxShadow = '0 4px 12px rgba(76,175,80,0.5)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 2px 8px rgba(76,175,80,0.3)';
+                              }}
+                            >
+                              <span style={{ fontSize: '15px' }}>✓</span>
+                              <span>Confirmar</span>
+                            </button>
+                            
+                            <button 
+                              onClick={handleCloseLossForm}
+                              style={{ 
+                                padding: '10px 14px',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1.5px solid rgba(255,255,255,0.2)',
+                                borderRadius: '8px',
+                                color: 'rgba(255,255,255,0.8)',
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s ease',
+                                backdropFilter: 'blur(10px)'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.background = 'rgba(255,255,255,0.12)';
+                                e.target.style.borderColor = 'rgba(255,255,255,0.35)';
+                                e.target.style.transform = 'translateY(-2px)';
+                                e.target.style.boxShadow = '0 3px 10px rgba(0,0,0,0.2)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.background = 'rgba(255,255,255,0.05)';
+                                e.target.style.borderColor = 'rgba(255,255,255,0.2)';
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = 'none';
+                              }}
+                            >
+                              <span style={{ fontSize: '15px' }}>✕</span>
+                              <span>Cancelar</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
