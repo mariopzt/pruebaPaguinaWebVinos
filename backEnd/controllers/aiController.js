@@ -719,15 +719,45 @@ ${winesWithDescList}
 
 ACCIONES (responde en JSON cuando modifiques stock/vinos):
 
-1. **update_stock** - Modificar stock (uno o varios vinos):
-   Para UN vino: { "wines": [{ "name": "NombreVino", "stockChange": -5, "field": "stock" }] }
-   Para VARIOS: { "wines": [
-     { "name": "Vino1", "stockChange": -2, "field": "stock" },
-     { "name": "Vino2", "stockChange": -2, "field": "stock" },
-     { "name": "Vino3", "stockChange": -2, "field": "stock" }
+1. **update_stock** - SUMAR o RESTAR stock (uno o varios vinos):
+   
+   ⭐ RESTAR de UN vino:
+   { "wines": [{ "name": "Albariño Mar de Frades", "stockChange": -5, "field": "stock" }] }
+   
+   ⭐ RESTAR de VARIOS vinos:
+   { "wines": [
+     { "name": "Albariño Mar de Frades", "stockChange": -3, "field": "stock" },
+     { "name": "Ribera del Duero", "stockChange": -2, "field": "stock" },
+     { "name": "Godello Valdeorras", "stockChange": -1, "field": "stock" }
    ]}
-   - stockChange: NEGATIVO para quitar, POSITIVO para añadir
+   
+   ⭐ SUMAR a UN vino:
+   { "wines": [{ "name": "Rioja Reserva", "stockChange": 20, "field": "stock" }] }
+   
+   ⭐ SUMAR a VARIOS vinos:
+   { "wines": [
+     { "name": "Rioja Reserva", "stockChange": 15, "field": "stock" },
+     { "name": "Priorat", "stockChange": 10, "field": "stock" },
+     { "name": "Ribeiro", "stockChange": 25, "field": "stock" }
+   ]}
+   
+   ⭐ MEZCLAR (restar unos, sumar otros):
+   { "wines": [
+     { "name": "Vino1", "stockChange": -5, "field": "stock" },
+     { "name": "Vino2", "stockChange": 10, "field": "stock" }
+   ]}
+   
+   REGLAS:
+   - stockChange: NEGATIVO (-) para RESTAR/QUITAR
+   - stockChange: POSITIVO (+) para SUMAR/AÑADIR
    - field: "stock" (bodega) o "restaurantStock" (restaurante)
+   
+   EJEMPLOS DE COMANDOS DEL USUARIO:
+   - "Quita 5 botellas de Albariño" → stockChange: -5
+   - "Resta 3 de Rioja y 2 de Ribera" → wines: [Rioja: -3, Ribera: -2]
+   - "Añade 20 unidades de Godello" → stockChange: 20
+   - "Suma 10 a Priorat y 15 a Ribeiro" → wines: [Priorat: 10, Ribeiro: 15]
+   - "Vendí 2 Albariño y 3 Rioja" → stockChange: -2 y -3
 
 2. **set_stock** - Establecer stock exacto:
    { "wines": [{ "name": "NombreVino", "stock": 50, "field": "stock" }] }
@@ -798,18 +828,41 @@ ACCIONES (responde en JSON cuando modifiques stock/vinos):
    - location: Cambiar ubicación física en bodega
 
 5. **delete_wine** - Eliminar vino(s):
-   Un vino: { "name": "NombreVino" }
-   Varios vinos: { "wines": [{ "name": "Vino1" }, { "name": "Vino2" }] }
-   TODOS los vinos: { "all": true }
+   
+   ⚠️ IMPORTANTE: SIEMPRE incluye el nombre EXACTO del vino en "data"
+   
+   Eliminar UN vino:
+   {
+     "action": "delete_wine",
+     "response": "He eliminado el vino 'NombreDelVino' de la bodega.",
+     "data": { "name": "NombreDelVino" }
+   }
+   
+   Eliminar VARIOS vinos:
+   {
+     "action": "delete_wine",
+     "response": "He eliminado los vinos Vino1, Vino2 y Vino3.",
+     "data": { "wines": [{ "name": "Vino1" }, { "name": "Vino2" }, { "name": "Vino3" }] }
+   }
+   
+   Eliminar TODOS los vinos:
+   {
+     "action": "delete_wine",
+     "response": "He eliminado todos los vinos de la bodega.",
+     "data": { "all": true }
+   }
 
-6. **none** - Solo responder sin acción
+6. **none** - Solo responder sin acción (consultas, preguntas, información)
 
-FORMATO DE RESPUESTA (JSON):
+⚠️ FORMATO DE RESPUESTA JSON (OBLIGATORIO para acciones):
 {
   "action": "update_stock" | "set_stock" | "add_wine" | "update_wine" | "delete_wine" | "none",
-  "response": "Mensaje confirmando la acción",
-  "data": { ... }
+  "response": "Mensaje confirmando la acción al usuario",
+  "data": { ... DATOS OBLIGATORIOS de la acción ... }
 }
+
+⚠️ CRÍTICO: El campo "data" es OBLIGATORIO cuando action != "none". 
+Sin "data", la acción NO se ejecutará.
 
 🚫 REGLA CRÍTICA: NUNCA INVENTES INFORMACIÓN 🚫
 - SOLO usa datos de "VINOS DISPONIBLES", NO inventes nada

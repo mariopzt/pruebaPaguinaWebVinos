@@ -270,27 +270,39 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
 
   // Ejecutar acción de eliminar vino(s)
   const executeDeleteWine = useCallback(async (data) => {
+    console.log('🗑️ [DELETE] Iniciando eliminación con data:', JSON.stringify(data));
+    
+    if (!data) {
+      console.error('🗑️ [DELETE] ERROR: No se recibió data');
+      return { success: false, error: 'No se especificó qué vino eliminar' };
+    }
+
     // Si es "all" o hay lista de wines, eliminar múltiples
     if (data?.all === true || data?.wines) {
+      console.log('🗑️ [DELETE] Modo: Múltiples vinos o todos');
       const winesToDelete = data.all ? wines : 
         (data.wines || []).map(w => findWineByName(w.name || w)).filter(Boolean);
       
       if (winesToDelete.length === 0) {
+        console.error('🗑️ [DELETE] ERROR: No se encontraron vinos para eliminar');
         return { success: false, error: 'No hay vinos para eliminar' };
       }
 
+      console.log('🗑️ [DELETE] Vinos a eliminar:', winesToDelete.map(w => w.name));
+      
       const results = [];
       const deletedIds = [];
 
       for (const wine of winesToDelete) {
         try {
           const wineId = wine._id || wine.id;
+          console.log(`🗑️ [DELETE] Eliminando: ${wine.name} (ID: ${wineId})`);
           await wineService.deleteWine(wineId);
           deletedIds.push(wineId);
           results.push({ success: true, wine: wine.name });
           console.log('✅ Vino eliminado:', wine.name);
         } catch (err) {
-          console.error('Error eliminando vino:', wine.name, err);
+          console.error('❌ Error eliminando vino:', wine.name, err);
           results.push({ success: false, name: wine.name, error: err.message });
         }
       }
@@ -303,54 +315,77 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
     }
 
     // Eliminar un solo vino
-    const { name, id } = data || {};
+    console.log('🗑️ [DELETE] Modo: Un solo vino');
+    const { name, id, wineName } = data || {};
+    const targetName = name || wineName;
+    
+    console.log(`🗑️ [DELETE] Buscando vino: "${targetName}" (ID: ${id || 'no especificado'})`);
     
     let wine;
     if (id) {
       wine = wines.find(w => (w._id || w.id) === id);
-    } else if (name) {
-      wine = findWineByName(name);
+    } else if (targetName) {
+      wine = findWineByName(targetName);
     }
 
     if (!wine) {
-      return { success: false, error: 'Vino no encontrado' };
+      console.error(`🗑️ [DELETE] ERROR: Vino "${targetName}" no encontrado en la bodega`);
+      console.log('🗑️ [DELETE] Vinos disponibles:', wines.map(w => w.name));
+      return { success: false, error: `Vino "${targetName}" no encontrado` };
     }
 
     try {
       const wineId = wine._id || wine.id;
+      console.log(`🗑️ [DELETE] Eliminando: ${wine.name} (ID: ${wineId})`);
       await wineService.deleteWine(wineId);
 
       if (onWinesChange) {
         onWinesChange(prev => prev.filter(w => (w._id || w.id) !== wineId));
       }
 
-      console.log('✅ Vino eliminado:', wine.name);
+      console.log('✅ Vino eliminado correctamente:', wine.name);
       return { success: true, wine: wine.name };
     } catch (err) {
-      console.error('Error eliminando vino:', err);
+      console.error('❌ Error eliminando vino:', err);
       return { success: false, error: err.message };
     }
   }, [wines, findWineByName, onWinesChange]);
 
   // Ejecutar comando de la IA
   const executeCommand = useCallback(async (command, originalMessage = '') => {
-    if (!command || !command.action) return null;
+    if (!command || !command.action) {
+      console.warn('⚠️ [CMD] Comando inválido o sin acción');
+      return null;
+    }
 
     const { action, data } = command;
+    
+    console.log(`🎯 [CMD] Ejecutando acción: ${action}`);
+    console.log(`🎯 [CMD] Data disponible: ${data ? 'Sí' : 'No'}`);
+
+    // Validar que tenemos data para acciones que lo requieren
+    if (['update_stock', 'set_stock', 'add_wine', 'update_wine', 'delete_wine'].includes(action) && !data) {
+      console.error(`❌ [CMD] La acción ${action} requiere data pero no se recibió`);
+      return { success: false, error: 'No se recibieron datos para ejecutar la acción' };
+    }
 
     try {
       switch (action) {
         case 'update_stock':
         case 'set_stock':
+          console.log('📦 [CMD] Actualizando stock...');
           return await executeUpdateStock(data, originalMessage);
 
         case 'add_wine':
+          console.log('➕ [CMD] Añadiendo vino...');
           return await executeAddWine(data);
 
         case 'update_wine':
+          console.log('✏️ [CMD] Modificando vino...');
           return await executeUpdateWine(data);
 
         case 'delete_wine':
+          console.log('🗑️ [CMD] Eliminando vino...');
           return await executeDeleteWine(data);
 
         case 'navigate':
@@ -366,10 +401,11 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
           return { success: true };
 
         default:
+          console.log(`ℹ️ [CMD] Acción "${action}" no requiere procesamiento`);
           return null;
       }
     } catch (err) {
-      console.error('Error ejecutando comando:', err);
+      console.error('❌ [CMD] Error ejecutando comando:', err);
       setError('Error al ejecutar la acción');
       return { success: false, error: err.message };
     }
@@ -431,15 +467,24 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
 
       // Ejecutar acción si existe
       if (result.action && result.action !== 'none' && result.action !== 'response') {
+        console.log('🤖 [AI] Acción recibida:', result.action);
+        console.log('🤖 [AI] Data recibida:', JSON.stringify(result.data, null, 2));
+        
         const actionResult = await executeCommand(result, message);
         result.actionResult = actionResult;
+        
+        console.log('🤖 [AI] Resultado de acción:', JSON.stringify(actionResult, null, 2));
         
         // Log de resultados
         if (Array.isArray(actionResult)) {
           const successful = actionResult.filter(r => r.success).length;
           const failed = actionResult.filter(r => !r.success).length;
           console.log(`📊 Resultados: ${successful} exitosos, ${failed} fallidos`);
+        } else if (actionResult) {
+          console.log(`📊 Resultado: ${actionResult.success ? '✅ Éxito' : '❌ Error'}`);
         }
+      } else {
+        console.log('🤖 [AI] Acción:', result.action, '- No requiere ejecución');
       }
 
       return result;

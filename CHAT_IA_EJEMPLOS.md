@@ -2,15 +2,51 @@
 
 La IA de VinosStK tiene **acceso total** a tu bodega. Puede crear, modificar, eliminar vinos y cambiar cualquier información.
 
+## 🎯 Resumen Rápido
+
+| Acción | Ejemplo |
+|--------|---------|
+| ➖ **Restar 1 vino** | "Quita 5 del Albariño" |
+| ➖ **Restar varios** | "Resta 3 Rioja, 2 Ribera y 5 Godello" |
+| ➕ **Sumar 1 vino** | "Añade 20 al Priorat" |
+| ➕ **Sumar varios** | "Suma 15 Albariño, 10 Rioja y 25 Mencía" |
+| 🔄 **Restar y Sumar** | "Vendí 3 Rioja pero llegaron 20 Priorat" |
+| ➕ **Crear vino** | "Añade un vino Ribera del Duero Reserva 2019" |
+| ✏️ **Modificar vino** | "Cambia el precio del Godello a 18€" |
+| 🖼️ **Cambiar imagen** | "Actualiza la imagen del Albariño" |
+| ❌ **Eliminar vino** | "Elimina el Rioja Reserva" |
+
+---
+
 ## 📋 Capacidades Completas
 
 ### 1️⃣ Modificar Stock (update_stock / set_stock)
 
+**RESTAR stock (uno o varios vinos):**
 ```
 Usuario: "Quita 5 botellas de Albariño Mar de Frades"
-Usuario: "Vendí 3 botellas de Ribera del Duero"
+Usuario: "Resta 3 del Ribera del Duero"
+Usuario: "Vendí 2 Albariño, 3 Rioja y 1 Godello"
+Usuario: "Quita 10 unidades de Priorat y 5 de Ribeiro"
+```
+
+**SUMAR stock (uno o varios vinos):**
+```
 Usuario: "Añade 20 unidades de Rioja Reserva"
+Usuario: "Suma 15 botellas al Albariño y 10 al Godello"
+Usuario: "Agrega 30 unidades de Ribera, 25 de Priorat y 20 de Mencía"
+```
+
+**ESTABLECER stock exacto:**
+```
 Usuario: "Establece el stock de Godello a 15"
+Usuario: "Pon el stock del Rioja en 50 unidades"
+```
+
+**MEZCLAR (restar y sumar en el mismo comando):**
+```
+Usuario: "Resta 5 del Albariño y añade 10 al Rioja"
+Usuario: "Vendí 3 Ribera pero llegaron 20 Priorat nuevos"
 ```
 
 ### 2️⃣ Agregar Vinos Nuevos (add_wine)
@@ -42,6 +78,8 @@ Usuario: "Reduce el precio del Albariño a 12€"
 Usuario: "Cambia la imagen del Ribera del Duero"
 Usuario: "Añade una foto al vino Albariño"
 Usuario: "Actualiza la imagen del Godello"
+Usuario: "Actualiza la imagen del Godello por una en la web que encuentres"
+
 ```
 
 **Cambiar tipo, año, región:**
@@ -123,6 +161,18 @@ Usuario: "Añade descripciones a todos los vinos que no tienen"
 ```
 Usuario: "Busca información sobre el vino Viña Ardanza en internet 
 y añádela como descripción"
+```
+
+### Escenario 6: Gestión múltiple de stock
+```
+Usuario: "Vendí 3 Albariño, 2 Rioja y 5 Ribera del Duero"
+IA: ✅ Resta 3, 2 y 5 unidades respectivamente
+
+Usuario: "Llegó pedido: 30 Priorat, 25 Godello y 20 Mencía"
+IA: ✅ Suma 30, 25 y 20 unidades respectivamente
+
+Usuario: "Resta 2 del Albariño pero añade 15 al stock del Rioja"
+IA: ✅ Resta 2 de uno y suma 15 al otro
 ```
 
 ---
