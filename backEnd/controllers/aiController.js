@@ -702,7 +702,8 @@ exports.processCommand = async (req, res, next) => {
       : 'NO HAY VINOS AGOTADOS';
 
     // Construir prompt del sistema OPTIMIZADO
-    const systemPrompt = `Asistente IA de VinosStK con control total de la bodega.
+    const systemPrompt = `Asistente IA de VinosStK con CONTROL TOTAL de la bodega.
+Tienes acceso COMPLETO para: crear, modificar, eliminar vinos, cambiar stock, precios, descripciones, imágenes, etc.
 ${webSearchInfo}
 
 ⚠️ INSTRUCCIÓN CRÍTICA: La lista siguiente contiene ${allWines.slice(0, 50).length} vinos. DEBES revisar TODA la lista COMPLETA antes de responder cualquier pregunta sobre características, cantidades o búsquedas. NO te detengas en el primer resultado.
@@ -740,7 +741,9 @@ ACCIONES (responde en JSON cuando modifiques stock/vinos):
      "grape": "Tempranillo, Graciano, Mazuelo",
      "price": 18,
      "stock": 25,
-     "restaurantStock": 8
+     "restaurantStock": 8,
+     "description": "Vino excepcional de crianza...",
+     "image": "https://ejemplo.com/imagen.jpg"
    }]}
    
    CAMPOS OBLIGATORIOS para cada vino:
@@ -753,16 +756,57 @@ ACCIONES (responde en JSON cuando modifiques stock/vinos):
    - stock: Stock en bodega (10-50)
    - restaurantStock: Stock en restaurante (5-20)
 
-4. **delete_wine** - Eliminar vino(s):
+4. **update_wine** - Modificar CUALQUIER campo de un vino (nombre, tipo, año, región, uvas, precio, descripción, imagen, etc.):
+   
+   ⚠️ USA ESTA ACCIÓN PARA:
+   - Cambiar precio, descripción, imagen, nombre, tipo, año, región, uvas, ubicación
+   - Añadir o modificar descripciones
+   - Cambiar imágenes/fotos
+   - Actualizar cualquier información del vino
+   
+   ⚠️ NO USES update_wine PARA STOCK - usa update_stock o set_stock
+   
+   EJEMPLOS:
+   
+   Cambiar descripción:
+   { "name": "Albariño Mar de Frades", "updates": { 
+     "description": "Vino blanco fresco y aromático de Rías Baixas con notas cítricas"
+   }}
+   
+   Cambiar precio e imagen:
+   { "name": "Ribera del Duero Reserva", "updates": { 
+     "price": 28,
+     "image": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3"
+   }}
+   
+   Varios vinos a la vez:
+   { "wines": [
+     { "name": "Vino1", "updates": { "price": 20, "description": "Descripción nueva" }},
+     { "name": "Vino2", "updates": { "type": "Rosado", "region": "D.O. Navarra" }}
+   ]}
+   
+   CAMPOS MODIFICABLES:
+   - name: Cambiar nombre del vino
+   - type: Cambiar tipo ("Tinto", "Blanco", "Rosado", "Espumoso", "Dulce")
+   - year: Cambiar año de cosecha
+   - region: Cambiar región/D.O.
+   - grape: Cambiar variedades de uva (string separado por comas)
+   - price: Cambiar precio (número)
+   - description: Cambiar/añadir descripción completa
+   - image: Cambiar URL de imagen
+   - alcoholContent: Cambiar % de alcohol
+   - location: Cambiar ubicación física en bodega
+
+5. **delete_wine** - Eliminar vino(s):
    Un vino: { "name": "NombreVino" }
    Varios vinos: { "wines": [{ "name": "Vino1" }, { "name": "Vino2" }] }
    TODOS los vinos: { "all": true }
 
-5. **none** - Solo responder sin acción
+6. **none** - Solo responder sin acción
 
 FORMATO DE RESPUESTA (JSON):
 {
-  "action": "update_stock" | "set_stock" | "add_wine" | "delete_wine" | "none",
+  "action": "update_stock" | "set_stock" | "add_wine" | "update_wine" | "delete_wine" | "none",
   "response": "Mensaje confirmando la acción",
   "data": { ... }
 }

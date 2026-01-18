@@ -196,6 +196,78 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
     return results;
   }, [onWinesChange]);
 
+  // Ejecutar acción de actualizar/modificar vino(s) - CUALQUIER CAMPO
+  const executeUpdateWine = useCallback(async (data) => {
+    // Si hay una lista de vinos a actualizar
+    const winesList = data.wines || (data.name ? [data] : []);
+    
+    if (winesList.length === 0) {
+      return { success: false, error: 'No hay vinos para actualizar' };
+    }
+
+    const results = [];
+    const updatedWines = [...wines];
+
+    for (const item of winesList) {
+      const { name, updates } = item;
+      
+      if (!name || !updates) {
+        results.push({ name: name || 'Desconocido', success: false, error: 'Faltan datos' });
+        continue;
+      }
+
+      const wine = findWineByName(name);
+      if (!wine) {
+        results.push({ name, success: false, error: 'Vino no encontrado' });
+        continue;
+      }
+
+      try {
+        const wineId = wine._id || wine.id;
+        
+        // Si hay cambio de grape (string), actualizar también grapeVariety
+        if (updates.grape) {
+          const grapeString = updates.grape;
+          const grapes = grapeString.split(',').map(g => g.trim()).filter(Boolean);
+          const percentPerGrape = Math.floor(100 / grapes.length);
+          const remainder = 100 - (percentPerGrape * grapes.length);
+          updates.grapeVariety = grapes.map((grapeName, i) => ({
+            name: grapeName,
+            percentage: percentPerGrape + (i === 0 ? remainder : 0)
+          }));
+        }
+
+        // Actualizar en BD
+        const response = await wineService.updateWine(wineId, updates);
+        const updatedWine = response.data || response;
+        
+        // Actualizar en array local
+        const idx = updatedWines.findIndex(w => (w._id || w.id) === wineId);
+        if (idx !== -1) {
+          updatedWines[idx] = { ...updatedWines[idx], ...updates };
+        }
+
+        results.push({ 
+          name: wine.name, 
+          success: true,
+          updates: Object.keys(updates)
+        });
+        
+        console.log(`✅ ${wine.name} actualizado:`, Object.keys(updates).join(', '));
+      } catch (err) {
+        console.error(`Error actualizando ${name}:`, err);
+        results.push({ name, success: false, error: err.message });
+      }
+    }
+
+    // Actualizar estado global
+    if (onWinesChange && results.some(r => r.success)) {
+      onWinesChange(updatedWines);
+    }
+
+    return results;
+  }, [wines, findWineByName, onWinesChange]);
+
   // Ejecutar acción de eliminar vino(s)
   const executeDeleteWine = useCallback(async (data) => {
     // Si es "all" o hay lista de wines, eliminar múltiples
@@ -275,6 +347,9 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
         case 'add_wine':
           return await executeAddWine(data);
 
+        case 'update_wine':
+          return await executeUpdateWine(data);
+
         case 'delete_wine':
           return await executeDeleteWine(data);
 
@@ -298,7 +373,7 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
       setError('Error al ejecutar la acción');
       return { success: false, error: err.message };
     }
-  }, [executeUpdateStock, executeAddWine, executeDeleteWine, onUIChange]);
+  }, [executeUpdateStock, executeAddWine, executeUpdateWine, executeDeleteWine, onUIChange]);
 
   // Enviar mensaje a la IA
   const sendMessage = useCallback(async (message) => {
