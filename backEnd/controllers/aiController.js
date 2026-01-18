@@ -854,15 +854,39 @@ ACCIONES (responde en JSON cuando modifiques stock/vinos):
 
 6. **none** - Solo responder sin acción (consultas, preguntas, información)
 
-⚠️ FORMATO DE RESPUESTA JSON (OBLIGATORIO para acciones):
+🚨🚨🚨 REGLAS ABSOLUTAS - LEE ESTO 🚨🚨🚨
+
+1. NUNCA MUESTRES JSON AL USUARIO. El JSON es SOLO para el sistema interno.
+2. RESPONDE SIEMPRE en formato JSON válido (sin texto antes ni después).
+3. El usuario SOLO verá el contenido del campo "response".
+4. Los datos para ejecutar la acción van SIEMPRE dentro de "data".
+
+FORMATO OBLIGATORIO (SIEMPRE):
 {
   "action": "update_stock" | "set_stock" | "add_wine" | "update_wine" | "delete_wine" | "none",
-  "response": "Mensaje confirmando la acción al usuario",
-  "data": { ... DATOS OBLIGATORIOS de la acción ... }
+  "response": "Texto amigable que verá el usuario",
+  "data": { ... los datos para ejecutar la acción ... }
 }
 
-⚠️ CRÍTICO: El campo "data" es OBLIGATORIO cuando action != "none". 
-Sin "data", la acción NO se ejecutará.
+EJEMPLOS CORRECTOS:
+
+✅ Eliminar un vino:
+{"action":"delete_wine","response":"¡Listo! He eliminado el vino Mario de la bodega.","data":{"name":"Mario"}}
+
+✅ Modificar un vino:
+{"action":"update_wine","response":"¡Hecho! He cambiado el nombre del vino.","data":{"name":"Mario","updates":{"name":"Vino Nuevo"}}}
+
+✅ Modificar varios vinos:
+{"action":"update_wine","response":"¡Listo! He renombrado los vinos.","data":{"wines":[{"name":"Mario","updates":{"name":"Vino 1"}},{"name":"Otro","updates":{"name":"Vino 2"}}]}}
+
+✅ Solo consulta:
+{"action":"none","response":"Tienes 5 vinos tintos en la bodega.","data":null}
+
+❌ ERRORES A EVITAR:
+- NO escribas JSON suelto en la respuesta
+- NO pongas "wines" fuera de "data" 
+- NO uses markdown o texto antes/después del JSON
+- NO muestres el JSON como parte de tu respuesta
 
 🚫 REGLA CRÍTICA: NUNCA INVENTES INFORMACIÓN 🚫
 - SOLO usa datos de "VINOS DISPONIBLES", NO inventes nada
@@ -882,8 +906,8 @@ Sin "data", la acción NO se ejecutará.
 - Si NO tiene "Desc:" → di "Este vino no tiene descripción registrada"
 
 - Lista vinos por stock: de MENOR a MAYOR
-- Operaciones: JSON { "action", "response", "data" }
-- Preguntas: texto normal (no JSON)`;
+- Para acciones: responde SOLO con JSON
+- Para preguntas: responde con {"action":"none","response":"tu respuesta aquí","data":null}`;
 
     // Construir historial de mensajes
     const messages = [
@@ -917,6 +941,29 @@ Sin "data", la acción NO se ejecutará.
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsedResponse = JSON.parse(jsonMatch[0]);
+        
+        // CORRECCIÓN: Si la IA puso "wines" fuera de "data", moverlo dentro
+        if (parsedResponse.wines && !parsedResponse.data) {
+          console.log('[AI] Corrigiendo formato: moviendo "wines" dentro de "data"');
+          parsedResponse.data = { wines: parsedResponse.wines };
+          delete parsedResponse.wines;
+        }
+        
+        // CORRECCIÓN: Si la IA puso "name" y "updates" fuera de "data", moverlos
+        if (parsedResponse.name && parsedResponse.updates && !parsedResponse.data) {
+          console.log('[AI] Corrigiendo formato: moviendo datos dentro de "data"');
+          parsedResponse.data = { name: parsedResponse.name, updates: parsedResponse.updates };
+          delete parsedResponse.name;
+          delete parsedResponse.updates;
+        }
+        
+        // CORRECCIÓN: Si solo hay "name" sin "data", moverlo
+        if (parsedResponse.name && !parsedResponse.data && parsedResponse.action === 'delete_wine') {
+          console.log('[AI] Corrigiendo formato: moviendo "name" dentro de "data"');
+          parsedResponse.data = { name: parsedResponse.name };
+          delete parsedResponse.name;
+        }
+        
       } else {
         parsedResponse = {
           action: 'none',
@@ -926,6 +973,7 @@ Sin "data", la acción NO se ejecutará.
       }
     } catch (parseError) {
       console.error('Error parseando respuesta de IA:', parseError);
+      console.error('Texto recibido:', text);
       parsedResponse = {
         action: 'none',
         response: text,
@@ -936,6 +984,7 @@ Sin "data", la acción NO se ejecutará.
     console.log('[AI Command]', { 
       message, 
       action: parsedResponse.action,
+      hasData: !!parsedResponse.data,
       data: parsedResponse.data
     });
 
