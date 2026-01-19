@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './WineModal.css';
+
+// Imagen de fallback confiable (Unsplash)
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&h=600&fit=crop&q=80';
 
 // Optimizar URL de imagen para que todas se vean uniformes
 const getOptimizedImageUrl = (url) => {
-  if (!url) return 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&h=600&fit=crop&q=80';
+  if (!url) return FALLBACK_IMAGE;
 
   // Para Unsplash, asegurar tamaño uniforme y mayor calidad
   if (url.includes('unsplash.com')) {
@@ -22,7 +25,7 @@ const getOptimizedImageUrl = (url) => {
   return url;
 };
 
-function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine }) {
+function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine, isGuest = false }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedWine, setEditedWine] = useState({
     price: wine?.price || 0,
@@ -44,6 +47,21 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
   const [lossAdjustValue, setLossAdjustValue] = useState('');
   const [lossReason, setLossReason] = useState('roto'); // 'roto', 'jefe', 'otro'
   const [isClosingLossForm, setIsClosingLossForm] = useState(false);
+  const [imgSrc, setImgSrc] = useState(getOptimizedImageUrl(wine?.image));
+  const [imgError, setImgError] = useState(false);
+
+  // Actualizar imagen si cambia el vino o editedWine.image
+  useEffect(() => {
+    setImgSrc(getOptimizedImageUrl(editedWine.image));
+    setImgError(false);
+  }, [editedWine.image]);
+
+  const handleImageError = () => {
+    if (!imgError) {
+      setImgError(true);
+      setImgSrc(FALLBACK_IMAGE);
+    }
+  };
 
   if (!wine) return null;
 
@@ -360,19 +378,21 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
             ×
           </button>
 
-          {/* Botón Editar */}
-          <button 
-            className="wine-edit-button"
-            onClick={() => setIsEditMode(!isEditMode)}
-            title={isEditMode ? 'Cancelar edición' : 'Editar vino'}
-          >
-            {isEditMode ? '✕' : '✎'}
-          </button>
+          {/* Botón Editar - Solo para usuarios no invitados */}
+          {!isGuest && (
+            <button 
+              className="wine-edit-button"
+              onClick={() => setIsEditMode(!isEditMode)}
+              title={isEditMode ? 'Cancelar edición' : 'Editar vino'}
+            >
+              {isEditMode ? '✕' : '✎'}
+            </button>
+          )}
         </div>
         
         <div className="wine-modal-content">
           <div className="wine-modal-image">
-            <img src={getOptimizedImageUrl(editedWine.image)} alt={wine.name} />
+            <img src={imgSrc} alt={wine.name} onError={handleImageError} />
             {isEditMode && (
               <div className="wine-image-edit-overlay">
                 <label htmlFor="wine-image-input" className="wine-image-edit-btn">
@@ -449,8 +469,8 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
                   )}
                 </div>
 
-                {/* Botones de ajuste rápido de stock (solo si NO está en modo edición) */}
-                {!isEditMode && (
+                {/* Botones de ajuste rápido de stock (solo si NO está en modo edición y NO es invitado) */}
+                {!isEditMode && !isGuest && (
                   <div className="wine-stock-adjust-section">
                     {!showStockAdjust ? (
                       <div className="wine-stock-adjust-buttons">
@@ -531,8 +551,8 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
                   )}
                 </div>
 
-                {/* Botones de ajuste rápido de stock restaurante (solo si NO está en modo edición) */}
-                {!isEditMode && (
+                {/* Botones de ajuste rápido de stock restaurante (solo si NO está en modo edición y NO es invitado) */}
+                {!isEditMode && !isGuest && (
                   <div className="wine-stock-adjust-section">
                     {!showRestaurantAdjust ? (
                       <div className="wine-stock-adjust-buttons">
@@ -1134,8 +1154,8 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
               </div>
             )}
 
-            {/* Botón Eliminar al final del contenido (solo si NO está en modo edición) */}
-            {onDeleteWine && !isEditMode && (
+            {/* Botón Eliminar al final del contenido (solo si NO está en modo edición y NO es invitado) */}
+            {onDeleteWine && !isEditMode && !isGuest && (
               <div className="wine-delete-container">
                 <button
                   className="wine-delete-button"

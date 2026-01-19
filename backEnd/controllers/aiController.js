@@ -1016,6 +1016,37 @@ EJEMPLOS CORRECTOS:
 };
 
 /**
+ * Validar si una URL de imagen es segura y confiable
+ */
+function isValidImageUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  
+  // Debe ser HTTPS
+  if (!url.startsWith('https://')) return false;
+  
+  // Debe ser una imagen
+  if (!/\.(jpg|jpeg|png|webp)(\?|$)/i.test(url)) return false;
+  
+  // Lista negra de dominios problemáticos
+  const blacklist = [
+    'vinosyaguardientes.com',
+    'encrypted-tbn',
+    'googleusercontent.com',
+    't0.gstatic.com',
+    't1.gstatic.com',
+    't2.gstatic.com',
+    't3.gstatic.com'
+  ];
+  
+  if (blacklist.some(domain => url.includes(domain))) return false;
+  
+  // URL no debe ser demasiado larga
+  if (url.length > 300) return false;
+  
+  return true;
+}
+
+/**
  * Buscar imagen REAL de un vino específico en internet
  */
 async function searchRealWineImage(wineName) {
@@ -1043,39 +1074,39 @@ async function searchRealWineImage(wineName) {
       if (src && src.includes('vivino') && !src.includes('avatar') && !src.includes('logo')) {
         // Mejorar calidad de imagen
         src = src.replace(/\/\d+x\d+\//, '/400x400/');
-        foundImages.push({ url: src, source: 'Vivino' });
+        if (isValidImageUrl(src)) {
+          foundImages.push({ url: src, source: 'Vivino' });
+        }
       }
     });
     
-    console.log(`[IMAGE] Vivino: ${foundImages.length} imágenes encontradas`);
+    console.log(`[IMAGE] Vivino: ${foundImages.length} imágenes válidas encontradas`);
   } catch (e) {
     console.log('[IMAGE] Error Vivino:', e.message);
   }
 
   try {
-    // 2. Buscar en Google Images
+    // 2. Buscar en Google Images (solo URLs seguras)
     const googleImageUrl = `https://www.google.com/search?q=${encodeURIComponent(wineName + ' vino botella')}&tbm=isch&hl=es`;
     console.log('[IMAGE] Buscando en Google Images...');
     
     const googleRes = await axios.get(googleImageUrl, { headers, timeout: 8000 });
-    const $g = cheerio.load(googleRes.data);
-    
-    // Extraer URLs de imágenes del HTML de Google
     const htmlContent = googleRes.data;
     
     // Buscar URLs de imágenes en el JSON embebido
-    const imgRegex = /\["(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp)[^"]*)"/gi;
+    const imgRegex = /\["(https:\/\/[^"]+\.(?:jpg|jpeg|png|webp)[^"]*)"/gi;
     let match;
     let count = 0;
-    while ((match = imgRegex.exec(htmlContent)) !== null && count < 5) {
+    while ((match = imgRegex.exec(htmlContent)) !== null && count < 3) {
       const imgUrl = match[1];
-      if (imgUrl && !imgUrl.includes('google') && !imgUrl.includes('gstatic') && imgUrl.length < 500) {
+      // Validar URL antes de agregar
+      if (isValidImageUrl(imgUrl)) {
         foundImages.push({ url: imgUrl, source: 'Google' });
         count++;
       }
     }
     
-    console.log(`[IMAGE] Google: ${count} imágenes encontradas`);
+    console.log(`[IMAGE] Google: ${count} imágenes válidas encontradas`);
   } catch (e) {
     console.log('[IMAGE] Error Google:', e.message);
   }
@@ -1092,43 +1123,19 @@ async function searchRealWineImage(wineName) {
       let src = $vs(el).attr('src') || $vs(el).attr('data-src');
       if (src && !src.includes('logo') && !src.includes('icon')) {
         if (!src.startsWith('http')) src = 'https://www.vinissimus.com' + src;
-        foundImages.push({ url: src, source: 'Vinissimus' });
+        if (isValidImageUrl(src)) {
+          foundImages.push({ url: src, source: 'Vinissimus' });
+        }
       }
     });
     
-    console.log(`[IMAGE] Vinissimus: imágenes encontradas`);
+    console.log(`[IMAGE] Vinissimus: imágenes válidas encontradas`);
   } catch (e) {
     console.log('[IMAGE] Error Vinissimus:', e.message);
   }
 
-  try {
-    // 4. Buscar en DuckDuckGo Images (más permisivo)
-    const ddgUrl = `https://duckduckgo.com/?q=${encodeURIComponent(wineName + ' vino botella')}&iax=images&ia=images`;
-    console.log('[IMAGE] Buscando en DuckDuckGo...');
-    
-    const ddgRes = await axios.get(ddgUrl, { 
-      headers: {
-        ...headers,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }, 
-      timeout: 8000 
-    });
-    
-    // DuckDuckGo usa un token, intentar extraer imágenes del HTML
-    const ddgHtml = ddgRes.data;
-    const ddgImgRegex = /vqd[^"]*"([^"]+)"|"(https?:\/\/[^"]+\.(?:jpg|jpeg|png)[^"]*)"/gi;
-    let ddgMatch;
-    let ddgCount = 0;
-    while ((ddgMatch = ddgImgRegex.exec(ddgHtml)) !== null && ddgCount < 3) {
-      const imgUrl = ddgMatch[2];
-      if (imgUrl && !imgUrl.includes('duckduckgo') && imgUrl.length < 500) {
-        foundImages.push({ url: imgUrl, source: 'DuckDuckGo' });
-        ddgCount++;
-      }
-    }
-  } catch (e) {
-    console.log('[IMAGE] Error DuckDuckGo:', e.message);
-  }
+  // Omitimos DuckDuckGo por problemas de fiabilidad y CORS
+  // Si necesitamos más fuentes, mejor usar APIs oficiales como Unsplash o Pexels
 
   // Devolver la primera imagen encontrada o null
   if (foundImages.length > 0) {
@@ -1171,20 +1178,26 @@ exports.webSearch = async (req, res, next) => {
       });
     }
 
-    // Fallback: imágenes genéricas de Unsplash de alta calidad
+    // Fallback: imágenes genéricas de alta calidad de Unsplash y Pexels
     console.log(`🖼️ [WEB SEARCH] ⚠️ Usando imagen genérica de fallback`);
     const wineImages = [
-      'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&q=80',
-      'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=800&q=80',
-      'https://images.unsplash.com/photo-1586370434639-0fe43b2d32e6?w=800&q=80',
-      'https://images.unsplash.com/photo-1567529692333-de9fd6772897?w=800&q=80',
-      'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=800&q=80',
-      'https://images.unsplash.com/photo-1560148218-1a83060f7b32?w=800&q=80',
-      'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=800&q=80',
-      'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=800&q=80',
+      // Botellas de vino tinto
+      'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&h=800&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1586370434639-0fe43b2d32e6?w=600&h=800&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=600&h=800&fit=crop&q=80',
+      // Botellas de vino blanco
+      'https://images.unsplash.com/photo-1560148218-1a83060f7b32?w=600&h=800&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1567529692333-de9fd6772897?w=600&h=800&fit=crop&q=80',
+      // Botellas genéricas elegantes
+      'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=600&h=800&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=600&h=800&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=600&h=800&fit=crop&q=80',
+      // Más variedad de Pexels (CDN confiable)
+      'https://images.pexels.com/photos/2647933/pexels-photo-2647933.jpeg?auto=compress&cs=tinysrgb&w=600&h=800&fit=crop',
+      'https://images.pexels.com/photos/3155472/pexels-photo-3155472.jpeg?auto=compress&cs=tinysrgb&w=600&h=800&fit=crop',
     ];
 
-    // Seleccionar imagen basada en el nombre (consistente)
+    // Seleccionar imagen basada en el nombre (consistente para el mismo vino)
     const nameHash = query.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const selectedImage = wineImages[nameHash % wineImages.length];
 
@@ -1193,6 +1206,7 @@ exports.webSearch = async (req, res, next) => {
       query,
       image: selectedImage,
       isReal: false,
+      message: 'Imagen genérica de alta calidad (no se encontró imagen específica del vino)',
       results: [{ url: selectedImage, title: query }]
     });
 

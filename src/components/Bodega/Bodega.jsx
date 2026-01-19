@@ -184,17 +184,19 @@ function Bodega({ onNavigateHome, onSelectWine, onOpenAddWine, wineLikes, onTogg
 
   return (
     <div className="bodega-container" ref={bodegaContainerRef}>
-      {/* Botón agregar vino - Posición superior derecha */}
-      <button 
-        className="add-wine-button add-wine-button-top"
-        onClick={onOpenAddWine}
-        title="Agregar nuevo vino"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
-        Nuevo
-      </button>
+      {/* Botón agregar vino - Posición superior derecha - Solo usuarios registrados */}
+      {onOpenAddWine && (
+        <button 
+          className="add-wine-button add-wine-button-top"
+          onClick={onOpenAddWine}
+          title="Agregar nuevo vino"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Nuevo
+        </button>
+      )}
 
       <div className="bodega-filters">
         {/* Botones de filtro individuales (solo desktop) */}

@@ -3,8 +3,11 @@ import { FiHeart } from 'react-icons/fi';
 import { getTimeAgo } from '../../utils/date';
 import './WineCard.css';
 
+// Imagen de fallback confiable (Unsplash)
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&h=400&fit=crop&q=80';
+
 const getOptimizedImageUrl = (url) => {
-  if (!url) return 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&h=400&fit=crop&q=80';
+  if (!url) return FALLBACK_IMAGE;
 
   // Para Unsplash, asegurar tamaño uniforme
   if (url.includes('unsplash.com')) {
@@ -32,6 +35,8 @@ const getOptimizedImageUrl = (url) => {
 function WineCard({ wine, onClick, isHighlighted, likes = 0, liked = false, onToggleLike }) {
   const cardRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [imgSrc, setImgSrc] = useState(getOptimizedImageUrl(wine.image));
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     const el = cardRef.current;
@@ -54,6 +59,19 @@ function WineCard({ wine, onClick, isHighlighted, likes = 0, liked = false, onTo
     return () => observer.disconnect();
   }, []);
 
+  // Actualizar imagen si cambia el vino
+  useEffect(() => {
+    setImgSrc(getOptimizedImageUrl(wine.image));
+    setImgError(false);
+  }, [wine.image]);
+
+  const handleImageError = () => {
+    if (!imgError) {
+      setImgError(true);
+      setImgSrc(FALLBACK_IMAGE);
+    }
+  };
+
   const handleLikeClick = (e) => {
     e.stopPropagation(); // Evitar que abra el modal del vino
     if (onToggleLike) {
@@ -71,9 +89,10 @@ function WineCard({ wine, onClick, isHighlighted, likes = 0, liked = false, onTo
     >
       <div className="wine-card-image">
         <img
-          src={getOptimizedImageUrl(wine.image)}
+          src={imgSrc}
           alt={wine.name}
           loading="lazy"
+          onError={handleImageError}
         />
         {/* Botón de like flotante */}
         <button 

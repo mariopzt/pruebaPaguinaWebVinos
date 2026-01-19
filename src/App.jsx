@@ -405,9 +405,10 @@ function App() {
     fetchWines()
   }, [])
 
-  // useEffect separado para cargar estadísticas solo si el usuario está autenticado
+  // useEffect separado para cargar estadísticas solo si el usuario está autenticado y NO es invitado
   useEffect(() => {
-    if (!currentUser) return;
+    // No cargar estadísticas si no hay usuario o si es invitado
+    if (!currentUser || currentUser.isGuest) return;
 
     const fetchStats = async () => {
       try {
@@ -428,8 +429,8 @@ function App() {
     }
 
     fetchStats()
-    // Recargar estadísticas cada 3 segundos
-    const statsInterval = setInterval(fetchStats, 3000)
+    // Recargar estadísticas cada 30 segundos (no cada 3 segundos para evitar spam)
+    const statsInterval = setInterval(fetchStats, 30000)
     return () => clearInterval(statsInterval)
   }, [currentUser])
 
@@ -1463,40 +1464,48 @@ function App() {
               </div>
             </div>
 
-            {/* Nav item simple para Tareas (sin plegado) */}
-            <div 
-              className={`nav-item ${['tareas','tareas-completadas','tareas-pendientes'].includes(currentView) ? 'active' : ''}`} 
-              onClick={() => setCurrentView('tareas')}
-            >
-              <div className="nav-item-content">
-                <span className="nav-icon"><FiCheckSquare size={10} /></span>
-                <span className="nav-text">Tareas</span>
+            {/* Nav item simple para Tareas (sin plegado) - Solo usuarios registrados */}
+            {!currentUser?.isGuest && (
+              <div 
+                className={`nav-item ${['tareas','tareas-completadas','tareas-pendientes'].includes(currentView) ? 'active' : ''}`} 
+                onClick={() => setCurrentView('tareas')}
+              >
+                <div className="nav-item-content">
+                  <span className="nav-icon"><FiCheckSquare size={10} /></span>
+                  <span className="nav-text">Tareas</span>
+                </div>
               </div>
-            </div>
+            )}
             
-            <div 
-              className={`nav-item ${currentView === 'pedidos' ? 'active' : ''}`} 
-              onClick={() => setCurrentView('pedidos')}
-            >
-              <div className="nav-item-content">
-                <span className="nav-icon"><FiShoppingBag size={10} /></span>
-                <span className="nav-text">Pedidos</span>
+            {/* Pedidos - Solo usuarios registrados */}
+            {!currentUser?.isGuest && (
+              <div 
+                className={`nav-item ${currentView === 'pedidos' ? 'active' : ''}`} 
+                onClick={() => setCurrentView('pedidos')}
+              >
+                <div className="nav-item-content">
+                  <span className="nav-icon"><FiShoppingBag size={10} /></span>
+                  <span className="nav-text">Pedidos</span>
+                </div>
               </div>
-            </div>
+            )}
           </nav>
 
           {/* Sección Opiniones (subida bajo Menú) */}
           <div className="sidebar-menu-label">Opiniones</div>
           <nav className="sidebar-nav">
-            <div 
-              className={`nav-item ${currentView === 'valoraciones' ? 'active' : ''}`} 
-              onClick={() => setCurrentView('valoraciones')}
-            >
-              <div className="nav-item-content">
-                <span className="nav-icon"><FiStar size={10} /></span>
-                <span className="nav-text">Valoraciones</span>
+            {/* Valoraciones - Solo usuarios registrados */}
+            {!currentUser?.isGuest && (
+              <div 
+                className={`nav-item ${currentView === 'valoraciones' ? 'active' : ''}`} 
+                onClick={() => setCurrentView('valoraciones')}
+              >
+                <div className="nav-item-content">
+                  <span className="nav-icon"><FiStar size={10} /></span>
+                  <span className="nav-text">Valoraciones</span>
+                </div>
               </div>
-            </div>
+            )}
             <div 
               className={`nav-item ${currentView === 'top-vinos' ? 'active' : ''}`} 
               onClick={() => setCurrentView('top-vinos')}
@@ -1508,44 +1517,48 @@ function App() {
             </div>
           </nav>
 
-          {/* Sección adicional: Acerca de / Ayuda / IA */}
-          <div className="sidebar-menu-label">Acerca de</div>
-          <nav className="sidebar-nav">
-            <div 
-              className={`nav-item ${currentView === 'ajustes' ? 'active' : ''}`} 
-              onClick={() => setCurrentView('ajustes')}
-            >
-              <div className="nav-item-content">
-                <span className="nav-icon"><FiSettings size={10} /></span>
-                <span className="nav-text">Ajustes</span>
-              </div>
-            </div>
-            {NOTIFICATIONS_ENABLED && (
-              <div 
-                className={`nav-item ${currentView === 'ayuda' ? 'active' : ''}`} 
-                onClick={() => {
-                  setCurrentView('ayuda');
-                  setNewNotifPulse(false);
-                }}
-              >
-                <div className="nav-item-content">
-                  <span className={`nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
-                    <FiBell size={10} />
-                  </span>
-                  <span className="nav-text">Notificaciones</span>
+          {/* Sección adicional: Acerca de / Ayuda / IA - Solo usuarios registrados */}
+          {!currentUser?.isGuest && (
+            <>
+              <div className="sidebar-menu-label">Acerca de</div>
+              <nav className="sidebar-nav">
+                <div 
+                  className={`nav-item ${currentView === 'ajustes' ? 'active' : ''}`} 
+                  onClick={() => setCurrentView('ajustes')}
+                >
+                  <div className="nav-item-content">
+                    <span className="nav-icon"><FiSettings size={10} /></span>
+                    <span className="nav-text">Ajustes</span>
+                  </div>
                 </div>
-              </div>
-            )}
-            <div 
-              className={`nav-item ${currentView === 'ia' ? 'active' : ''}`} 
-              onClick={() => setCurrentView('ia')}
-            >
-              <div className="nav-item-content">
-                <span className="nav-icon"><FiCpu size={10} /></span>
-                <span className="nav-text">IA</span>
-              </div>
-            </div>
-          </nav>
+                {NOTIFICATIONS_ENABLED && (
+                  <div 
+                    className={`nav-item ${currentView === 'ayuda' ? 'active' : ''}`} 
+                    onClick={() => {
+                      setCurrentView('ayuda');
+                      setNewNotifPulse(false);
+                    }}
+                  >
+                    <div className="nav-item-content">
+                      <span className={`nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
+                        <FiBell size={10} />
+                      </span>
+                      <span className="nav-text">Notificaciones</span>
+                    </div>
+                  </div>
+                )}
+                <div 
+                  className={`nav-item ${currentView === 'ia' ? 'active' : ''}`} 
+                  onClick={() => setCurrentView('ia')}
+                >
+                  <div className="nav-item-content">
+                    <span className="nav-icon"><FiCpu size={10} /></span>
+                    <span className="nav-text">IA</span>
+                  </div>
+                </div>
+              </nav>
+            </>
+          )}
 
           {/* Logout */}
           <div className="sidebar-logout nav-item" onClick={handleLogout}>
@@ -1599,30 +1612,39 @@ function App() {
                 <span className="mobile-nav-icon"><FiSlash /></span>
                 <span className="mobile-nav-text">Agotados</span>
               </div>
-              <div 
-                className="mobile-nav-item" 
-                onClick={() => { setCurrentView('tareas'); setIsMenuOpen(false); }}
-              >
-                <span className="mobile-nav-icon"><FiCheckSquare /></span>
-                <span className="mobile-nav-text">Tareas</span>
-              </div>
-              <div 
-                className="mobile-nav-item" 
-                onClick={() => { setCurrentView('pedidos'); setIsMenuOpen(false); }}
-              >
-                <span className="mobile-nav-icon"><FiPackage /></span>
-                <span className="mobile-nav-text">Pedidos</span>
-              </div>
+              {/* Tareas - Solo usuarios registrados */}
+              {!currentUser?.isGuest && (
+                <div 
+                  className="mobile-nav-item" 
+                  onClick={() => { setCurrentView('tareas'); setIsMenuOpen(false); }}
+                >
+                  <span className="mobile-nav-icon"><FiCheckSquare /></span>
+                  <span className="mobile-nav-text">Tareas</span>
+                </div>
+              )}
+              {/* Pedidos - Solo usuarios registrados */}
+              {!currentUser?.isGuest && (
+                <div 
+                  className="mobile-nav-item" 
+                  onClick={() => { setCurrentView('pedidos'); setIsMenuOpen(false); }}
+                >
+                  <span className="mobile-nav-icon"><FiPackage /></span>
+                  <span className="mobile-nav-text">Pedidos</span>
+                </div>
+              )}
 
               {/* Sección OPINIONES */}
               <div className="mobile-menu-section-label">OPINIONES</div>
-              <div 
-                className="mobile-nav-item" 
-                onClick={() => { setCurrentView('valoraciones'); setIsMenuOpen(false); }}
-              >
-                <span className="mobile-nav-icon"><FiStar /></span>
-                <span className="mobile-nav-text">Valoraciones</span>
-              </div>
+              {/* Valoraciones - Solo usuarios registrados */}
+              {!currentUser?.isGuest && (
+                <div 
+                  className="mobile-nav-item" 
+                  onClick={() => { setCurrentView('valoraciones'); setIsMenuOpen(false); }}
+                >
+                  <span className="mobile-nav-icon"><FiStar /></span>
+                  <span className="mobile-nav-text">Valoraciones</span>
+                </div>
+              )}
               <div 
                 className="mobile-nav-item" 
                 onClick={() => { setCurrentView('top-vinos'); setIsMenuOpen(false); }}
@@ -1631,37 +1653,41 @@ function App() {
                 <span className="mobile-nav-text">Top Vinos</span>
               </div>
 
-              {/* Sección ACERCA DE */}
-              <div className="mobile-menu-section-label">ACERCA DE</div>
-              <div 
-                className="mobile-nav-item" 
-                onClick={() => { setCurrentView('ajustes'); setIsMenuOpen(false); }}
-              >
-                <span className="mobile-nav-icon"><FiSettings /></span>
-                <span className="mobile-nav-text">Ajustes</span>
-              </div>
-              {NOTIFICATIONS_ENABLED && (
-                <div 
-                  className="mobile-nav-item" 
-                  onClick={() => { 
-                    setCurrentView('ayuda'); 
-                    setIsMenuOpen(false);
-                    setNewNotifPulse(false);
-                  }}
-                >
-                <span className={`mobile-nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
-                    <FiBell />
-                  </span>
-                  <span className="mobile-nav-text">Notificaciones</span>
-                </div>
+              {/* Sección ACERCA DE - Solo usuarios registrados */}
+              {!currentUser?.isGuest && (
+                <>
+                  <div className="mobile-menu-section-label">ACERCA DE</div>
+                  <div 
+                    className="mobile-nav-item" 
+                    onClick={() => { setCurrentView('ajustes'); setIsMenuOpen(false); }}
+                  >
+                    <span className="mobile-nav-icon"><FiSettings /></span>
+                    <span className="mobile-nav-text">Ajustes</span>
+                  </div>
+                  {NOTIFICATIONS_ENABLED && (
+                    <div 
+                      className="mobile-nav-item" 
+                      onClick={() => { 
+                        setCurrentView('ayuda'); 
+                        setIsMenuOpen(false);
+                        setNewNotifPulse(false);
+                      }}
+                    >
+                    <span className={`mobile-nav-icon ${notifications.filter(n => n.unread).length > 0 ? 'has-notifications' : ''} ${newNotifPulse ? 'notif-pulse' : ''}`}>
+                        <FiBell />
+                      </span>
+                      <span className="mobile-nav-text">Notificaciones</span>
+                    </div>
+                  )}
+                  <div 
+                    className="mobile-nav-item" 
+                    onClick={() => { setCurrentView('ia'); setIsMenuOpen(false); }}
+                  >
+                    <span className="mobile-nav-icon"><FiCpu /></span>
+                    <span className="mobile-nav-text">IA</span>
+                  </div>
+                </>
               )}
-              <div 
-                className="mobile-nav-item" 
-                onClick={() => { setCurrentView('ia'); setIsMenuOpen(false); }}
-              >
-                <span className="mobile-nav-icon"><FiCpu /></span>
-                <span className="mobile-nav-text">IA</span>
-              </div>
 
               {/* Cerrar sesión */}
               <div className="mobile-menu-divider"></div>
@@ -1879,10 +1905,11 @@ function App() {
                     <Bodega 
                       onNavigateHome={navigateToHome} 
                       onSelectWine={setSelectedWine}
-                      onOpenAddWine={() => setShowAddWineModal(true)}
+                      onOpenAddWine={!currentUser?.isGuest ? () => setShowAddWineModal(true) : null}
                       wineLikes={wineLikes}
                       onToggleWineLike={handleToggleWineLike}
                       wines={wines}
+                      isGuest={currentUser?.isGuest}
                     />
                   </div>
                 )}
@@ -3361,8 +3388,9 @@ function App() {
         wine={selectedWine}
         onClose={() => setSelectedWine(null)}
         onWineOutOfStock={addNotification}
-        onUpdateWine={handleUpdateWine}
-        onDeleteWine={handleDeleteWine}
+        onUpdateWine={!currentUser?.isGuest ? handleUpdateWine : null}
+        onDeleteWine={!currentUser?.isGuest ? handleDeleteWine : null}
+        isGuest={currentUser?.isGuest}
       />
     )}
 
