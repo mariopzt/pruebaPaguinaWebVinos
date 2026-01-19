@@ -826,8 +826,8 @@ function App() {
 
     // Enviar al backend (sin bloquear la UI)
     try {
-      // Si es invitado, enviar su guestId
-      const guestId = currentUser?.isGuest ? currentUser._id : null;
+      // Si es invitado, enviar su guestId (puede ser .id o ._id)
+      const guestId = currentUser?.isGuest ? (currentUser._id || currentUser.id) : null;
       const response = await wineService.toggleLike(wineId, guestId);
       
       if (response.success) {
