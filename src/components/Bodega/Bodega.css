@@ -29,6 +29,27 @@
   flex-wrap: nowrap;
   flex-shrink: 0;
   align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+
+/* Scrollbar sutil para filtros */
+.bodega-filters::-webkit-scrollbar {
+  height: 3px;
+}
+
+.bodega-filters::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bodega-filters::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 3px;
+}
+
+.bodega-filters::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
 }
 
 /* Botones individuales (solo desktop) */
@@ -52,6 +73,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .filter-button:hover {
@@ -124,13 +147,14 @@
   top: calc(100% + 8px);
   left: 0;
   min-width: 160px;
-  background: rgba(20, 20, 30, 0.95);
+  max-width: 90vw;
+  background: rgba(20, 20, 30, 0.98);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 8px;
-  z-index: 100;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(10px);
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px);
   animation: dropdownSlideIn 0.2s ease-out;
 }
 
@@ -291,15 +315,77 @@
   color: #7f7f99;
 }
 
-/* Ocultar placeholder en móvil y asegurar texto visible */
+/* Reducir tamaño desde 770px para que todo quepa en una línea */
+@media (max-width: 1100px) {
+  .filter-button {
+    font-size: 11px;
+    padding: 6px 12px;
+    height: 28px;
+  }
+  
+  .search-container {
+    height: 28px;
+  }
+  
+  .search-button,
+  .close-search-button {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 900px) {
+  .filter-button {
+    font-size: 10px;
+    padding: 5px 10px;
+    height: 26px;
+  }
+  
+  .filter-button .checkmark {
+    font-size: 10px;
+  }
+  
+  .search-container {
+    height: 26px;
+  }
+  
+  .search-container.open {
+    width: 160px;
+  }
+}
+
+/* Ya no necesitamos este breakpoint porque a partir de 800px se usa el menú dropdown */
+
+/* Mejoras para móvil */
 @media (max-width: 768px) {
   .search-input::placeholder {
-    color: transparent;
+    font-size: 12px;
+    color: #7f7f99;
   }
   
   .search-input {
     color: #ffffff !important;
     font-weight: 600;
+    font-size: 14px;
+  }
+  
+  .search-container.open {
+    width: 180px;
+  }
+  
+  .search-container.open .search-input {
+    width: 140px;
+  }
+  
+  .filter-dropdown-button {
+    font-size: 13px;
+    padding: 8px 14px;
+    white-space: nowrap;
+  }
+  
+  .filter-dropdown-item {
+    font-size: 15px;
+    padding: 12px 14px;
   }
 }
 
@@ -375,17 +461,24 @@
 
 @media (max-width: 768px) {
   .bodega-container {
-    padding: 12px 16px 20px 16px;
+    padding: 16px;
     height: auto;
     min-height: 100vh;
     overflow-y: visible;
     overflow-x: hidden;
   }
   
+  .bodega-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 4px;
+  }
+  
   .bodega-filters {
-    gap: 0;
+    gap: 8px;
+    flex-wrap: wrap;
     margin-bottom: 16px;
-    margin-top: 48px;
+    margin-top: 28px;
   }
 
   /* Ajustar botón Nuevo en móvil - más pequeño */
@@ -463,17 +556,47 @@
  
 }
 
+/* Cambiar a menú desplegable en 800px para evitar que la lupa se vaya debajo */
+@media (max-width: 800px) {
+  .filter-buttons-desktop {
+    display: none;
+  }
+
+  .filter-dropdown-mobile {
+    display: block;
+  }
+  
+  .bodega-filters {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    overflow: visible; /* Importante: permitir que el menú desplegable se vea */
+  }
+  
+  .filter-dropdown-button {
+    padding: 8px 12px;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  
+  .search-container {
+    height: 30px;
+  }
+}
+
 @media (max-width: 640px) {
   .bodega-filters {
     flex-direction: row;
     align-items: center;
-    gap: 0;
+    gap: 8px;
+    justify-content: space-between;
   }
 
   .filter-dropdown-button {
-    padding: 6px 10px;
+    padding: 8px 12px;
     margin-right: 0;
-    font-size: 11px;
+    font-size: 13px;
+    min-width: 100px;
     min-width: auto;
   }
 
@@ -504,23 +627,21 @@
 
 @media (max-width: 480px) {
   .bodega-container {
-    padding: 8px 12px 16px 12px;
+    padding: 12px;
   }
-
-  /* Aquí sí cambiamos a la versión móvil de filtros */
-  .filter-buttons-desktop {
-    display: none;
-  }
-
-  .filter-dropdown-mobile {
-    display: block;
+  
+  .bodega-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    padding: 2px;
   }
 
   .bodega-filters {
     flex-direction: row;
     align-items: center;
     gap: 0;
-    margin-bottom: 12px;
+    margin-bottom: 18px;
+    overflow: visible; /* Permitir que el menú desplegable se vea */
   }
 
   .filter-dropdown-button {
@@ -569,9 +690,30 @@
   }
 }
 
+@media (max-width: 400px) {
+  .bodega-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .bodega-container {
+    padding: 10px;
+  }
+  
+  .bodega-filters {
+    gap: 6px;
+    padding: 0 4px;
+  }
+}
+
 @media (max-width: 360px) {
   .bodega-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .bodega-container {
+    padding: 8px;
   }
 }
 
