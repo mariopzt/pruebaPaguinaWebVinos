@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import WineCard from './WineCard';
 import './Bodega.css';
 
-function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedWineId, wines = [], wineLikes = {} }) {
+function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedWineId, wines = [], wineLikes = {}, onToggleWineLike }) {
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -297,10 +297,13 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
         {currentWines.length > 0 ? (
           currentWines.map((wine) => (
             <WineCard
-              key={wine.id}
+              key={wine._id || wine.id || wine.name}
               wine={wine}
               onClick={(w) => onSelectWine && onSelectWine(w)}
               isHighlighted={highlightedWineId === wine.id}
+              likes={wineLikes[wine._id || wine.id]?.count || 0}
+              liked={wineLikes[wine._id || wine.id]?.liked || false}
+              onToggleLike={() => onToggleWineLike && onToggleWineLike(wine._id || wine.id)}
             />
           ))
         ) : (

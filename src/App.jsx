@@ -1897,6 +1897,7 @@ function App() {
                       highlightedWineId={highlightedWineId}
                       wines={wines}
                       wineLikes={wineLikes}
+                      onToggleWineLike={handleToggleWineLike}
                     />
                   </div>
                 )}
