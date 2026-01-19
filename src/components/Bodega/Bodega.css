@@ -286,7 +286,7 @@
 
 .search-container.open {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  width: 200px;
+  width: 250px;
   height: 30px;
   justify-content: flex-start;
   background: rgba(30, 30, 45, 0.9);
@@ -308,7 +308,7 @@
 
 .search-container.open .search-input {
   display: block;
-  width: 160px;
+  width: 180px;
 }
 
 .search-input::placeholder {
@@ -393,8 +393,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 30px;
+  height: 30px;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -413,8 +413,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 30px;
+  height: 30px;
   background: transparent;
   border: none;
   cursor: pointer;
