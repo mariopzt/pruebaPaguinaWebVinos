@@ -4,15 +4,27 @@ import { getTimeAgo } from '../../utils/date';
 import './WineCard.css';
 
 const getOptimizedImageUrl = (url) => {
-  if (!url) return url;
+  if (!url) return 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&h=400&fit=crop&q=80';
 
-  // Si ya tiene parámetros, asumimos que viene optimizada
-  if (url.includes('?')) return url;
-
-  // Para Pexels u otras CDNs, pedimos versión comprimida y más pequeña
-  if (url.includes('images.pexels.com')) {
-    return `${url}?auto=compress&cs=tinysrgb&w=480&h=480&fit=crop`;
+  // Para Unsplash, asegurar tamaño uniforme
+  if (url.includes('unsplash.com')) {
+    // Quitar parámetros existentes y añadir nuevos
+    const baseUrl = url.split('?')[0];
+    return `${baseUrl}?w=400&h=400&fit=crop&q=80`;
   }
+
+  // Para Pexels, pedimos versión comprimida y cuadrada
+  if (url.includes('images.pexels.com')) {
+    return `${url}?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop`;
+  }
+
+  // Para Vivino, mantener como está (ya vienen optimizadas)
+  if (url.includes('vivino')) {
+    return url;
+  }
+
+  // Si ya tiene parámetros, devolverla
+  if (url.includes('?')) return url;
 
   return url;
 };

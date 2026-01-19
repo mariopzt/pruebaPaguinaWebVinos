@@ -1,6 +1,27 @@
 import { useState } from 'react';
 import './WineModal.css';
 
+// Optimizar URL de imagen para que todas se vean uniformes
+const getOptimizedImageUrl = (url) => {
+  if (!url) return 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&h=600&fit=crop&q=80';
+
+  // Para Unsplash, asegurar tamaño uniforme y mayor calidad
+  if (url.includes('unsplash.com')) {
+    const baseUrl = url.split('?')[0];
+    return `${baseUrl}?w=600&h=600&fit=crop&q=80`;
+  }
+
+  // Para Pexels
+  if (url.includes('images.pexels.com')) {
+    return `${url}?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop`;
+  }
+
+  // Si ya tiene parámetros, devolverla
+  if (url.includes('?')) return url;
+
+  return url;
+};
+
 function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedWine, setEditedWine] = useState({
@@ -351,7 +372,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
         
         <div className="wine-modal-content">
           <div className="wine-modal-image">
-            <img src={editedWine.image} alt={wine.name} />
+            <img src={getOptimizedImageUrl(editedWine.image)} alt={wine.name} />
             {isEditMode && (
               <div className="wine-image-edit-overlay">
                 <label htmlFor="wine-image-input" className="wine-image-edit-btn">

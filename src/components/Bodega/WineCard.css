@@ -70,7 +70,13 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center center;
   transition: transform 0.3s ease;
+  /* Asegurar que todas las imágenes se vean uniformes */
+  background-color: rgba(20, 20, 35, 0.9);
+  /* Suavizar bordes de imágenes con diferentes proporciones */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .wine-card:hover .wine-card-image img {
