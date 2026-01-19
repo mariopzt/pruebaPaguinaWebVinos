@@ -4151,7 +4151,7 @@ function AddOrderModal({ onClose, onSave, wines = [] }) {
   const [justSelected, setJustSelected] = useState(false)
   const inputRef = useRef(null)
 
-  // Filtrar vinos disponibles en stock cuando el usuario escribe
+  // Filtrar vinos del almacén cuando el usuario escribe (incluye agotados para pedidos)
   useEffect(() => {
     if (justSelected) {
       // Si acabamos de seleccionar un vino, no mostrar sugerencias
@@ -4163,7 +4163,7 @@ function AddOrderModal({ onClose, onSave, wines = [] }) {
       
       // Si el nombre coincide exactamente con un vino, no mostrar sugerencias
       const exactMatch = wines.find(wine => 
-        wine.name.toLowerCase() === searchTerm && wine.stock > 0
+        wine.name.toLowerCase() === searchTerm
       )
       
       if (exactMatch) {
@@ -4172,8 +4172,8 @@ function AddOrderModal({ onClose, onSave, wines = [] }) {
         return
       }
       
+      // Mostrar todos los vinos del almacén (con y sin stock) para poder hacer pedidos
       const filtered = wines.filter(wine => 
-        wine.stock > 0 && 
         wine.name.toLowerCase().includes(searchTerm)
       ).slice(0, 5) // Máximo 5 sugerencias
       setFilteredWines(filtered)
@@ -4206,13 +4206,13 @@ function AddOrderModal({ onClose, onSave, wines = [] }) {
 
   const handleAddItem = () => {
     if (newItemName && newItemQuantity) {
-      // Validar que el vino existe en la bodega con stock
+      // Validar que el vino existe en el almacén (incluye agotados)
       const wineExists = wines.find(wine => 
-        wine.name.toLowerCase() === newItemName.toLowerCase() && wine.stock > 0
+        wine.name.toLowerCase() === newItemName.toLowerCase()
       )
       
       if (!wineExists) {
-        alert('⚠️ Solo puedes agregar vinos que están en la bodega. Por favor, selecciona un vino de la lista de sugerencias.')
+        alert('⚠️ Solo puedes agregar vinos que están en el almacén. Por favor, selecciona un vino de la lista de sugerencias.')
         return
       }
 
@@ -4528,7 +4528,7 @@ function EditOrderModal({ order, onClose, onSave, onDelete, wines = [] }) {
   const [justSelected, setJustSelected] = useState(false)
   const inputRef = useRef(null)
 
-  // Filtrar vinos disponibles en stock cuando el usuario escribe
+  // Filtrar vinos del almacén cuando el usuario escribe (incluye agotados para pedidos)
   useEffect(() => {
     if (justSelected) {
       // Si acabamos de seleccionar un vino, no mostrar sugerencias
@@ -4540,7 +4540,7 @@ function EditOrderModal({ order, onClose, onSave, onDelete, wines = [] }) {
       
       // Si el nombre coincide exactamente con un vino, no mostrar sugerencias
       const exactMatch = wines.find(wine => 
-        wine.name.toLowerCase() === searchTerm && wine.stock > 0
+        wine.name.toLowerCase() === searchTerm
       )
       
       if (exactMatch) {
@@ -4549,8 +4549,8 @@ function EditOrderModal({ order, onClose, onSave, onDelete, wines = [] }) {
         return
       }
       
+      // Mostrar todos los vinos del almacén (con y sin stock) para poder hacer pedidos
       const filtered = wines.filter(wine => 
-        wine.stock > 0 && 
         wine.name.toLowerCase().includes(searchTerm)
       ).slice(0, 5) // Máximo 5 sugerencias
       setFilteredWines(filtered)
@@ -4583,13 +4583,13 @@ function EditOrderModal({ order, onClose, onSave, onDelete, wines = [] }) {
 
   const handleAddItem = () => {
     if (newItemName && newItemQuantity) {
-      // Validar que el vino existe en la bodega con stock
+      // Validar que el vino existe en el almacén (incluye agotados)
       const wineExists = wines.find(wine => 
-        wine.name.toLowerCase() === newItemName.toLowerCase() && wine.stock > 0
+        wine.name.toLowerCase() === newItemName.toLowerCase()
       )
       
       if (!wineExists) {
-        alert('⚠️ Solo puedes agregar vinos que están en la bodega. Por favor, selecciona un vino de la lista de sugerencias.')
+        alert('⚠️ Solo puedes agregar vinos que están en el almacén. Por favor, selecciona un vino de la lista de sugerencias.')
         return
       }
 
