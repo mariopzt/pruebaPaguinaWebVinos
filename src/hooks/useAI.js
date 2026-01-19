@@ -14,7 +14,7 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
   const [conversationHistory, setConversationHistory] = useState([]);
   const abortControllerRef = useRef(null);
 
-  // Buscar vino por nombre (búsqueda flexible)
+  // Buscar vino por nombre (búsqueda flexible) - devuelve el primero
   const findWineByName = useCallback((name) => {
     if (!wines || !name) return null;
     const searchName = name.toLowerCase().trim();
@@ -34,6 +34,33 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
     // Búsqueda por palabras
     const words = searchName.split(' ').filter(w => w.length > 2);
     found = wines.find(w => {
+      const wineName = w.name?.toLowerCase() || '';
+      return words.some(word => wineName.includes(word));
+    });
+    
+    return found;
+  }, [wines]);
+
+  // Buscar TODOS los vinos que coincidan con el nombre
+  const findAllWinesByName = useCallback((name) => {
+    if (!wines || !name) return [];
+    const searchName = name.toLowerCase().trim();
+    
+    // Búsqueda exacta - devuelve TODOS los que coincidan
+    let found = wines.filter(w => w.name?.toLowerCase() === searchName);
+    if (found.length > 0) return found;
+    
+    // Búsqueda parcial
+    found = wines.filter(w => w.name?.toLowerCase().includes(searchName));
+    if (found.length > 0) return found;
+    
+    // Búsqueda inversa
+    found = wines.filter(w => searchName.includes(w.name?.toLowerCase()));
+    if (found.length > 0) return found;
+    
+    // Búsqueda por palabras
+    const words = searchName.split(' ').filter(w => w.length > 2);
+    found = wines.filter(w => {
       const wineName = w.name?.toLowerCase() || '';
       return words.some(word => wineName.includes(word));
     });
@@ -198,6 +225,8 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
 
   // Ejecutar acción de actualizar/modificar vino(s) - CUALQUIER CAMPO
   const executeUpdateWine = useCallback(async (data) => {
+    console.log('✏️ [UPDATE_WINE] Data recibida:', JSON.stringify(data));
+    
     // Si hay una lista de vinos a actualizar
     const winesList = data.wines || (data.name ? [data] : []);
     
@@ -207,6 +236,9 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
 
     const results = [];
     const updatedWines = [...wines];
+    
+    // Mapa para rastrear cuántos vinos con el mismo nombre ya hemos procesado
+    const processedByName = {};
 
     for (const item of winesList) {
       const { name, updates } = item;
@@ -216,47 +248,68 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
         continue;
       }
 
-      const wine = findWineByName(name);
-      if (!wine) {
+      // Buscar TODOS los vinos con este nombre
+      const matchingWines = findAllWinesByName(name);
+      
+      if (matchingWines.length === 0) {
         results.push({ name, success: false, error: 'Vino no encontrado' });
         continue;
       }
+      
+      // Determinar qué vino de los encontrados procesar
+      // Si ya procesamos algunos con este nombre, usar el siguiente
+      const processedCount = processedByName[name.toLowerCase()] || 0;
+      
+      // Si hay más vinos que el índice, usar ese; si no, procesar todos los restantes
+      let winesToProcess = [];
+      if (processedCount < matchingWines.length) {
+        // Hay vinos sin procesar - tomar el siguiente
+        winesToProcess = [matchingWines[processedCount]];
+        processedByName[name.toLowerCase()] = processedCount + 1;
+      }
+      
+      console.log(`✏️ [UPDATE_WINE] Procesando ${winesToProcess.length} vino(s) para "${name}" (ya procesados: ${processedCount})`);
 
-      try {
-        const wineId = wine._id || wine.id;
-        
-        // Si hay cambio de grape (string), actualizar también grapeVariety
-        if (updates.grape) {
-          const grapeString = updates.grape;
-          const grapes = grapeString.split(',').map(g => g.trim()).filter(Boolean);
-          const percentPerGrape = Math.floor(100 / grapes.length);
-          const remainder = 100 - (percentPerGrape * grapes.length);
-          updates.grapeVariety = grapes.map((grapeName, i) => ({
-            name: grapeName,
-            percentage: percentPerGrape + (i === 0 ? remainder : 0)
-          }));
+      for (const wine of winesToProcess) {
+        try {
+          const wineId = wine._id || wine.id;
+          const updatesCopy = { ...updates };
+          
+          // Si hay cambio de grape (string), actualizar también grapeVariety
+          if (updatesCopy.grape) {
+            const grapeString = updatesCopy.grape;
+            const grapes = grapeString.split(',').map(g => g.trim()).filter(Boolean);
+            const percentPerGrape = Math.floor(100 / grapes.length);
+            const remainder = 100 - (percentPerGrape * grapes.length);
+            updatesCopy.grapeVariety = grapes.map((grapeName, i) => ({
+              name: grapeName,
+              percentage: percentPerGrape + (i === 0 ? remainder : 0)
+            }));
+          }
+
+          console.log(`✏️ [UPDATE_WINE] Actualizando vino ID ${wineId}:`, updatesCopy);
+          
+          // Actualizar en BD
+          await wineService.updateWine(wineId, updatesCopy);
+          
+          // Actualizar en array local
+          const idx = updatedWines.findIndex(w => (w._id || w.id) === wineId);
+          if (idx !== -1) {
+            updatedWines[idx] = { ...updatedWines[idx], ...updatesCopy };
+          }
+
+          results.push({ 
+            name: wine.name, 
+            newName: updatesCopy.name || wine.name,
+            success: true,
+            updates: Object.keys(updatesCopy)
+          });
+          
+          console.log(`✅ ${wine.name} → ${updatesCopy.name || wine.name} actualizado`);
+        } catch (err) {
+          console.error(`❌ Error actualizando ${wine.name}:`, err);
+          results.push({ name: wine.name, success: false, error: err.message });
         }
-
-        // Actualizar en BD
-        const response = await wineService.updateWine(wineId, updates);
-        const updatedWine = response.data || response;
-        
-        // Actualizar en array local
-        const idx = updatedWines.findIndex(w => (w._id || w.id) === wineId);
-        if (idx !== -1) {
-          updatedWines[idx] = { ...updatedWines[idx], ...updates };
-        }
-
-        results.push({ 
-          name: wine.name, 
-          success: true,
-          updates: Object.keys(updates)
-        });
-        
-        console.log(`✅ ${wine.name} actualizado:`, Object.keys(updates).join(', '));
-      } catch (err) {
-        console.error(`Error actualizando ${name}:`, err);
-        results.push({ name, success: false, error: err.message });
       }
     }
 
@@ -265,8 +318,9 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
       onWinesChange(updatedWines);
     }
 
+    console.log(`✏️ [UPDATE_WINE] Resultados: ${results.filter(r => r.success).length} exitosos, ${results.filter(r => !r.success).length} fallidos`);
     return results;
-  }, [wines, findWineByName, onWinesChange]);
+  }, [wines, findAllWinesByName, onWinesChange]);
 
   // Ejecutar acción de eliminar vino(s)
   const executeDeleteWine = useCallback(async (data) => {
@@ -280,8 +334,30 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
     // Si es "all" o hay lista de wines, eliminar múltiples
     if (data?.all === true || data?.wines) {
       console.log('🗑️ [DELETE] Modo: Múltiples vinos o todos');
-      const winesToDelete = data.all ? wines : 
-        (data.wines || []).map(w => findWineByName(w.name || w)).filter(Boolean);
+      
+      let winesToDelete = [];
+      if (data.all) {
+        winesToDelete = wines;
+      } else {
+        // Para cada nombre en la lista, buscar TODOS los vinos que coincidan
+        for (const w of (data.wines || [])) {
+          const name = w.name || w;
+          const found = findAllWinesByName(name);
+          winesToDelete.push(...found);
+        }
+      }
+      
+      // Eliminar duplicados por ID
+      const uniqueWines = [];
+      const seenIds = new Set();
+      for (const wine of winesToDelete) {
+        const wineId = wine._id || wine.id;
+        if (!seenIds.has(wineId)) {
+          seenIds.add(wineId);
+          uniqueWines.push(wine);
+        }
+      }
+      winesToDelete = uniqueWines;
       
       if (winesToDelete.length === 0) {
         console.error('🗑️ [DELETE] ERROR: No se encontraron vinos para eliminar');
@@ -314,42 +390,69 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
       return results;
     }
 
-    // Eliminar un solo vino
-    console.log('🗑️ [DELETE] Modo: Un solo vino');
+    // Eliminar un solo vino (o TODOS los que tengan ese nombre)
+    console.log('🗑️ [DELETE] Modo: Por nombre');
     const { name, id, wineName } = data || {};
     const targetName = name || wineName;
     
-    console.log(`🗑️ [DELETE] Buscando vino: "${targetName}" (ID: ${id || 'no especificado'})`);
+    console.log(`🗑️ [DELETE] Buscando vino(s): "${targetName}" (ID: ${id || 'no especificado'})`);
     
-    let wine;
+    // Si hay ID específico, eliminar solo ese
     if (id) {
-      wine = wines.find(w => (w._id || w.id) === id);
-    } else if (targetName) {
-      wine = findWineByName(targetName);
-    }
-
-    if (!wine) {
-      console.error(`🗑️ [DELETE] ERROR: Vino "${targetName}" no encontrado en la bodega`);
-      console.log('🗑️ [DELETE] Vinos disponibles:', wines.map(w => w.name));
-      return { success: false, error: `Vino "${targetName}" no encontrado` };
-    }
-
-    try {
-      const wineId = wine._id || wine.id;
-      console.log(`🗑️ [DELETE] Eliminando: ${wine.name} (ID: ${wineId})`);
-      await wineService.deleteWine(wineId);
-
-      if (onWinesChange) {
-        onWinesChange(prev => prev.filter(w => (w._id || w.id) !== wineId));
+      const wine = wines.find(w => (w._id || w.id) === id);
+      if (!wine) {
+        return { success: false, error: `Vino con ID "${id}" no encontrado` };
       }
-
-      console.log('✅ Vino eliminado correctamente:', wine.name);
-      return { success: true, wine: wine.name };
-    } catch (err) {
-      console.error('❌ Error eliminando vino:', err);
-      return { success: false, error: err.message };
+      try {
+        await wineService.deleteWine(id);
+        if (onWinesChange) {
+          onWinesChange(prev => prev.filter(w => (w._id || w.id) !== id));
+        }
+        console.log('✅ Vino eliminado correctamente:', wine.name);
+        return { success: true, wine: wine.name };
+      } catch (err) {
+        console.error('❌ Error eliminando vino:', err);
+        return { success: false, error: err.message };
+      }
     }
-  }, [wines, findWineByName, onWinesChange]);
+    
+    // Si hay nombre, eliminar TODOS los vinos con ese nombre
+    if (targetName) {
+      const matchingWines = findAllWinesByName(targetName);
+      
+      if (matchingWines.length === 0) {
+        console.error(`🗑️ [DELETE] ERROR: Vino "${targetName}" no encontrado en la bodega`);
+        return { success: false, error: `Vino "${targetName}" no encontrado` };
+      }
+      
+      console.log(`🗑️ [DELETE] Encontrados ${matchingWines.length} vino(s) con nombre "${targetName}"`);
+      
+      const results = [];
+      const deletedIds = [];
+      
+      for (const wine of matchingWines) {
+        try {
+          const wineId = wine._id || wine.id;
+          console.log(`🗑️ [DELETE] Eliminando: ${wine.name} (ID: ${wineId})`);
+          await wineService.deleteWine(wineId);
+          deletedIds.push(wineId);
+          results.push({ success: true, wine: wine.name });
+          console.log('✅ Vino eliminado:', wine.name);
+        } catch (err) {
+          console.error('❌ Error eliminando vino:', wine.name, err);
+          results.push({ success: false, name: wine.name, error: err.message });
+        }
+      }
+      
+      if (onWinesChange && deletedIds.length > 0) {
+        onWinesChange(prev => prev.filter(w => !deletedIds.includes(w._id || w.id)));
+      }
+      
+      return results;
+    }
+
+    return { success: false, error: 'No se especificó qué vino eliminar' };
+  }, [wines, findAllWinesByName, onWinesChange]);
 
   // Ejecutar comando de la IA
   const executeCommand = useCallback(async (command, originalMessage = '') => {
