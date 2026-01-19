@@ -66,6 +66,26 @@ exports.createWine = async (req, res) => {
     }
 
     const wine = await Wine.create(req.body);
+    const userName = req.user?.name || 'Alguien';
+
+    // Notificar a todos los demás usuarios que se agregó un nuevo vino
+    const otherUsers = await User.find({ _id: { $ne: req.user?._id } }, '_id');
+    
+    if (otherUsers.length > 0) {
+      const docs = otherUsers.map(u => ({
+        user: u._id,
+        createdBy: req.user?._id,
+        type: 'wine-added',
+        icon: 'FiPlusCircle',
+        title: 'Nuevo vino agregado',
+        message: `**${userName}** ha agregado **${wine.name}** al almacén${wine.stock > 0 ? ` con ${wine.stock} unidades` : ''}.`,
+        wineId: wine._id,
+        unread: true,
+        actions: ['Ver bodega'],
+        createdAt: new Date(),
+      }));
+      await Notification.insertMany(docs);
+    }
 
     res.status(201).json({
       success: true,
@@ -225,9 +245,30 @@ exports.deleteWine = async (req, res) => {
       });
     }
 
-    // En una bodega compartida, cualquier usuario autenticado puede eliminar vinos
+    // Guardar info del vino antes de eliminarlo para la notificación
+    const wineName = wine.name;
+    const userName = req.user?.name || 'Alguien';
 
+    // En una bodega compartida, cualquier usuario autenticado puede eliminar vinos
     await wine.deleteOne();
+
+    // Notificar a todos los demás usuarios que se eliminó un vino
+    const otherUsers = await User.find({ _id: { $ne: req.user?._id } }, '_id');
+    
+    if (otherUsers.length > 0) {
+      const docs = otherUsers.map(u => ({
+        user: u._id,
+        createdBy: req.user?._id,
+        type: 'wine-deleted',
+        icon: 'FiTrash2',
+        title: 'Vino eliminado',
+        message: `**${userName}** ha eliminado **${wineName}** del almacén.`,
+        unread: true,
+        actions: ['Ver bodega'],
+        createdAt: new Date(),
+      }));
+      await Notification.insertMany(docs);
+    }
 
     res.status(200).json({
       success: true,
