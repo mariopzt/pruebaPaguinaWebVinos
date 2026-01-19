@@ -287,7 +287,7 @@ exports.deleteWine = async (req, res) => {
 
 // @desc    Toggle like en un vino
 // @route   POST /api/wines/:id/like
-// @access  Private
+// @access  Public (permite invitados)
 exports.toggleLike = async (req, res) => {
   try {
     const wine = await Wine.findById(req.params.id);
@@ -299,14 +299,22 @@ exports.toggleLike = async (req, res) => {
       });
     }
 
-    const userId = req.user.id;
+    // Obtener ID del usuario o del invitado
+    const userId = req.user?.id || req.body?.guestId;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Se requiere un usuario o guestId para dar like'
+      });
+    }
 
     // Inicializar likes si no existe
     if (!wine.likes) {
       wine.likes = { count: 0, users: [] };
     }
 
-    // Verificar si el usuario ya dio like
+    // Verificar si el usuario/invitado ya dio like
     const userIndex = wine.likes.users.indexOf(userId);
 
     if (userIndex > -1) {

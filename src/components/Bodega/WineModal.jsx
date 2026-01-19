@@ -647,7 +647,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
                     </span>
                   </div>
                   
-                  {!isEditMode && (
+                  {!isEditMode && !isGuest && (
                     <div className="wine-stock-adjust-section">
                       {!showLossAdjust ? (
                         <button 

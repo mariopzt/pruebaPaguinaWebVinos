@@ -20,8 +20,8 @@ router.route('/:id')
   .put(optionalAuth, updateWine)
   .delete(optionalAuth, deleteWine);
 
-// Toggle like en un vino
-router.post('/:id/like', protect, toggleLike);
+// Toggle like en un vino (permite invitados)
+router.post('/:id/like', optionalAuth, toggleLike);
 
 module.exports = router;
 

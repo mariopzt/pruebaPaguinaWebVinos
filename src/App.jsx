@@ -434,6 +434,16 @@ function App() {
     return () => clearInterval(statsInterval)
   }, [currentUser])
 
+  // Redirigir a invitados si intentan acceder a vistas restringidas
+  useEffect(() => {
+    if (!currentUser?.isGuest) return;
+    
+    const restrictedViews = ['tareas', 'tareas-completadas', 'tareas-pendientes', 'pedidos', 'valoraciones', 'ajustes', 'ayuda', 'ia'];
+    if (restrictedViews.includes(currentView)) {
+      setCurrentView('bodega');
+    }
+  }, [currentUser?.isGuest, currentView])
+
   // Referencia para saber si ya se inicializaron los likes
   const likesInitializedRef = useRef(false);
 
@@ -798,7 +808,7 @@ function App() {
     prevViewRef.current = currentView
   }, [currentView])
 
-  // Función para toggle like en vinos de bodega
+  // Función para toggle like en vinos de bodega (también para invitados)
   const handleToggleWineLike = async (wineId) => {
     if (!wineId) return
     
@@ -816,7 +826,9 @@ function App() {
 
     // Enviar al backend (sin bloquear la UI)
     try {
-      const response = await wineService.toggleLike(wineId);
+      // Si es invitado, enviar su guestId
+      const guestId = currentUser?.isGuest ? currentUser._id : null;
+      const response = await wineService.toggleLike(wineId, guestId);
       
       if (response.success) {
         // Sincronizar con la respuesta del servidor
@@ -1427,8 +1439,13 @@ function App() {
                 alt={currentUser?.name || 'Avatar'}
               />
             </div>
-            <div className="sidebar-user-name">{currentUser?.name || 'Usuario'}</div>
-            <div className="sidebar-user-email">{currentUser?.email || 'Sin email'}</div>
+            <div className="sidebar-user-name">
+              {currentUser?.name || 'Usuario'}
+              {currentUser?.isGuest && <span className="guest-badge">Invitado</span>}
+            </div>
+            {!currentUser?.isGuest && (
+              <div className="sidebar-user-email">{currentUser?.email || 'Sin email'}</div>
+            )}
           </div>
 
           <div className="sidebar-menu-label">MENÚ</div>
@@ -1560,11 +1577,11 @@ function App() {
             </>
           )}
 
-          {/* Logout */}
+          {/* Logout / Salir */}
           <div className="sidebar-logout nav-item" onClick={handleLogout}>
             <div className="nav-item-content">
               <span className="nav-icon"><FiLogOut size={10} /></span>
-              <span className="nav-text">Cerrar sesión</span>
+              <span className="nav-text">{currentUser?.isGuest ? 'Salir' : 'Cerrar sesión'}</span>
             </div>
           </div>
 
@@ -1689,14 +1706,14 @@ function App() {
                 </>
               )}
 
-              {/* Cerrar sesión */}
+              {/* Cerrar sesión / Salir */}
               <div className="mobile-menu-divider"></div>
               <div 
                 className="mobile-nav-item mobile-nav-logout" 
                 onClick={handleLogout}
               >
                 <span className="mobile-nav-icon"><FiLogOut /></span>
-                <span className="mobile-nav-text">Cerrar sesión</span>
+                <span className="mobile-nav-text">{currentUser?.isGuest ? 'Salir' : 'Cerrar sesión'}</span>
               </div>
             </div>
           </div>

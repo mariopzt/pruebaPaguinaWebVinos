@@ -56,10 +56,11 @@ const wineService = {
     }
   },
 
-  // Toggle like en un vino
-  toggleLike: async (id) => {
+  // Toggle like en un vino (también para invitados)
+  toggleLike: async (id, guestId = null) => {
     try {
-      const response = await api.post(`/wines/${id}/like`);
+      const body = guestId ? { guestId } : {};
+      const response = await api.post(`/wines/${id}/like`, body);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error al procesar like' };
