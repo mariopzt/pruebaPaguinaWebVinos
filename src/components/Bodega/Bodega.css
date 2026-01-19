@@ -276,7 +276,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 7px;
   background: rgba(20, 20, 30, 0.6);
-  overflow: hidden;
+  overflow: visible;
   transition: all 0.3s ease;
   min-width: 30px;
   height: 30px;
@@ -301,14 +301,14 @@
   font-size: 13px;
   color: #e5e7f5;
   outline: none;
-  width: 0;
-  transition: width 0.3s ease;
+  min-width: 0;
+  transition: all 0.3s ease;
   font-weight: 500;
 }
 
 .search-container.open .search-input {
   display: block;
-  width: 180px;
+  flex: 1;
 }
 
 .search-input::placeholder {
@@ -331,6 +331,12 @@
   .close-search-button {
     width: 36px;
     height: 36px;
+  }
+}
+
+@media (max-width: 970px) {
+  .search-container.open {
+    width: 180px;
   }
 }
 
@@ -371,10 +377,6 @@
   
   .search-container.open {
     width: 180px;
-  }
-  
-  .search-container.open .search-input {
-    width: 140px;
   }
   
   .filter-dropdown-button {
@@ -533,7 +535,6 @@
   }
 
   .search-container.open .search-input {
-    width: 100%;
     flex: 1;
   }
   
@@ -613,7 +614,6 @@
   }
 
   .search-container.open .search-input {
-    width: 100%;
     flex: 1;
     font-size: 12px;
   }
@@ -666,7 +666,6 @@
   }
 
   .search-container.open .search-input {
-    width: 100%;
     flex: 1;
     font-size: 11px;
     padding: 6px 8px;
