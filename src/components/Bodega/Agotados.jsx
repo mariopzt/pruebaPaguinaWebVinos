@@ -189,7 +189,7 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
       <div className="bodega-filters">
         {/* Botones de filtro individuales (solo desktop) */}
         <div className="filter-buttons-desktop">
-        {['Todos', 'Dulce', 'Blanco', 'Tinto'].map((filter) => (
+        {['Todos', 'Dulce', 'Blanco', 'Rosado', 'Espumoso', 'Tinto'].map((filter) => (
           <button
             key={filter}
             className={`filter-button ${activeFilter === filter ? 'active' : ''}`}
@@ -236,7 +236,7 @@ function Agotados({ onNavigateHome, onSelectWine, onWineOutOfStock, highlightedW
 
           {isFilterMenuOpen && (
             <div className="filter-dropdown-menu">
-              {['Todos', 'Dulce', 'Blanco', 'Tinto'].map((filter) => (
+              {['Todos', 'Dulce', 'Blanco', 'Rosado', 'Espumoso', 'Tinto'].map((filter) => (
                 <button
                   key={filter}
                   className={`filter-dropdown-item ${
