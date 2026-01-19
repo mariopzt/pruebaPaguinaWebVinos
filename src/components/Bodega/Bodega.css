@@ -203,11 +203,18 @@
 }
 
 .bodega-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
+  justify-content: center;
   align-content: start;
   min-height: auto;
+}
+
+.bodega-grid > * {
+  flex: 0 0 calc(25% - 12px); /* 4 columnas por defecto */
+  max-width: calc(25% - 12px);
+  min-width: 150px;
 }
 
 @keyframes fadeInGrid {
@@ -446,9 +453,9 @@
 
 /* Responsive */
 @media (max-width: 1200px) {
-  .bodega-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 12px;
+  .bodega-grid > * {
+    flex: 0 0 calc(25% - 12px);
+    max-width: calc(25% - 12px);
   }
 }
 
@@ -469,9 +476,14 @@
   }
   
   .bodega-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 12px;
     padding: 4px;
+  }
+  
+  .bodega-grid > * {
+    flex: 0 0 calc(33.333% - 12px); /* 3 columnas en tablet */
+    max-width: calc(33.333% - 12px);
+    min-width: 140px;
   }
   
   .bodega-filters {
@@ -538,8 +550,6 @@
   }
   
   .bodega-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 12px;
     margin-bottom: 16px;
   }
   
@@ -631,9 +641,15 @@
   }
   
   .bodega-grid {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 10px;
     padding: 2px;
+    margin-bottom: 12px;
+  }
+  
+  .bodega-grid > * {
+    flex: 0 0 calc(50% - 8px); /* 2 columnas en móvil */
+    max-width: calc(50% - 8px);
+    min-width: 130px;
   }
 
   .bodega-filters {
@@ -678,12 +694,6 @@
     height: 28px;
   }
 
-  .bodega-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-
   .bodega-pagination {
     padding: 12px 0;
     margin-bottom: 16px;
@@ -692,8 +702,12 @@
 
 @media (max-width: 400px) {
   .bodega-grid {
-    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
+  }
+  
+  .bodega-grid > * {
+    flex: 0 0 calc(50% - 6px);
+    max-width: calc(50% - 6px);
   }
   
   .bodega-container {
@@ -708,8 +722,12 @@
 
 @media (max-width: 360px) {
   .bodega-grid {
-    grid-template-columns: repeat(2, 1fr);
     gap: 6px;
+  }
+  
+  .bodega-grid > * {
+    flex: 0 0 calc(50% - 4px);
+    max-width: calc(50% - 4px);
   }
   
   .bodega-container {
