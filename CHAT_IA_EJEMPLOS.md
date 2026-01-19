@@ -73,12 +73,16 @@ Usuario: "Sube el precio del Priorat a 35€"
 Usuario: "Reduce el precio del Albariño a 12€"
 ```
 
-**Cambiar imagen/foto:**
+**Cambiar imagen/foto (BUSCA AUTOMÁTICAMENTE EN INTERNET):**
 ```
-Usuario: "Cambia la imagen del Ribera del Duero"
-Usuario: "Añade una foto al vino Albariño"
-Usuario: "Actualiza la imagen del Godello"
-Usuario: "Actualiza la imagen del Godello por una en la web que encuentres"
+Usuario: "Ponle una foto al Ribera del Duero"
+Usuario: "Busca una imagen para el Albariño"
+Usuario: "Actualiza la foto del Godello"
+Usuario: "Busca una foto en internet para el vino Rioja"
+Usuario: "Ponle foto a todos los vinos"
+```
+
+🖼️ **La IA buscará automáticamente una imagen de vino apropiada en internet basándose en el tipo de vino (tinto, blanco, rosado, espumoso).**
 
 ```
 

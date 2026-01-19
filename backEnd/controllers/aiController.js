@@ -879,6 +879,17 @@ EJEMPLOS CORRECTOS:
 ✅ Modificar varios vinos:
 {"action":"update_wine","response":"¡Listo! He renombrado los vinos.","data":{"wines":[{"name":"Mario","updates":{"name":"Vino 1"}},{"name":"Otro","updates":{"name":"Vino 2"}}]}}
 
+✅ BUSCAR Y PONER FOTO de un vino (busca en internet automáticamente):
+{"action":"update_wine","response":"¡Listo! He buscado y actualizado la foto del vino Rioja.","data":{"name":"Rioja","updates":{"searchImage":true}}}
+
+✅ BUSCAR FOTO para varios vinos:
+{"action":"update_wine","response":"¡Hecho! He buscado fotos para todos los vinos.","data":{"wines":[{"name":"Rioja","updates":{"searchImage":true}},{"name":"Albariño","updates":{"searchImage":true}}]}}
+
+🖼️ IMPORTANTE PARA IMÁGENES:
+- Cuando el usuario pida "ponle una foto", "busca una imagen", "actualiza la foto" → usa searchImage: true
+- El sistema buscará automáticamente una imagen apropiada del vino en internet
+- NO inventes URLs de imágenes, solo pon searchImage: true
+
 ✅ Solo consulta:
 {"action":"none","response":"Tienes 5 vinos tintos en la bodega.","data":null}
 
