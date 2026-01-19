@@ -4,61 +4,62 @@ import wineService from '../api/wineService';
 import statsService from '../api/statsService';
 
 /**
- * Buscar imagen de vino en Unsplash (gratuito)
- * Devuelve una URL de imagen de vino de alta calidad
+ * Buscar imagen REAL de un vino en internet
+ * Busca en Vivino, Google Images, Vinissimus, etc.
+ * Si no encuentra, usa una imagen genérica de alta calidad
  */
 async function searchWineImage(wineName, wineType = 'tinto') {
-  console.log(`🖼️ [IMAGE] Buscando imagen para: "${wineName}" (${wineType})`);
+  console.log(`🖼️ [IMAGE] Buscando imagen REAL para: "${wineName}" (${wineType})`);
   
-  // Imágenes de vinos de alta calidad de Unsplash por tipo
+  try {
+    // Llamar al backend para buscar la imagen real
+    const response = await api.post('/ai/web-search', {
+      query: wineName,
+      type: 'image'
+    });
+    
+    if (response.data?.success && response.data?.image) {
+      console.log(`🖼️ [IMAGE] ${response.data.isReal ? '✅ Imagen REAL' : '⚠️ Imagen genérica'}: ${response.data.image}`);
+      return response.data.image;
+    }
+  } catch (err) {
+    console.error('🖼️ [IMAGE] Error buscando imagen en servidor:', err.message);
+  }
+  
+  // Fallback: imágenes genéricas por tipo de vino
+  console.log(`🖼️ [IMAGE] Usando fallback local...`);
+  
   const wineImages = {
     tinto: [
       'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&q=80',
       'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=800&q=80',
       'https://images.unsplash.com/photo-1586370434639-0fe43b2d32e6?w=800&q=80',
       'https://images.unsplash.com/photo-1567529692333-de9fd6772897?w=800&q=80',
-      'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=800&q=80',
-      'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=800&q=80',
-      'https://images.unsplash.com/photo-1578911373434-0cb395d2cbfb?w=800&q=80',
-      'https://images.unsplash.com/photo-1598306442928-4d90f32c6866?w=800&q=80',
     ],
     blanco: [
       'https://images.unsplash.com/photo-1560148218-1a83060f7b32?w=800&q=80',
       'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=800&q=80',
       'https://images.unsplash.com/photo-1566754436313-f27a6e2a2907?w=800&q=80',
-      'https://images.unsplash.com/photo-1558001373-7b93ee48ffa0?w=800&q=80',
-      'https://images.unsplash.com/photo-1563223771-5fe4038fbfc9?w=800&q=80',
     ],
     rosado: [
       'https://images.unsplash.com/photo-1558001731-c4be4a1e7e54?w=800&q=80',
       'https://images.unsplash.com/photo-1560512823-829485b8bf24?w=800&q=80',
-      'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=800&q=80',
     ],
     espumoso: [
       'https://images.unsplash.com/photo-1549804805-c5e06a4d9e91?w=800&q=80',
       'https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=800&q=80',
-      'https://images.unsplash.com/photo-1605493624455-a56d1d5c3a7f?w=800&q=80',
     ],
     default: [
       'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&q=80',
       'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=800&q=80',
-      'https://images.unsplash.com/photo-1543418219-44e30b057fea?w=800&q=80',
-      'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=800&q=80',
     ]
   };
 
-  // Determinar tipo de vino
   const type = (wineType || 'tinto').toLowerCase();
   const images = wineImages[type] || wineImages.default;
-  
-  // Generar índice basado en el nombre del vino para consistencia
   const nameHash = wineName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const imageIndex = nameHash % images.length;
   
-  const selectedImage = images[imageIndex];
-  console.log(`🖼️ [IMAGE] Imagen seleccionada: ${selectedImage}`);
-  
-  return selectedImage;
+  return images[nameHash % images.length];
 }
 
 /**

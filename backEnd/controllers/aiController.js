@@ -1016,7 +1016,132 @@ EJEMPLOS CORRECTOS:
 };
 
 /**
- * Búsqueda web - Genera imágenes de vinos
+ * Buscar imagen REAL de un vino específico en internet
+ */
+async function searchRealWineImage(wineName) {
+  console.log(`🖼️ [IMAGE SEARCH] Buscando imagen real de: "${wineName}"`);
+  
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
+  };
+
+  const foundImages = [];
+
+  try {
+    // 1. Buscar en Vivino (tienen imágenes de botellas de vinos)
+    const vivinoSearchUrl = `https://www.vivino.com/search/wines?q=${encodeURIComponent(wineName)}`;
+    console.log('[IMAGE] Buscando en Vivino...');
+    
+    const vivinoRes = await axios.get(vivinoSearchUrl, { headers, timeout: 8000 });
+    const $v = cheerio.load(vivinoRes.data);
+    
+    // Buscar imágenes de vinos en Vivino
+    $v('img[src*="vivino"], img[data-src*="vivino"], img[src*="images.vivino"]').each((i, el) => {
+      let src = $v(el).attr('src') || $v(el).attr('data-src');
+      if (src && src.includes('vivino') && !src.includes('avatar') && !src.includes('logo')) {
+        // Mejorar calidad de imagen
+        src = src.replace(/\/\d+x\d+\//, '/400x400/');
+        foundImages.push({ url: src, source: 'Vivino' });
+      }
+    });
+    
+    console.log(`[IMAGE] Vivino: ${foundImages.length} imágenes encontradas`);
+  } catch (e) {
+    console.log('[IMAGE] Error Vivino:', e.message);
+  }
+
+  try {
+    // 2. Buscar en Google Images
+    const googleImageUrl = `https://www.google.com/search?q=${encodeURIComponent(wineName + ' vino botella')}&tbm=isch&hl=es`;
+    console.log('[IMAGE] Buscando en Google Images...');
+    
+    const googleRes = await axios.get(googleImageUrl, { headers, timeout: 8000 });
+    const $g = cheerio.load(googleRes.data);
+    
+    // Extraer URLs de imágenes del HTML de Google
+    const htmlContent = googleRes.data;
+    
+    // Buscar URLs de imágenes en el JSON embebido
+    const imgRegex = /\["(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp)[^"]*)"/gi;
+    let match;
+    let count = 0;
+    while ((match = imgRegex.exec(htmlContent)) !== null && count < 5) {
+      const imgUrl = match[1];
+      if (imgUrl && !imgUrl.includes('google') && !imgUrl.includes('gstatic') && imgUrl.length < 500) {
+        foundImages.push({ url: imgUrl, source: 'Google' });
+        count++;
+      }
+    }
+    
+    console.log(`[IMAGE] Google: ${count} imágenes encontradas`);
+  } catch (e) {
+    console.log('[IMAGE] Error Google:', e.message);
+  }
+
+  try {
+    // 3. Buscar en Vinissimus (tienda española)
+    const vinissimusUrl = `https://www.vinissimus.com/es/buscar/?q=${encodeURIComponent(wineName)}`;
+    console.log('[IMAGE] Buscando en Vinissimus...');
+    
+    const vinissimusRes = await axios.get(vinissimusUrl, { headers, timeout: 8000 });
+    const $vs = cheerio.load(vinissimusRes.data);
+    
+    $vs('img[src*="vinissimus"], img[data-src*="vinissimus"]').each((i, el) => {
+      let src = $vs(el).attr('src') || $vs(el).attr('data-src');
+      if (src && !src.includes('logo') && !src.includes('icon')) {
+        if (!src.startsWith('http')) src = 'https://www.vinissimus.com' + src;
+        foundImages.push({ url: src, source: 'Vinissimus' });
+      }
+    });
+    
+    console.log(`[IMAGE] Vinissimus: imágenes encontradas`);
+  } catch (e) {
+    console.log('[IMAGE] Error Vinissimus:', e.message);
+  }
+
+  try {
+    // 4. Buscar en DuckDuckGo Images (más permisivo)
+    const ddgUrl = `https://duckduckgo.com/?q=${encodeURIComponent(wineName + ' vino botella')}&iax=images&ia=images`;
+    console.log('[IMAGE] Buscando en DuckDuckGo...');
+    
+    const ddgRes = await axios.get(ddgUrl, { 
+      headers: {
+        ...headers,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }, 
+      timeout: 8000 
+    });
+    
+    // DuckDuckGo usa un token, intentar extraer imágenes del HTML
+    const ddgHtml = ddgRes.data;
+    const ddgImgRegex = /vqd[^"]*"([^"]+)"|"(https?:\/\/[^"]+\.(?:jpg|jpeg|png)[^"]*)"/gi;
+    let ddgMatch;
+    let ddgCount = 0;
+    while ((ddgMatch = ddgImgRegex.exec(ddgHtml)) !== null && ddgCount < 3) {
+      const imgUrl = ddgMatch[2];
+      if (imgUrl && !imgUrl.includes('duckduckgo') && imgUrl.length < 500) {
+        foundImages.push({ url: imgUrl, source: 'DuckDuckGo' });
+        ddgCount++;
+      }
+    }
+  } catch (e) {
+    console.log('[IMAGE] Error DuckDuckGo:', e.message);
+  }
+
+  // Devolver la primera imagen encontrada o null
+  if (foundImages.length > 0) {
+    console.log(`🖼️ [IMAGE SEARCH] ✅ Encontradas ${foundImages.length} imágenes`);
+    return foundImages[0].url;
+  }
+
+  console.log(`🖼️ [IMAGE SEARCH] ❌ No se encontraron imágenes para: "${wineName}"`);
+  return null;
+}
+
+/**
+ * Búsqueda web - Busca imágenes REALES de vinos
  * POST /api/ai/web-search
  */
 exports.webSearch = async (req, res, next) => {
@@ -1030,26 +1155,45 @@ exports.webSearch = async (req, res, next) => {
       });
     }
 
-    // Generar URLs de imágenes de vinos usando servicios gratuitos
+    console.log(`🖼️ [WEB SEARCH] Buscando imagen para: "${query}"`);
+
+    // Intentar buscar imagen real del vino
+    const realImage = await searchRealWineImage(query);
+    
+    if (realImage) {
+      console.log(`🖼️ [WEB SEARCH] ✅ Imagen real encontrada: ${realImage}`);
+      return res.json({
+        success: true,
+        query,
+        image: realImage,
+        isReal: true,
+        results: [{ url: realImage, title: query }]
+      });
+    }
+
+    // Fallback: imágenes genéricas de Unsplash de alta calidad
+    console.log(`🖼️ [WEB SEARCH] ⚠️ Usando imagen genérica de fallback`);
     const wineImages = [
-      'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400',
-      'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=400',
-      'https://images.unsplash.com/photo-1586370434639-0fe43b2d32e6?w=400',
-      'https://images.unsplash.com/photo-1567529692333-de9fd6772897?w=400',
-      'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=400',
-      'https://images.unsplash.com/photo-1560148218-1a83060f7b32?w=400',
-      'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=400',
-      'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=400',
+      'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&q=80',
+      'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=800&q=80',
+      'https://images.unsplash.com/photo-1586370434639-0fe43b2d32e6?w=800&q=80',
+      'https://images.unsplash.com/photo-1567529692333-de9fd6772897?w=800&q=80',
+      'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=800&q=80',
+      'https://images.unsplash.com/photo-1560148218-1a83060f7b32?w=800&q=80',
+      'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=800&q=80',
+      'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=800&q=80',
     ];
 
-    // Seleccionar imagen aleatoria
-    const randomImage = wineImages[Math.floor(Math.random() * wineImages.length)];
+    // Seleccionar imagen basada en el nombre (consistente)
+    const nameHash = query.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const selectedImage = wineImages[nameHash % wineImages.length];
 
     res.json({
       success: true,
       query,
-      image: randomImage,
-      results: [{ url: randomImage, title: query }]
+      image: selectedImage,
+      isReal: false,
+      results: [{ url: selectedImage, title: query }]
     });
 
   } catch (error) {
