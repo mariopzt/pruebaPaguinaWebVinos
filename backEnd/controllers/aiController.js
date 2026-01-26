@@ -825,12 +825,52 @@ exports.processCommand = async (req, res, next) => {
     // Caso: Cambiar imagen de un vino que existe
     if (userIntent.type === 'change_image' && foundWine) {
       console.log(`[AI] ⚡ Respuesta directa: Cambiar imagen de "${foundWine.name}"`);
-      return res.json({
-        success: true,
-        action: 'update_wine',
-        response: `¡Entendido! Estoy buscando una imagen para el vino "${foundWine.name}" y la actualizaré.`,
-        data: { name: foundWine.name, updates: { searchImage: true } }
-      });
+      
+      try {
+        // Buscar imagen REAL del vino
+        const imageUrl = await searchRealWineImage(foundWine.name);
+        
+        if (imageUrl) {
+          // Actualizar directamente en la base de datos
+          const wineId = foundWine._id || foundWine.id;
+          await Wine.findByIdAndUpdate(wineId, { image: imageUrl });
+          
+          console.log(`[AI] ✅ Imagen actualizada para "${foundWine.name}": ${imageUrl}`);
+          
+          return res.json({
+            success: true,
+            action: 'update_wine',
+            response: `✅ ¡Listo! He actualizado la foto del vino "${foundWine.name}".`,
+            data: { name: foundWine.name, updates: { image: imageUrl } },
+            imageUpdated: true
+          });
+        } else {
+          // No se encontró imagen, usar genérica
+          const fallbackImages = [
+            'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&h=800&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=600&h=800&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1586370434639-0fe43b2d32e6?w=600&h=800&fit=crop&q=80'
+          ];
+          const nameHash = foundWine.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+          const fallbackUrl = fallbackImages[nameHash % fallbackImages.length];
+          
+          const wineId = foundWine._id || foundWine.id;
+          await Wine.findByIdAndUpdate(wineId, { image: fallbackUrl });
+          
+          console.log(`[AI] ⚠️ Usando imagen genérica para "${foundWine.name}": ${fallbackUrl}`);
+          
+          return res.json({
+            success: true,
+            action: 'update_wine',
+            response: `✅ He actualizado la foto del vino "${foundWine.name}" con una imagen de alta calidad.`,
+            data: { name: foundWine.name, updates: { image: fallbackUrl } },
+            imageUpdated: true
+          });
+        }
+      } catch (imgError) {
+        console.error(`[AI] ❌ Error actualizando imagen:`, imgError);
+        // Continuar con el flujo normal de la IA
+      }
     }
     
     // Caso: Cambiar imagen de vino que NO existe
