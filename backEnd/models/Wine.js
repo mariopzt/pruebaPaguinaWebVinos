@@ -109,9 +109,9 @@ const wineSchema = new mongoose.Schema(
         default: 0,
         min: 0,
       },
-      // Acepta tanto ObjectIds de usuarios como strings de invitados (guest_xxx)
       users: [{
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
       }],
     },
     user: {

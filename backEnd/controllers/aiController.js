@@ -554,6 +554,233 @@ const conversationMemorySchema = new mongoose.Schema({
 const ConversationMemory = mongoose.model('ConversationMemory', conversationMemorySchema);
 
 /**
+ * Detectar la INTENCIÓN del usuario ANTES de llamar a la IA
+ * Esto evita confusiones entre foto/descripción/stock/etc
+ */
+function detectUserIntent(message) {
+  const messageLower = message.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
+  // PATRONES DE INTENCIÓN - ordenados por prioridad
+  const intents = [
+    // 1. CAMBIAR/PONER FOTO/IMAGEN
+    {
+      type: 'change_image',
+      patterns: [
+        /cambiar?(le)?\s*(la\s*)?(foto|imagen)/i,
+        /pon(er|le)?\s*(una\s*)?(foto|imagen)/i,
+        /actualizar?\s*(la\s*)?(foto|imagen)/i,
+        /buscar?\s*(una\s*)?(foto|imagen)/i,
+        /(foto|imagen)\s+(del?|al?)\s+vino/i,
+        /nueva\s+(foto|imagen)/i,
+        /(foto|imagen)\s+nueva/i,
+        /cambiar?\s+(la\s+)?(foto|imagen)\s+(del?|al?)/i
+      ],
+      action: 'update_wine',
+      field: 'image'
+    },
+    // 2. CAMBIAR DESCRIPCIÓN
+    {
+      type: 'change_description',
+      patterns: [
+        /cambiar?(le)?\s*(la\s*)?descripcion/i,
+        /pon(er|le)?\s*(una\s*)?descripcion/i,
+        /actualizar?\s*(la\s*)?descripcion/i,
+        /anadir?\s*(una\s*)?descripcion/i,
+        /agregar?\s*(una\s*)?descripcion/i,
+        /nueva\s+descripcion/i,
+        /descripcion\s+nueva/i
+      ],
+      action: 'update_wine',
+      field: 'description'
+    },
+    // 3. CAMBIAR PRECIO
+    {
+      type: 'change_price',
+      patterns: [
+        /cambiar?(le)?\s*(el\s*)?precio/i,
+        /pon(er|le)?\s*(el\s*)?precio/i,
+        /actualizar?\s*(el\s*)?precio/i,
+        /precio\s+(del?|al?)/i,
+        /nuevo\s+precio/i
+      ],
+      action: 'update_wine',
+      field: 'price'
+    },
+    // 4. CAMBIAR STOCK (SUMAR/RESTAR)
+    {
+      type: 'modify_stock',
+      patterns: [
+        /quita(r)?\s+\d+/i,
+        /resta(r)?\s+\d+/i,
+        /anadir?\s+\d+/i,
+        /sumar?\s+\d+/i,
+        /agregar?\s+\d+/i,
+        /\d+\s+(botella|unidad)/i,
+        /vendi\s+\d+/i,
+        /vendimos\s+\d+/i,
+        /han\s+entrado\s+\d+/i,
+        /llegaron\s+\d+/i
+      ],
+      action: 'update_stock'
+    },
+    // 5. ESTABLECER STOCK EXACTO
+    {
+      type: 'set_stock',
+      patterns: [
+        /pon(er|le)?\s+(\d+|el\s+stock)/i,
+        /stock\s+(a|en|de)\s+\d+/i,
+        /establecer?\s+stock/i,
+        /\d+\s+en\s+stock/i
+      ],
+      action: 'set_stock'
+    },
+    // 6. ELIMINAR VINO
+    {
+      type: 'delete_wine',
+      patterns: [
+        /eliminar?\s+(el\s+)?vino/i,
+        /borrar?\s+(el\s+)?vino/i,
+        /quitar?\s+(el\s+)?vino/i,
+        /elimina(r|lo)/i,
+        /borra(r|lo)/i
+      ],
+      action: 'delete_wine'
+    },
+    // 7. AGREGAR VINO NUEVO
+    {
+      type: 'add_wine',
+      patterns: [
+        /agregar?\s+(un\s+)?nuevo?\s*vino/i,
+        /anadir?\s+(un\s+)?nuevo?\s*vino/i,
+        /crear?\s+(un\s+)?nuevo?\s*vino/i,
+        /nuevo\s+vino/i,
+        /vino\s+nuevo/i
+      ],
+      action: 'add_wine'
+    },
+    // 8. CONSULTA DESCRIPCIÓN
+    {
+      type: 'query_description',
+      patterns: [
+        /que\s+(vinos?|tienen?)\s+descripcion/i,
+        /vinos?\s+con\s+descripcion/i,
+        /tienen?\s+descripcion/i,
+        /cuales?\s+tienen?\s+descripcion/i
+      ],
+      action: 'none',
+      queryType: 'description_list'
+    },
+    // 9. CONSULTA AGOTADOS
+    {
+      type: 'query_out_of_stock',
+      patterns: [
+        /vinos?\s+agotados?/i,
+        /que\s+esta\s+agotado/i,
+        /sin\s+stock/i,
+        /cuales?\s+estan?\s+agotados?/i
+      ],
+      action: 'none',
+      queryType: 'out_of_stock'
+    }
+  ];
+
+  // Detectar intención
+  for (const intent of intents) {
+    for (const pattern of intent.patterns) {
+      if (pattern.test(messageLower)) {
+        console.log(`[INTENT] ✅ Detectada intención: ${intent.type}`);
+        return intent;
+      }
+    }
+  }
+
+  // Sin intención específica detectada
+  return { type: 'general', action: 'none' };
+}
+
+/**
+ * Buscar vino en la bodega por nombre (con coincidencia parcial)
+ */
+function findWineInBodega(wineName, allWines) {
+  if (!wineName || !allWines || allWines.length === 0) return null;
+  
+  const searchName = wineName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  
+  // 1. Coincidencia exacta
+  let found = allWines.find(w => 
+    w.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === searchName
+  );
+  if (found) return found;
+  
+  // 2. El vino contiene el nombre buscado
+  found = allWines.find(w => 
+    w.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(searchName)
+  );
+  if (found) return found;
+  
+  // 3. El nombre buscado contiene el nombre del vino
+  found = allWines.find(w => 
+    searchName.includes(w.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
+  );
+  if (found) return found;
+  
+  // 4. Coincidencia por palabras
+  const searchWords = searchName.split(/\s+/).filter(w => w.length > 2);
+  for (const wine of allWines) {
+    const wineNameNorm = wine.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const matches = searchWords.filter(word => wineNameNorm.includes(word));
+    if (matches.length >= 1 && matches.length >= searchWords.length * 0.5) {
+      return wine;
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Extraer nombre de vino del mensaje del usuario
+ */
+function extractWineNameFromMessage(message) {
+  const messageLower = message.toLowerCase();
+  
+  // Patrones para extraer nombre de vino
+  const extractPatterns = [
+    /(?:del?|al?)\s+vino\s+["']?([^"'\n,]+?)["']?\s*(?:por|$|\.)/i,
+    /vino\s+["']?([^"'\n,]+?)["']?\s*(?:por|$|\.)/i,
+    /(?:cambiale|ponle|actualiza)\s+(?:la\s+)?(?:foto|imagen|descripcion|precio)\s+(?:del?|al?)\s+["']?([^"'\n,]+?)["']?/i,
+    /["']([^"']+)["']/i,  // Texto entre comillas
+  ];
+  
+  for (const pattern of extractPatterns) {
+    const match = message.match(pattern);
+    if (match && match[1]) {
+      // Limpiar el nombre extraído
+      let name = match[1].trim()
+        .replace(/^(el|la|los|las|un|una)\s+/i, '')
+        .replace(/\s+(por|con|de|del|al)$/i, '')
+        .trim();
+      
+      if (name.length > 1 && name.length < 100) {
+        return name;
+      }
+    }
+  }
+  
+  // Si no encontró con patrones, intentar extraer palabras con mayúscula
+  const words = message.split(/\s+/);
+  const capitalizedWords = words.filter(w => 
+    /^[A-ZÁÉÍÓÚÑ]/.test(w) && 
+    !['Cambiale', 'Cambia', 'Ponle', 'Pon', 'Actualiza', 'Busca', 'Este', 'La', 'El', 'Del', 'Al', 'Por'].includes(w)
+  );
+  
+  if (capitalizedWords.length > 0) {
+    return capitalizedWords.join(' ');
+  }
+  
+  return null;
+}
+
+/**
  * Procesar comando de IA
  * POST /api/ai/command
  */
@@ -575,6 +802,56 @@ exports.processCommand = async (req, res, next) => {
         message: 'API key de OpenAI no configurada',
         response: 'Lo siento, el servicio de IA no está configurado correctamente.',
         action: 'error'
+      });
+    }
+
+    const allWines = context?.wines || [];
+    
+    // ========== DETECCIÓN DE INTENCIÓN PREVIA ==========
+    const userIntent = detectUserIntent(message);
+    console.log(`[AI] 🎯 Intención detectada: ${userIntent.type} (acción: ${userIntent.action})`);
+    
+    // Extraer nombre del vino mencionado
+    const mentionedWineName = extractWineNameFromMessage(message);
+    let foundWine = null;
+    
+    if (mentionedWineName) {
+      foundWine = findWineInBodega(mentionedWineName, allWines);
+      console.log(`[AI] 🍷 Vino mencionado: "${mentionedWineName}" → ${foundWine ? `Encontrado: "${foundWine.name}"` : 'NO encontrado'}`);
+    }
+    
+    // ========== RESPUESTAS DIRECTAS SIN IA (para casos claros) ==========
+    
+    // Caso: Cambiar imagen de un vino que existe
+    if (userIntent.type === 'change_image' && foundWine) {
+      console.log(`[AI] ⚡ Respuesta directa: Cambiar imagen de "${foundWine.name}"`);
+      return res.json({
+        success: true,
+        action: 'update_wine',
+        response: `¡Entendido! Estoy buscando una imagen para el vino "${foundWine.name}" y la actualizaré.`,
+        data: { name: foundWine.name, updates: { searchImage: true } }
+      });
+    }
+    
+    // Caso: Cambiar imagen de vino que NO existe
+    if (userIntent.type === 'change_image' && mentionedWineName && !foundWine) {
+      console.log(`[AI] ⚠️ Vino no encontrado para cambiar imagen: "${mentionedWineName}"`);
+      
+      // Buscar sugerencias similares
+      const suggestions = allWines
+        .filter(w => w.name.toLowerCase().includes(mentionedWineName.toLowerCase().substring(0, 3)))
+        .map(w => w.name)
+        .slice(0, 3);
+      
+      const suggestionText = suggestions.length > 0 
+        ? `\n\n¿Quizás te refieres a alguno de estos?: ${suggestions.join(', ')}`
+        : '\n\nPuedes decirme el nombre exacto del vino para buscarlo.';
+      
+      return res.json({
+        success: true,
+        action: 'none',
+        response: `No encontré un vino llamado "${mentionedWineName}" en la bodega.${suggestionText}`,
+        data: null
       });
     }
 
@@ -613,13 +890,15 @@ exports.processCommand = async (req, res, next) => {
     // También buscar si el mensaje parece ser un nombre de vino (corto, con mayúsculas)
     const looksLikeWineName = message.length < 50 && /[A-Z]/.test(message) && !/^(hola|gracias|ok|si|no|vale)$/i.test(message);
     
-    const isWineQuestion = wineQuestionPatterns.some(pattern => pattern.test(message)) || looksLikeWineName;
+    // NO buscar en web para acciones de modificación (cambiar foto, descripción, etc.)
+    const isModificationAction = ['change_image', 'change_description', 'change_price', 'modify_stock', 'set_stock', 'delete_wine', 'add_wine'].includes(userIntent.type);
+    
+    const isWineQuestion = !isModificationAction && (wineQuestionPatterns.some(pattern => pattern.test(message)) || looksLikeWineName);
     let webSearchInfo = '';
     
     if (isWineQuestion) {
       // Extraer posible nombre de vino de la pregunta
       const cleanedMessage = message.replace(/[?¿!¡.,]/g, '').trim();
-      const allWines = context?.wines || [];
       
       // Revisar si el vino está en la bodega
       const wineInBodega = allWines.some(w => 
@@ -660,7 +939,7 @@ exports.processCommand = async (req, res, next) => {
     };
 
     // Construir contexto de vinos OPTIMIZADO (solo info esencial + descripción VÁLIDA)
-    const allWines = context?.wines || [];
+    // allWines ya está definido arriba
     const winesContext = allWines.slice(0, 50).map(w => {
       // Solo enviar la info más importante para reducir tokens
       const parts = [
@@ -701,10 +980,37 @@ exports.processCommand = async (req, res, next) => {
         }).join('\n')
       : 'NO HAY VINOS AGOTADOS';
 
+    // Información de contexto para la IA
+    const intentContext = userIntent.type !== 'general' 
+      ? `\n🎯 INTENCIÓN DETECTADA: ${userIntent.type.toUpperCase()} (acción: ${userIntent.action})
+${foundWine ? `🍷 VINO OBJETIVO: "${foundWine.name}" - Este vino SÍ EXISTE en la bodega` : mentionedWineName ? `⚠️ VINO MENCIONADO: "${mentionedWineName}" - Buscar en la lista` : ''}`
+      : '';
+
     // Construir prompt del sistema OPTIMIZADO
     const systemPrompt = `Asistente IA de VinosStK con CONTROL TOTAL de la bodega.
 Tienes acceso COMPLETO para: crear, modificar, eliminar vinos, cambiar stock, precios, descripciones, imágenes, etc.
+${intentContext}
 ${webSearchInfo}
+
+🚨🚨🚨 REGLA CRÍTICA - LEE CON ATENCIÓN 🚨🚨🚨
+
+**DISTINGUIR ENTRE TIPOS DE PETICIONES:**
+
+1. **FOTO/IMAGEN** → Cuando el usuario mencione: foto, imagen, picture
+   - Palabras clave: "cambiale la foto", "ponle imagen", "actualiza la foto", "busca foto"
+   - Acción: update_wine con searchImage: true
+   - ❌ NO RESPONDER sobre descripción cuando pidan foto
+   - ❌ NO RESPONDER "no tiene descripción" cuando pidan foto
+
+2. **DESCRIPCIÓN** → Cuando el usuario mencione: descripción, describir
+   - Palabras clave: "cambiale la descripción", "añade descripción", "qué descripción tiene"
+   - Acción: update_wine con description: "texto"
+   
+3. **STOCK** → Cuando el usuario mencione: botellas, unidades, cantidad, añadir, quitar, restar
+   - Acción: update_stock o set_stock
+
+4. **CONSULTA** → Preguntas sobre información
+   - Acción: none
 
 ⚠️ INSTRUCCIÓN CRÍTICA: La lista siguiente contiene ${allWines.slice(0, 50).length} vinos. DEBES revisar TODA la lista COMPLETA antes de responder cualquier pregunta sobre características, cantidades o búsquedas. NO te detengas en el primer resultado.
 
@@ -885,10 +1191,25 @@ EJEMPLOS CORRECTOS:
 ✅ BUSCAR FOTO para varios vinos:
 {"action":"update_wine","response":"¡Hecho! He buscado fotos para todos los vinos.","data":{"wines":[{"name":"Rioja","updates":{"searchImage":true}},{"name":"Albariño","updates":{"searchImage":true}}]}}
 
-🖼️ IMPORTANTE PARA IMÁGENES:
-- Cuando el usuario pida "ponle una foto", "busca una imagen", "actualiza la foto" → usa searchImage: true
+🖼️🖼️🖼️ MUY IMPORTANTE PARA FOTOS/IMÁGENES 🖼️🖼️🖼️
+
+CUANDO EL USUARIO PIDA CAMBIAR **FOTO** O **IMAGEN**:
+- Palabras clave: "cambiale la foto", "ponle foto", "actualiza la foto", "busca imagen", "nueva foto"
+- SIEMPRE usa: searchImage: true
+- NUNCA respondas sobre descripción
+- NUNCA digas "no tiene descripción registrada"
 - El sistema buscará automáticamente una imagen apropiada del vino en internet
 - NO inventes URLs de imágenes, solo pon searchImage: true
+
+EJEMPLOS DE PETICIONES DE FOTO:
+- "cambiale la foto al vino Vandama" → {"action":"update_wine","response":"¡Listo! He buscado una nueva foto para Vandama.","data":{"name":"Vandama","updates":{"searchImage":true}}}
+- "ponle imagen al Rioja" → {"action":"update_wine","response":"¡Hecho! He actualizado la imagen del Rioja.","data":{"name":"Rioja","updates":{"searchImage":true}}}
+- "actualiza la foto de todos los vinos" → Usar array de wines con searchImage: true para cada uno
+
+❌ ERRORES A EVITAR CON FOTOS:
+- Si piden foto, NO digas "Este vino no tiene descripción registrada" 
+- Si piden foto, NO confundas con descripción
+- Si piden foto, USA searchImage: true
 
 ✅ Solo consulta:
 {"action":"none","response":"Tienes 5 vinos tintos en la bodega.","data":null}
@@ -903,6 +1224,12 @@ EJEMPLOS CORRECTOS:
 - SOLO usa datos de "VINOS DISPONIBLES", NO inventes nada
 - NO uses tu conocimiento general de vinos
 
+🔍 **BUSCAR VINOS - COINCIDENCIA FLEXIBLE**:
+- Si el usuario dice "Vandama", busca vinos que CONTENGAN "Vandama" en su nombre
+- Usa coincidencia parcial: "Rioja" puede encontrar "Marqués de Rioja Reserva"
+- NO digas "no existe" si hay un vino similar en la lista
+- Si no encuentras coincidencia exacta, menciona vinos similares
+
 ⚠️ **FORMATO DE VINOS**: "Nombre" | Tipo | Región | Uvas | Stock | €precio | Desc: texto
 - Si ves "Desc:" → SÍ tiene descripción
 - Si NO ves "Desc:" → NO tiene descripción
@@ -912,9 +1239,15 @@ EJEMPLOS CORRECTOS:
 - NO agregues otros vinos que no estén en esa sección
 - Si dice "${winesWithDesc.length} vinos", lista EXACTAMENTE ${winesWithDesc.length}, ni más ni menos
 
-**CUANDO PREGUNTEN POR UN VINO ESPECÍFICO**:
+**CUANDO PREGUNTEN POR LA DESCRIPCIÓN DE UN VINO ESPECÍFICO**:
 - Si tiene "Desc:" → muestra esa descripción
 - Si NO tiene "Desc:" → di "Este vino no tiene descripción registrada"
+- ⚠️ SOLO di esto cuando pregunten por DESCRIPCIÓN, NO cuando pidan FOTO
+
+**CUANDO PIDAN CAMBIAR LA FOTO/IMAGEN**:
+- NUNCA respondas sobre descripción
+- USA action: update_wine con searchImage: true
+- Ejemplo: {"action":"update_wine","response":"¡Listo!","data":{"name":"NOMBRE_VINO","updates":{"searchImage":true}}}
 
 - Lista vinos por stock: de MENOR a MAYOR
 - Para acciones: responde SOLO con JSON
