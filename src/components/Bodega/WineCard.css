@@ -178,33 +178,81 @@
   opacity: 0.8;
 }
 
-/* Responsive */
+/* Responsive - Tablets y móviles grandes */
 @media (max-width: 768px) {
+  .wine-card {
+    height: auto;
+    min-height: 200px;
+  }
+  
   .wine-card-image {
-    height: 160px;
+    height: 140px;
   }
   
   .wine-card-info {
-    padding: 12px;
+    padding: 10px;
   }
   
   .wine-card-title {
-    font-size: 14px;
+    font-size: 13px;
     max-width: 100%;
     width: 100%;
   }
   
   .wine-card-updated {
-    font-size: 12px;
-  }
-
-  .wine-likes-count {
     font-size: 11px;
   }
 
+  .wine-likes-count {
+    font-size: 10px;
+  }
+
   .wine-likes-count svg {
-    width: 11px;
-    height: 11px;
+    width: 10px;
+    height: 10px;
+  }
+}
+
+/* Responsive - Móviles pequeños */
+@media (max-width: 480px) {
+  .wine-card {
+    height: auto;
+    min-height: 180px;
+  }
+  
+  .wine-card-image {
+    height: 120px;
+  }
+  
+  .wine-card-info {
+    padding: 8px;
+  }
+  
+  .wine-card-title {
+    font-size: 12px;
+  }
+  
+  .wine-card-updated {
+    font-size: 10px;
+  }
+}
+
+/* Responsive - Móviles muy pequeños */
+@media (max-width: 360px) {
+  .wine-card {
+    min-height: 160px;
+  }
+  
+  .wine-card-image {
+    height: 100px;
+  }
+  
+  .wine-card-info {
+    padding: 6px;
+  }
+  
+  .wine-card-title {
+    font-size: 11px;
   }
 }
 
