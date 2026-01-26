@@ -590,7 +590,11 @@ function detectUserIntent(message) {
         /generar?\s*(una\s*)?descripcion/i,
         /crear?\s*(una\s*)?descripcion/i,
         /descripcion(es)?\s+de\s+(la\s+)?web/i,
-        /buscar?\s+descripcion(es)?/i
+        /buscar?\s+descripcion(es)?/i,
+        /agrega(r|les?)?\s+(una\s+)?descripcion/i,
+        /anadir?(les?)?\s+(una\s+)?descripcion/i,
+        /pon(er|le|les)?\s+(una\s+)?descripcion/i,
+        /descripcion(es)?\s+(a\s+)?(cada|todos|los)\s+vino/i
       ],
       action: 'update_wine',
       field: 'description',
@@ -911,41 +915,23 @@ exports.processCommand = async (req, res, next) => {
       });
     }
     
-    // Caso: Buscar descripción de un vino específico
-    if (userIntent.type === 'search_description' && foundWine) {
-      console.log(`[AI] ⚡ Respuesta directa: Buscar descripción de "${foundWine.name}"`);
-      
-      try {
-        // Buscar descripción en la web
-        const description = await searchWineDescription(foundWine.name, foundWine.type, foundWine.region);
-        
-        if (description) {
-          // Actualizar directamente en la base de datos
-          const wineId = foundWine._id || foundWine.id;
-          await Wine.findByIdAndUpdate(wineId, { description });
-          
-          console.log(`[AI] ✅ Descripción actualizada para "${foundWine.name}"`);
-          
-          return res.json({
-            success: true,
-            action: 'update_wine',
-            response: `✅ ¡Listo! He buscado y actualizado la descripción del vino "${foundWine.name}":\n\n"${description}"`,
-            data: { name: foundWine.name, updates: { description } },
-            descriptionUpdated: true
-          });
-        }
-      } catch (descError) {
-        console.error(`[AI] ❌ Error buscando descripción:`, descError);
-      }
-    }
+    // ========== PRIMERO: Detectar si quiere descripciones para TODOS/CADA vino ==========
+    const wantsAllDescriptions = /descripcion(es)?\s+(de\s+)?(todos|all|varios|cada|los\s+vinos)/i.test(message) ||
+                                  /busca(r)?\s+descripcion(es)?\s+(para\s+)?(todos|all|cada)/i.test(message) ||
+                                  /pon(er|le|les)?\s+descripcion(es)?\s+(a\s+)?(todos|all|cada)/i.test(message) ||
+                                  /agrega(r|les?)?\s+(una\s+)?descripcion\s+(a\s+)?(todos|cada|los)/i.test(message) ||
+                                  /(a\s+)?cada\s+vino/i.test(message) ||
+                                  /(a\s+)?todos\s+(los\s+)?vinos/i.test(message) ||
+                                  /descripcion(es)?\s+a\s+cada/i.test(message) ||
+                                  /descripcion(es)?\s+a\s+todos/i.test(message);
     
-    // Caso: Buscar descripciones para TODOS los vinos (o varios)
-    const wantsAllDescriptions = /descripcion(es)?\s+(de\s+)?(todos|all|varios|los\s+vinos)/i.test(message) ||
-                                  /busca(r)?\s+descripcion(es)?\s+(para\s+)?(todos|all)/i.test(message) ||
-                                  /pon(er|le)?\s+descripcion(es)?\s+(a\s+)?(todos|all)/i.test(message);
+    const mentionsDescription = /descripcion/i.test(message);
     
-    if (userIntent.type === 'search_description' && wantsAllDescriptions) {
-      console.log(`[AI] ⚡ Buscando descripciones para TODOS los vinos...`);
+    // Caso: Buscar descripciones para TODOS los vinos (tiene prioridad)
+    if (wantsAllDescriptions && mentionsDescription) {
+      console.log(`[AI] ⚡ Detectado: Buscar descripciones para TODOS los vinos`);
+      console.log(`[AI] Mensaje: "${message}"`);
+      console.log(`[AI] wantsAllDescriptions: ${wantsAllDescriptions}, mentionsDescription: ${mentionsDescription}`);
       
       // Filtrar vinos sin descripción o con descripción vacía
       const winesWithoutDesc = allWines.filter(w => !w.description || w.description.trim().length < 20);
@@ -990,6 +976,34 @@ exports.processCommand = async (req, res, next) => {
         descriptionUpdated: true,
         updatedCount: updatedWines.length
       });
+    }
+    
+    // ========== SEGUNDO: Buscar descripción de UN vino específico ==========
+    if (userIntent.type === 'search_description' && foundWine && !wantsAllDescriptions) {
+      console.log(`[AI] ⚡ Respuesta directa: Buscar descripción de "${foundWine.name}"`);
+      
+      try {
+        // Buscar descripción en la web
+        const description = await searchWineDescription(foundWine.name, foundWine.type, foundWine.region);
+        
+        if (description) {
+          // Actualizar directamente en la base de datos
+          const wineId = foundWine._id || foundWine.id;
+          await Wine.findByIdAndUpdate(wineId, { description });
+          
+          console.log(`[AI] ✅ Descripción actualizada para "${foundWine.name}"`);
+          
+          return res.json({
+            success: true,
+            action: 'update_wine',
+            response: `✅ ¡Listo! He buscado y actualizado la descripción del vino "${foundWine.name}":\n\n"${description}"`,
+            data: { name: foundWine.name, updates: { description } },
+            descriptionUpdated: true
+          });
+        }
+      } catch (descError) {
+        console.error(`[AI] ❌ Error buscando descripción:`, descError);
+      }
     }
 
     // Detectar si es una pregunta sobre un vino específico - patrones ampliados
