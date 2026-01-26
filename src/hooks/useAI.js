@@ -650,6 +650,28 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
         result.actionResult = { success: true, imageUpdated: true };
         console.log('✅ [AI] Estado local sincronizado con nueva imagen');
       }
+      
+      // Si el backend ya actualizó la descripción (uno o varios vinos)
+      if (result.descriptionUpdated && result.data) {
+        console.log('📝 [AI] Descripción(es) ya actualizada(s) en backend, sincronizando estado local...');
+        
+        // Puede ser un vino o varios
+        const wineUpdates = result.data.wines || [result.data];
+        
+        const updatedWines = wines.map(w => {
+          const update = wineUpdates.find(u => u.name === w.name);
+          if (update && update.updates?.description) {
+            return { ...w, description: update.updates.description };
+          }
+          return w;
+        });
+        
+        if (onWinesChange) {
+          onWinesChange(updatedWines);
+        }
+        result.actionResult = { success: true, descriptionUpdated: true, count: wineUpdates.length };
+        console.log(`✅ [AI] Estado local sincronizado con ${wineUpdates.length} descripción(es)`);
+      }
       // Ejecutar acción si existe y no fue ya procesada
       else if (result.action && result.action !== 'none' && result.action !== 'response') {
         console.log('🤖 [AI] Acción recibida:', result.action);

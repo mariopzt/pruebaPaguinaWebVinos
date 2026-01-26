@@ -578,17 +578,33 @@ function detectUserIntent(message) {
       action: 'update_wine',
       field: 'image'
     },
-    // 2. CAMBIAR DESCRIPCIÓN
+    // 2. BUSCAR DESCRIPCIÓN EN WEB (automático)
+    {
+      type: 'search_description',
+      patterns: [
+        /buscar?\s*(una\s*)?descripcion/i,
+        /busca(r|le)?\s+descripcion/i,
+        /busca\s+(la\s+)?descripcion\s+(del?|al?|para)/i,
+        /pon(er|le)?\s+(una\s+)?descripcion\s+(del?|al?)\s+/i,
+        /descripcion\s+(del?|al?|para)\s+.*\s+(en\s+)?(la\s+)?(web|internet)/i,
+        /generar?\s*(una\s*)?descripcion/i,
+        /crear?\s*(una\s*)?descripcion/i,
+        /descripcion(es)?\s+de\s+(la\s+)?web/i,
+        /buscar?\s+descripcion(es)?/i
+      ],
+      action: 'update_wine',
+      field: 'description',
+      searchWeb: true
+    },
+    // 2b. CAMBIAR DESCRIPCIÓN (manual - texto específico)
     {
       type: 'change_description',
       patterns: [
-        /cambiar?(le)?\s*(la\s*)?descripcion/i,
-        /pon(er|le)?\s*(una\s*)?descripcion/i,
-        /actualizar?\s*(la\s*)?descripcion/i,
-        /anadir?\s*(una\s*)?descripcion/i,
-        /agregar?\s*(una\s*)?descripcion/i,
-        /nueva\s+descripcion/i,
-        /descripcion\s+nueva/i
+        /cambiar?(le)?\s*(la\s*)?descripcion\s+a\s+["']/i,
+        /cambiar?(le)?\s*(la\s*)?descripcion\s+por\s+["']/i,
+        /pon(er|le)?\s*(la\s*)?descripcion\s*[:=]\s*/i,
+        /actualizar?\s*(la\s*)?descripcion\s+a\s+/i,
+        /descripcion\s*[:=]\s*["']/i
       ],
       action: 'update_wine',
       field: 'description'
@@ -892,6 +908,87 @@ exports.processCommand = async (req, res, next) => {
         action: 'none',
         response: `No encontré un vino llamado "${mentionedWineName}" en la bodega.${suggestionText}`,
         data: null
+      });
+    }
+    
+    // Caso: Buscar descripción de un vino específico
+    if (userIntent.type === 'search_description' && foundWine) {
+      console.log(`[AI] ⚡ Respuesta directa: Buscar descripción de "${foundWine.name}"`);
+      
+      try {
+        // Buscar descripción en la web
+        const description = await searchWineDescription(foundWine.name, foundWine.type, foundWine.region);
+        
+        if (description) {
+          // Actualizar directamente en la base de datos
+          const wineId = foundWine._id || foundWine.id;
+          await Wine.findByIdAndUpdate(wineId, { description });
+          
+          console.log(`[AI] ✅ Descripción actualizada para "${foundWine.name}"`);
+          
+          return res.json({
+            success: true,
+            action: 'update_wine',
+            response: `✅ ¡Listo! He buscado y actualizado la descripción del vino "${foundWine.name}":\n\n"${description}"`,
+            data: { name: foundWine.name, updates: { description } },
+            descriptionUpdated: true
+          });
+        }
+      } catch (descError) {
+        console.error(`[AI] ❌ Error buscando descripción:`, descError);
+      }
+    }
+    
+    // Caso: Buscar descripciones para TODOS los vinos (o varios)
+    const wantsAllDescriptions = /descripcion(es)?\s+(de\s+)?(todos|all|varios|los\s+vinos)/i.test(message) ||
+                                  /busca(r)?\s+descripcion(es)?\s+(para\s+)?(todos|all)/i.test(message) ||
+                                  /pon(er|le)?\s+descripcion(es)?\s+(a\s+)?(todos|all)/i.test(message);
+    
+    if (userIntent.type === 'search_description' && wantsAllDescriptions) {
+      console.log(`[AI] ⚡ Buscando descripciones para TODOS los vinos...`);
+      
+      // Filtrar vinos sin descripción o con descripción vacía
+      const winesWithoutDesc = allWines.filter(w => !w.description || w.description.trim().length < 20);
+      
+      if (winesWithoutDesc.length === 0) {
+        return res.json({
+          success: true,
+          action: 'none',
+          response: '✅ Todos los vinos ya tienen descripción.',
+          data: null
+        });
+      }
+      
+      // Limitar a 10 vinos para no sobrecargar
+      const winesToProcess = winesWithoutDesc.slice(0, 10);
+      const updatedWines = [];
+      const errors = [];
+      
+      for (const wine of winesToProcess) {
+        try {
+          const description = await searchWineDescription(wine.name, wine.type, wine.region);
+          if (description) {
+            const wineId = wine._id || wine.id;
+            await Wine.findByIdAndUpdate(wineId, { description });
+            updatedWines.push({ name: wine.name, description });
+            console.log(`[AI] ✅ Descripción actualizada: ${wine.name}`);
+          }
+        } catch (err) {
+          errors.push(wine.name);
+          console.error(`[AI] ❌ Error con ${wine.name}:`, err.message);
+        }
+      }
+      
+      const remaining = winesWithoutDesc.length - winesToProcess.length;
+      const remainingText = remaining > 0 ? `\n\n(Quedan ${remaining} vinos más sin descripción)` : '';
+      
+      return res.json({
+        success: true,
+        action: 'update_wine',
+        response: `✅ ¡Listo! He actualizado las descripciones de ${updatedWines.length} vinos:\n\n${updatedWines.map(w => `• ${w.name}`).join('\n')}${remainingText}`,
+        data: { wines: updatedWines.map(w => ({ name: w.name, updates: { description: w.description } })) },
+        descriptionUpdated: true,
+        updatedCount: updatedWines.length
       });
     }
 
@@ -1417,6 +1514,133 @@ function isValidImageUrl(url) {
   if (url.length > 300) return false;
   
   return true;
+}
+
+/**
+ * Buscar DESCRIPCIÓN de un vino específico en internet
+ */
+async function searchWineDescription(wineName, wineType = '', wineRegion = '') {
+  console.log(`📝 [DESC SEARCH] Buscando descripción para: "${wineName}"`);
+  
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
+  };
+
+  let descriptions = [];
+  let wineInfo = { grapes: [], region: '', type: wineType };
+
+  try {
+    // 1. Buscar en Google con términos específicos de vino
+    const googleQuery = `"${wineName}" vino descripción notas cata bodega`;
+    const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(googleQuery)}&hl=es&num=10`;
+    console.log('[DESC] Buscando en Google...');
+    
+    const googleRes = await axios.get(googleUrl, { headers, timeout: 10000 });
+    const $g = cheerio.load(googleRes.data);
+    
+    // Extraer snippets de Google
+    $g('.VwiC3b, .IsZvec, .lEBKkf').each((i, el) => {
+      const text = $g(el).text().trim();
+      if (text && text.length > 50 && text.length < 500) {
+        // Filtrar solo textos que parezcan descripciones de vino
+        if (/vino|bodega|uva|aroma|sabor|nota|cata|barrica|crianza|tanino|frut/i.test(text)) {
+          descriptions.push(text);
+        }
+      }
+    });
+    
+    // Extraer info de D.O. y uvas del texto
+    const fullText = $g('body').text();
+    const doPatterns = [
+      /D\.?O\.?\s*(Ca\.?)?\s*(Ribeira Sacra|Ribeiro|Rías Baixas|Ribera del Duero|Rioja|Rueda|Bierzo|Priorat|Valdeorras|Monterrei|Toro|Jumilla|Somontano|Penedés|Navarra)/i
+    ];
+    const grapePatterns = [
+      /(?:uvas?|variedad|elaborado con)\s*:?\s*(Mencía|Godello|Albariño|Tempranillo|Garnacha|Verdejo|Monastrell|Graciano|Mazuelo|Viura|Macabeo)/gi
+    ];
+    
+    for (const pattern of doPatterns) {
+      const match = fullText.match(pattern);
+      if (match) wineInfo.region = match[0];
+    }
+    
+    let grapeMatch;
+    while ((grapeMatch = grapePatterns[0].exec(fullText)) !== null) {
+      if (!wineInfo.grapes.includes(grapeMatch[1])) {
+        wineInfo.grapes.push(grapeMatch[1]);
+      }
+    }
+    
+    console.log(`[DESC] Google: ${descriptions.length} descripciones encontradas`);
+  } catch (e) {
+    console.log('[DESC] Error Google:', e.message);
+  }
+
+  try {
+    // 2. Buscar en DuckDuckGo
+    const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(wineName + ' vino descripción notas de cata')}`;
+    console.log('[DESC] Buscando en DuckDuckGo...');
+    
+    const ddgRes = await axios.get(ddgUrl, { headers, timeout: 10000 });
+    const $ddg = cheerio.load(ddgRes.data);
+    
+    $ddg('.result__snippet').each((i, el) => {
+      const text = $ddg(el).text().trim();
+      if (text && text.length > 50 && text.length < 500) {
+        if (/vino|bodega|uva|aroma|sabor|nota|cata|barrica/i.test(text)) {
+          descriptions.push(text);
+        }
+      }
+    });
+    
+    console.log(`[DESC] DuckDuckGo: Total ${descriptions.length} descripciones`);
+  } catch (e) {
+    console.log('[DESC] Error DuckDuckGo:', e.message);
+  }
+
+  // Si encontramos descripciones, crear una descripción completa
+  if (descriptions.length > 0) {
+    // Tomar la mejor descripción (la más completa)
+    const bestDesc = descriptions
+      .sort((a, b) => b.length - a.length)[0]
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    // Construir descripción final
+    let finalDesc = bestDesc;
+    
+    // Añadir info de uvas y región si la encontramos y no está en la descripción
+    if (wineInfo.grapes.length > 0 && !finalDesc.toLowerCase().includes(wineInfo.grapes[0].toLowerCase())) {
+      finalDesc = `Elaborado con ${wineInfo.grapes.join(', ')}. ${finalDesc}`;
+    }
+    
+    // Limpiar y limitar longitud
+    finalDesc = finalDesc
+      .replace(/\.\s*\./g, '.')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    if (finalDesc.length > 300) {
+      finalDesc = finalDesc.substring(0, 297) + '...';
+    }
+    
+    console.log(`📝 [DESC SEARCH] ✅ Descripción encontrada: ${finalDesc.substring(0, 100)}...`);
+    return finalDesc;
+  }
+
+  // Si no encontramos nada, generar descripción genérica basada en el tipo
+  console.log(`📝 [DESC SEARCH] ⚠️ Generando descripción genérica para: "${wineName}"`);
+  
+  const genericDescs = {
+    'Tinto': `${wineName} es un vino tinto de carácter, con aromas a frutos rojos maduros y notas especiadas. En boca es equilibrado, con taninos suaves y un final persistente.`,
+    'Blanco': `${wineName} es un vino blanco fresco y aromático, con notas florales y cítricas. En boca es ligero y refrescante, ideal para disfrutar como aperitivo o con mariscos.`,
+    'Rosado': `${wineName} es un vino rosado elegante, con aromas a fresas y flores. En boca es fresco y afrutado, perfecto para días de verano.`,
+    'Espumoso': `${wineName} es un espumoso de fina burbuja, con aromas a manzana verde y brioche. En boca es cremoso y refrescante.`,
+    'Dulce': `${wineName} es un vino dulce con intensos aromas a frutas confitadas y miel. En boca es untuoso y equilibrado.`
+  };
+  
+  return genericDescs[wineType] || genericDescs['Tinto'].replace('tinto', 'elegante');
 }
 
 /**
