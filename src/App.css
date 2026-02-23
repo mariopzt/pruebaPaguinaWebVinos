@@ -6346,20 +6346,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .vales-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
 }
 
 .vale-card {
   background: linear-gradient(165deg, #efe9db 0%, #e8dfcf 58%, #e2d8c5 100%);
-  border-radius: 12px;
-  padding: 18px;
+  border-radius: 10px;
+  padding: 12px;
   border: 1px solid rgba(77, 58, 36, 0.22);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.34);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 320px;
+  min-height: 235px;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   position: relative;
   overflow: hidden;
@@ -6386,8 +6386,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .vale-badge-row {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 10px;
+  right: 10px;
   z-index: 2;
 }
 
@@ -6397,71 +6397,75 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .vale-layout {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 140px;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
   align-items: start;
-  padding-top: 12px;
+  padding-top: 6px;
 }
 
 .vale-layout-main {
   display: grid;
-  gap: 10px;
+  gap: 6px;
+  padding-right: 78px;
 }
 
 .vale-main-title {
   margin: 0;
-  font-size: clamp(36px, 5vw, 62px);
-  line-height: 0.88;
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  transform-origin: center;
+  font-size: clamp(22px, 2.6vw, 34px);
+  line-height: 0.95;
   font-weight: 300;
   color: #2f2316;
   letter-spacing: -0.02em;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  text-align: center;
-  align-self: stretch;
-  justify-self: center;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .vale-form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
 }
 
 .vale-form-field {
   border-radius: 999px;
   background: rgba(144, 126, 98, 0.16);
   border: 1px solid rgba(77, 58, 36, 0.12);
-  padding: 9px 14px;
+  padding: 6px 10px;
   display: grid;
-  gap: 2px;
+  gap: 1px;
 }
 
 .vale-form-field span {
   color: #6a5843;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .vale-form-field strong {
   color: #2f2316;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
 }
 
 .vale-contact {
   color: #5f513d;
-  font-size: 12px;
-  line-height: 1.35;
-  margin-top: 14px;
+  font-size: 10px;
+  line-height: 1.2;
+  margin-top: 8px;
 }
 
 .vale-note {
-  font-size: 10px;
+  font-size: 9px;
   color: #75654c;
   border-top: 1px solid rgba(77, 58, 36, 0.14);
-  padding-top: 8px;
-  margin-top: 4px;
+  padding-top: 6px;
+  margin-top: 2px;
 }
 
 .vale-card-header {
@@ -6570,16 +6574,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   margin-top: auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
 }
 
 .vale-action-btn {
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: 7px 8px;
+  border-radius: 7px;
   border: 1px solid rgba(77, 58, 36, 0.3);
   background: rgba(244, 237, 223, 0.95);
   color: #392d1d;
   font-weight: 600;
+  font-size: 11px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -6641,8 +6646,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     grid-template-columns: 1fr;
   }
 
+  .vale-layout-main {
+    padding-right: 0;
+  }
+
   .vale-main-title {
-    writing-mode: horizontal-tb;
+    position: static;
+    transform: none;
     font-size: 38px;
     white-space: normal;
     justify-self: start;
