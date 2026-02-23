@@ -5209,6 +5209,7 @@ function EditReviewModal({ review, onClose, onDelete }) {
 }
 
 function ReviewDetailModal({ review, onClose, isOwner, onEdit, onDelete }) {
+  const ratingValue = Number(review.rating) || 0
   return (
     <div className="task-modal-overlay" onClick={onClose}>
       <div className="review-detail-modal" onClick={(e) => e.stopPropagation()}>
@@ -5230,7 +5231,7 @@ function ReviewDetailModal({ review, onClose, isOwner, onEdit, onDelete }) {
             {[1, 2, 3, 4, 5].map((star) => (
               <FiStar
                 key={star}
-                className={star <= review.rating ? 'star-filled' : 'star-empty'}
+                className={star <= ratingValue ? 'star-filled' : 'star-empty'}
               />
             ))}
             {review.verified && (
