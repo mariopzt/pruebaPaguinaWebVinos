@@ -742,6 +742,28 @@ function scoreMatch(wineName, searchName) {
   return overlap / Math.max(wineWords.length, searchWords.length);
 }
 
+function extractNumberFromMessage(message) {
+  if (!message) return null;
+  const match = message.match(/(\d+[.,]?\d*)/);
+  if (!match) return null;
+  const value = parseFloat(match[1].replace(',', '.'));
+  return Number.isFinite(value) ? value : null;
+}
+
+function extractDescriptionFromMessage(message) {
+  if (!message) return null;
+  const quoted = message.match(/descripcion\s*(?:a|por|:)?\s*["']([^"']{5,})["']/i);
+  if (quoted && quoted[1]) return quoted[1].trim();
+
+  const colon = message.match(/descripcion\s*[:=]\s*([^.\n]+)$/i);
+  if (colon && colon[1]) return colon[1].trim();
+
+  const por = message.match(/descripcion\s+(?:a|por)\s+(.+)$/i);
+  if (por && por[1]) return por[1].trim();
+
+  return null;
+}
+
 /**
  * Buscar vino en la bodega por nombre (con coincidencia parcial)
  */
@@ -889,7 +911,17 @@ exports.processCommand = async (req, res, next) => {
     const explicitAll = explicitAllRegex.test(message);
     const needsWineName = ['change_image', 'search_description', 'change_description', 'change_price', 'modify_stock', 'set_stock', 'delete_wine'].includes(userIntent.type);
 
-    if (needsWineName && !explicitAll && !mentionedWineName) {
+    // Detectar si pide descripción para todos antes de exigir nombre
+    const wantsAllDescriptionsEarly = /descripcion(es)?\s+(de\s+)?(todos|all|varios|cada|los\s+vinos)/i.test(message) ||
+                                      /busca(r)?\s+descripcion(es)?\s+(para\s+)?(todos|all|cada)/i.test(message) ||
+                                      /pon(er|le|les)?\s+descripcion(es)?\s+(a\s+)?(todos|all|cada|los)/i.test(message) ||
+                                      /agrega(r|les?)?\s+(una\s+)?descripcion\s+(a\s+)?(todos|cada|los)/i.test(message) ||
+                                      /(a\s+)?cada\s+vino/i.test(message) ||
+                                      /(a\s+)?todos\s+(los\s+)?vinos/i.test(message) ||
+                                      /descripcion(es)?\s+a\s+cada/i.test(message) ||
+                                      /descripcion(es)?\s+a\s+todos/i.test(message);
+
+    if (needsWineName && !explicitAll && !mentionedWineName && !wantsAllDescriptionsEarly) {
       return res.json({
         success: true,
         action: 'none',
@@ -929,7 +961,7 @@ exports.processCommand = async (req, res, next) => {
     }
     
     // ========== RESPUESTAS DIRECTAS SIN IA (para casos claros) ==========
-    
+
     // Caso: Cambiar imagen de un vino que existe
     if (userIntent.type === 'change_image' && foundWine) {
       console.log(`[AI] ⚡ Respuesta directa: Cambiar imagen de "${foundWine.name}"`);
@@ -1000,6 +1032,92 @@ exports.processCommand = async (req, res, next) => {
         action: 'none',
         response: `No encontré un vino llamado "${mentionedWineName}" en la bodega.${suggestionText}`,
         data: null
+      });
+    }
+
+    // Caso: Cambiar descripción MANUAL (texto explícito) - incluso si el intent vino como search_description
+    if ((userIntent.type === 'change_description' || userIntent.type === 'search_description') && foundWine) {
+      const manualDescription = extractDescriptionFromMessage(message);
+      if (manualDescription && manualDescription.length >= 5) {
+        const wineId = foundWine._id || foundWine.id;
+        await Wine.findByIdAndUpdate(wineId, { description: manualDescription });
+        return res.json({
+          success: true,
+          action: 'update_wine',
+          response: `✅ Descripción actualizada para "${foundWine.name}".`,
+          data: { name: foundWine.name, updates: { description: manualDescription } },
+          descriptionUpdated: true
+        });
+      }
+    }
+
+    // Caso: Cambiar precio
+    if (userIntent.type === 'change_price' && foundWine) {
+      const price = extractNumberFromMessage(message);
+      if (!price) {
+        return res.json({
+          success: true,
+          action: 'none',
+          response: `¿Qué precio quieres poner a "${foundWine.name}"?`,
+          data: null
+        });
+      }
+      return res.json({
+        success: true,
+        action: 'update_wine',
+        response: `✅ Precio actualizado para "${foundWine.name}".`,
+        data: { name: foundWine.name, updates: { price } }
+      });
+    }
+
+    // Caso: Establecer stock exacto
+    if (userIntent.type === 'set_stock' && foundWine) {
+      const stock = extractNumberFromMessage(message);
+      if (stock === null || stock === undefined) {
+        return res.json({
+          success: true,
+          action: 'none',
+          response: `¿A qué cantidad quieres dejar el stock de "${foundWine.name}"?`,
+          data: null
+        });
+      }
+      return res.json({
+        success: true,
+        action: 'set_stock',
+        response: `✅ Stock actualizado para "${foundWine.name}".`,
+        data: { name: foundWine.name, stock }
+      });
+    }
+
+    // Caso: Modificar stock (sumar/restar)
+    if (userIntent.type === 'modify_stock' && foundWine) {
+      const qty = extractNumberFromMessage(message);
+      if (!qty) {
+        return res.json({
+          success: true,
+          action: 'none',
+          response: `¿Cuántas unidades quieres agregar o quitar de "${foundWine.name}"?`,
+          data: null
+        });
+      }
+      const isNegative = /quita|resta|vend|perd|romp|baja|sale|salieron|agot/i.test(message);
+      const isPositive = /agrega|suma|añad|entra|lleg|sube|subieron/i.test(message);
+      const sign = isNegative && !isPositive ? -1 : 1;
+      return res.json({
+        success: true,
+        action: 'update_stock',
+        response: `✅ Stock actualizado para "${foundWine.name}".`,
+        data: { name: foundWine.name, stockChange: sign * qty }
+      });
+    }
+
+    // Caso: Eliminar vino individual
+    if (userIntent.type === 'delete_wine' && foundWine && !explicitAll) {
+      return res.json({
+        success: true,
+        action: 'delete_wine',
+        response: `🗑️ Eliminando "${foundWine.name}".`,
+        data: { name: foundWine.name }
       });
     }
     
