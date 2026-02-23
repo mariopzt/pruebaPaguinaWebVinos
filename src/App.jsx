@@ -4138,7 +4138,7 @@ function AddTaskModal({ onClose, onSave }) {
 }
 
 // Modal base para crear/editar vales
-function VoucherModal({ title, initialVoucher, submitLabel, onClose, onSave, onDelete = null }) {
+function VoucherModal({ title, initialVoucher, submitLabel, onClose, onSave, onDelete = null, simpleCreate = false }) {
   const [voucher, setVoucher] = useState(() => ({
     id: initialVoucher?.id || '',
     code: initialVoucher?.code || '',
@@ -4156,11 +4156,11 @@ function VoucherModal({ title, initialVoucher, submitLabel, onClose, onSave, onD
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!voucher.code.trim()) {
-      alert('El código del vale es obligatorio')
+      alert('El codigo del vale es obligatorio')
       return
     }
     if (!voucher.title.trim()) {
-      alert('El título del vale es obligatorio')
+      alert('El titulo del vale es obligatorio')
       return
     }
     if (!voucher.expiresAt) {
@@ -4184,102 +4184,142 @@ function VoucherModal({ title, initialVoucher, submitLabel, onClose, onSave, onD
       <div className="task-modal" onClick={(e) => e.stopPropagation()}>
         <div className="task-modal-header">
           <h3>{title}</h3>
-          <button className="task-modal-close" onClick={onClose}>×</button>
+          <button className="task-modal-close" onClick={onClose}>x</button>
         </div>
 
         <form className="task-modal-content" onSubmit={handleSubmit}>
-          <div className="task-modal-row">
-            <div className="task-modal-field">
-              <label>Código</label>
-              <input
-                type="text"
-                value={voucher.code}
-                onChange={(e) => setVoucher({ ...voucher, code: e.target.value.toUpperCase() })}
-                placeholder="Ej: BIENVENIDA10"
-                maxLength={30}
-                required
-              />
-            </div>
-            <div className="task-modal-field">
-              <label>Estado</label>
-              <select
-                value={voucher.status}
-                onChange={(e) => setVoucher({ ...voucher, status: e.target.value })}
-              >
-                <option value="activo">Activo</option>
-                <option value="usado">Usado</option>
-              </select>
-            </div>
-          </div>
+          {simpleCreate ? (
+            <>
+              <div className="task-modal-field">
+                <label>Para:</label>
+                <input
+                  type="text"
+                  value={voucher.title}
+                  onChange={(e) => setVoucher({ ...voucher, title: e.target.value })}
+                  placeholder="Nombre o concepto"
+                  maxLength={80}
+                  required
+                />
+              </div>
 
-          <div className="task-modal-field">
-            <label>Título</label>
-            <input
-              type="text"
-              value={voucher.title}
-              onChange={(e) => setVoucher({ ...voucher, title: e.target.value })}
-              placeholder="Ej: Vale de bienvenida"
-              maxLength={80}
-              required
-            />
-          </div>
+              <div className="task-modal-field">
+                <label>Referencia:</label>
+                <input
+                  type="text"
+                  value={voucher.code}
+                  onChange={(e) => setVoucher({ ...voucher, code: e.target.value.toUpperCase() })}
+                  placeholder="Ej: VALE-2026-001"
+                  maxLength={30}
+                  required
+                />
+              </div>
 
-          <div className="task-modal-row">
-            <div className="task-modal-field">
-              <label>Tipo de descuento</label>
-              <select
-                value={voucher.discountType}
-                onChange={(e) => setVoucher({ ...voucher, discountType: e.target.value })}
-              >
-                <option value="percent">Porcentaje (%)</option>
-                <option value="fixed">Importe fijo (€)</option>
-              </select>
-            </div>
-            <div className="task-modal-field">
-              <label>Valor descuento</label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={voucher.discountValue}
-                onChange={(e) => setVoucher({ ...voucher, discountValue: e.target.value })}
-                required
-              />
-            </div>
-          </div>
+              <div className="task-modal-field">
+                <label>Expira:</label>
+                <input
+                  type="date"
+                  value={voucher.expiresAt}
+                  onChange={(e) => setVoucher({ ...voucher, expiresAt: e.target.value })}
+                  required
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="task-modal-row">
+                <div className="task-modal-field">
+                  <label>Codigo</label>
+                  <input
+                    type="text"
+                    value={voucher.code}
+                    onChange={(e) => setVoucher({ ...voucher, code: e.target.value.toUpperCase() })}
+                    placeholder="Ej: BIENVENIDA10"
+                    maxLength={30}
+                    required
+                  />
+                </div>
+                <div className="task-modal-field">
+                  <label>Estado</label>
+                  <select
+                    value={voucher.status}
+                    onChange={(e) => setVoucher({ ...voucher, status: e.target.value })}
+                  >
+                    <option value="activo">Activo</option>
+                    <option value="usado">Usado</option>
+                  </select>
+                </div>
+              </div>
 
-          <div className="task-modal-row">
-            <div className="task-modal-field">
-              <label>Pedido mínimo (€)</label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={voucher.minOrder}
-                onChange={(e) => setVoucher({ ...voucher, minOrder: e.target.value })}
-              />
-            </div>
-            <div className="task-modal-field">
-              <label>Usos restantes</label>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={voucher.usesLeft}
-                onChange={(e) => setVoucher({ ...voucher, usesLeft: e.target.value })}
-              />
-            </div>
-          </div>
+              <div className="task-modal-field">
+                <label>Titulo</label>
+                <input
+                  type="text"
+                  value={voucher.title}
+                  onChange={(e) => setVoucher({ ...voucher, title: e.target.value })}
+                  placeholder="Ej: Vale de bienvenida"
+                  maxLength={80}
+                  required
+                />
+              </div>
 
-          <div className="task-modal-field">
-            <label>Caduca el</label>
-            <input
-              type="date"
-              value={voucher.expiresAt}
-              onChange={(e) => setVoucher({ ...voucher, expiresAt: e.target.value })}
-              required
-            />
-          </div>
+              <div className="task-modal-row">
+                <div className="task-modal-field">
+                  <label>Tipo de descuento</label>
+                  <select
+                    value={voucher.discountType}
+                    onChange={(e) => setVoucher({ ...voucher, discountType: e.target.value })}
+                  >
+                    <option value="percent">Porcentaje (%)</option>
+                    <option value="fixed">Importe fijo (EUR)</option>
+                  </select>
+                </div>
+                <div className="task-modal-field">
+                  <label>Valor descuento</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={voucher.discountValue}
+                    onChange={(e) => setVoucher({ ...voucher, discountValue: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="task-modal-row">
+                <div className="task-modal-field">
+                  <label>Pedido minimo (EUR)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={voucher.minOrder}
+                    onChange={(e) => setVoucher({ ...voucher, minOrder: e.target.value })}
+                  />
+                </div>
+                <div className="task-modal-field">
+                  <label>Usos restantes</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={voucher.usesLeft}
+                    onChange={(e) => setVoucher({ ...voucher, usesLeft: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="task-modal-field">
+                <label>Caduca el</label>
+                <input
+                  type="date"
+                  value={voucher.expiresAt}
+                  onChange={(e) => setVoucher({ ...voucher, expiresAt: e.target.value })}
+                  required
+                />
+              </div>
+            </>
+          )}
 
           <div className="task-modal-actions">
             {onDelete ? (
@@ -4317,6 +4357,7 @@ function AddVoucherModal({ onClose, onSave }) {
     <VoucherModal
       title="Nuevo Vale"
       submitLabel="Crear Vale"
+      simpleCreate
       initialVoucher={null}
       onClose={onClose}
       onSave={onSave}
@@ -5580,6 +5621,7 @@ function ChangePasswordModal({ onClose, onSave }) {
 }
 
 export default App
+
 
 
 
