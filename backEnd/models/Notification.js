@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { queuePushForNotifications } = require('../services/pushService');
 
 const notificationSchema = new mongoose.Schema(
   {
@@ -62,6 +63,22 @@ const notificationSchema = new mongoose.Schema(
     timestamps: false,
   }
 );
+
+notificationSchema.post('save', function postSave(doc) {
+  setImmediate(() => {
+    queuePushForNotifications([doc]).catch((error) => {
+      console.warn('No se pudo enviar push tras save:', error.message);
+    });
+  });
+});
+
+notificationSchema.post('insertMany', function postInsertMany(docs) {
+  setImmediate(() => {
+    queuePushForNotifications(docs || []).catch((error) => {
+      console.warn('No se pudo enviar push tras insertMany:', error.message);
+    });
+  });
+});
 
 module.exports = mongoose.model('Notification', notificationSchema);
 

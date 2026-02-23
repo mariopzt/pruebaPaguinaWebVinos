@@ -43,11 +43,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Token inválido o expirado: limpiamos sesión, pero no forzamos redirect inmediato
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    }
+    // No cerrar sesión automáticamente por 401.
+    // La sesión solo se cierra manualmente desde la UI.
     return Promise.reject(error);
   }
 );

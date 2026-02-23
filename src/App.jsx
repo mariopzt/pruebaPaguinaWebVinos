@@ -11,6 +11,7 @@ import AddWineModal from './components/Bodega/AddWineModal'
 import Login from './components/Login/Login'
 import wineService from './api/wineService'
 import notificationService from './api/notificationService'
+import pushService from './api/pushService'
 import taskService from './api/taskService'
 import orderService from './api/orderService'
 import voucherService from './api/voucherService'
@@ -21,6 +22,17 @@ import reviewService from './api/reviewService'
 import { AIChat } from './components/AIChat'
 
 function App() {
+  const urlBase64ToUint8Array = useCallback((base64String) => {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+    const rawData = window.atob(base64)
+    const outputArray = new Uint8Array(rawData.length)
+    for (let i = 0; i < rawData.length; i += 1) {
+      outputArray[i] = rawData.charCodeAt(i)
+    }
+    return outputArray
+  }, [])
+
   const DEFAULT_AVATARS = useMemo(
     () => [
       '/avatars/avatar-01.svg',
@@ -94,15 +106,13 @@ function App() {
 
   // Hidratar sesión desde localStorage al cargar
   useEffect(() => {
-    const token = localStorage.getItem('token')
     const userStr = localStorage.getItem('user')
-    if (token && userStr) {
+    if (userStr) {
       try {
         const user = JSON.parse(userStr)
         setCurrentUser(user)
         setIsAuthenticated(true)
       } catch (e) {
-        localStorage.removeItem('token')
         localStorage.removeItem('user')
       }
     }
@@ -123,6 +133,18 @@ function App() {
   useEffect(() => {
     localStorage.setItem('currentView', currentView)
   }, [currentView])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const viewParam = params.get('view')
+    if (!viewParam) return
+
+    setCurrentView(viewParam)
+    params.delete('view')
+    const nextQuery = params.toString()
+    const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}${window.location.hash}`
+    window.history.replaceState({}, '', nextUrl)
+  }, [])
 
   useEffect(() => {
     localStorage.setItem('notificationsEnabled', String(notificationsEnabled))
@@ -323,6 +345,11 @@ function App() {
 
   const [notifications, setNotifications] = useState([])
   const [newNotifPulse, setNewNotifPulse] = useState(false)
+  const browserNotifiedIdsRef = useRef(new Set())
+  const notificationsBootstrappedRef = useRef(false)
+  const notificationPermissionAskedRef = useRef(false)
+  const pushRegistrationRef = useRef(null)
+  const pushEndpointRef = useRef('')
 
   // Estado para likes de vinos en bodega (por wineId)
   const [wineLikes, setWineLikes] = useState({})
@@ -1098,12 +1125,14 @@ function App() {
       const resp = await notificationService.create(newNotification)
       const saved = resp.data?.data || resp.data || newNotification
       setNotifications(prev => [saved, ...prev])
+      showBrowserNotification(saved)
       setNewNotifPulse(true)
       setTimeout(() => setNewNotifPulse(false), 1200)
     } catch (e) {
       console.error('Error al crear notificación', e)
       // fallback local
       setNotifications(prev => [newNotification, ...prev])
+      showBrowserNotification(newNotification)
     }
   }
 
@@ -1158,6 +1187,130 @@ function App() {
     return db - da;
   });
   const getNotificationTime = (notif) => notif.createdAt ? formatTimeAgoEs(notif.createdAt) : (notif.time || '');
+  const cleanNotificationMessage = (message = '') =>
+    String(message).replace(/\*\*/g, '').replace(/\s+/g, ' ').trim()
+
+  const showBrowserNotification = useCallback((notif) => {
+    if (!notificationsEnabled) return
+    if (pushEndpointRef.current) return
+    if (typeof window === 'undefined' || !('Notification' in window)) return
+    if (Notification.permission !== 'granted') return
+
+    const id = notif?._id || notif?.id
+    if (id && browserNotifiedIdsRef.current.has(id)) return
+    if (id) browserNotifiedIdsRef.current.add(id)
+
+    try {
+      const nativeNotification = new Notification(notif?.title || 'Nueva notificación', {
+        body: cleanNotificationMessage(notif?.message || 'Tienes una nueva notificación'),
+      })
+      nativeNotification.onclick = () => {
+        window.focus()
+        setCurrentView('ayuda')
+      }
+    } catch (error) {
+      console.warn('No se pudo mostrar notificación del sistema', error)
+    }
+  }, [notificationsEnabled])
+
+  const unsubscribePushNotifications = useCallback(async () => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
+    try {
+      const registration = await navigator.serviceWorker.getRegistration('/sw.js')
+      if (!registration || !registration.pushManager) return
+      const subscription = await registration.pushManager.getSubscription()
+      if (!subscription) return
+
+      const endpoint = subscription.endpoint || pushEndpointRef.current
+      if (endpoint) {
+        await pushService.unsubscribe({ endpoint }).catch(() => {})
+      }
+      await subscription.unsubscribe().catch(() => {})
+      pushEndpointRef.current = ''
+    } catch (error) {
+      console.warn('No se pudo cancelar la suscripcion push', error)
+    }
+  }, [])
+
+  const ensurePushNotifications = useCallback(async () => {
+    if (!isAuthenticated || !notificationsEnabled) return
+    if (typeof window === 'undefined') return
+    if (!window.isSecureContext) return
+    if (!('Notification' in window)) return
+    if (!('serviceWorker' in navigator)) return
+
+    try {
+      let permission = Notification.permission
+      if (permission === 'default' && !notificationPermissionAskedRef.current) {
+        notificationPermissionAskedRef.current = true
+        permission = await Notification.requestPermission()
+      }
+      if (permission !== 'granted') return
+
+      const keyResp = await pushService.getPublicKey()
+      const keyData = keyResp?.data?.data || keyResp?.data || {}
+      const publicKey = keyData.publicKey
+      const configured = keyData.configured !== false
+      if (!configured || !publicKey) return
+
+      const registration = await navigator.serviceWorker.register('/sw.js')
+      pushRegistrationRef.current = registration
+
+      let subscription = await registration.pushManager.getSubscription()
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicKey),
+        })
+      }
+
+      pushEndpointRef.current = subscription.endpoint || ''
+      await pushService.subscribe({
+        subscription: subscription.toJSON(),
+        guestId: currentUser?.isGuest ? (currentUser._id || currentUser.id) : undefined,
+      })
+    } catch (error) {
+      console.warn('No se pudo inicializar notificaciones push', error)
+    }
+  }, [
+    isAuthenticated,
+    notificationsEnabled,
+    currentUser?.isGuest,
+    currentUser?._id,
+    currentUser?.id,
+    urlBase64ToUint8Array,
+  ])
+
+  useEffect(() => {
+    if (!isAuthenticated || !notificationsEnabled) {
+      unsubscribePushNotifications().catch(() => {})
+      return
+    }
+    ensurePushNotifications().catch(() => {})
+  }, [
+    isAuthenticated,
+    notificationsEnabled,
+    ensurePushNotifications,
+    unsubscribePushNotifications,
+  ])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return undefined
+
+    const onServiceWorkerMessage = (event) => {
+      const payload = event?.data
+      if (!payload || payload.type !== 'OPEN_NOTIFICATION') return
+
+      setCurrentView('ayuda')
+      const wineId = payload?.data?.wineId
+      if (wineId) setPendingNotificationWineId(wineId)
+    }
+
+    navigator.serviceWorker.addEventListener('message', onServiceWorkerMessage)
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', onServiceWorkerMessage)
+    }
+  }, [])
 
   // Activar cuenta desde token
   const handleActivateAccount = async () => {
@@ -1209,6 +1362,8 @@ function App() {
   useEffect(() => {
     if (!notificationsEnabled || !isAuthenticated) {
       setNotifications([]);
+      notificationsBootstrappedRef.current = false
+      browserNotifiedIdsRef.current = new Set()
       return;
     }
     
@@ -1225,6 +1380,21 @@ function App() {
         }));
         
         setNotifications(normalized);
+        const unread = normalized.filter((n) => n.unread)
+        if (!notificationsBootstrappedRef.current) {
+          unread.forEach((n) => {
+            const id = n._id || n.id
+            if (id) browserNotifiedIdsRef.current.add(id)
+          })
+          notificationsBootstrappedRef.current = true
+        } else {
+          unread.forEach((n) => {
+            const id = n._id || n.id
+            if (id && !browserNotifiedIdsRef.current.has(id)) {
+              showBrowserNotification(n)
+            }
+          })
+        }
         
         // Si hay notificaciones nuevas, activar la animación
         const hasUnread = normalized.some(n => n.unread);
@@ -1245,7 +1415,7 @@ function App() {
     // Recargar notificaciones cada 30 segundos (solo si autenticado)
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
-  }, [isAuthenticated, notificationsEnabled]);
+  }, [isAuthenticated, notificationsEnabled, showBrowserNotification]);
 
   // Detectar token de activación en URL (aunque no esté /activate en la ruta)
   useEffect(() => {
@@ -1643,6 +1813,11 @@ function App() {
       ...userData,
       avatar: userData.avatar || getUserAvatar(userData)
     }
+    // Persistir siempre la sesión (incluye invitados)
+    localStorage.setItem('user', JSON.stringify(hydratedUser))
+    if (userData?.token) {
+      localStorage.setItem('token', userData.token)
+    }
     setCurrentUser(hydratedUser)
     setIsAuthenticated(true)
     // Actualizar datos de usuario en ajustes
@@ -1655,6 +1830,7 @@ function App() {
   }
 
   const performLogout = () => {
+    unsubscribePushNotifications().catch(() => {})
     setIsAuthenticated(false)
     setCurrentUser(null)
     setCurrentView('home')
@@ -1669,6 +1845,11 @@ function App() {
     setTasks([])
     setOrders([])
     setVouchers([])
+    browserNotifiedIdsRef.current = new Set()
+    notificationsBootstrappedRef.current = false
+    notificationPermissionAskedRef.current = false
+    pushRegistrationRef.current = null
+    pushEndpointRef.current = ''
   }
 
   const handleLogout = () => {
