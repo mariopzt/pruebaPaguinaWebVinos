@@ -310,11 +310,11 @@ function App() {
       id: 4,
       type: 'tarea-pendiente',
       icon: 'FiCheckSquare',
-      title: 'Recordatorio: Tarea para hoy',
-      message: 'Tienes **3 tareas** programadas para hoy que requieren tu atención.',
+      title: 'Recordatorio: Nota para hoy',
+      message: 'Tienes **3 notas** programadas para hoy que requieren tu atención.',
       createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
       unread: true,
-      actions: ['Ver tareas']
+      actions: ['Ver notas']
     },
     {
       id: 5,
@@ -1188,7 +1188,7 @@ function App() {
         setCurrentView('pedidos');
         setOrdersFilter('pendientes'); // Mostrar pedidos pendientes
         break;
-      case 'Ver tareas':
+      case 'Ver notas':
         setCurrentView('tareas');
         break;
       case 'Ver estadísticas':
@@ -1481,7 +1481,7 @@ function App() {
               </div>
             </div>
 
-            {/* Nav item simple para Tareas (sin plegado) - Solo usuarios registrados */}
+            {/* Nav item simple para Notas (sin plegado) - Solo usuarios registrados */}
             {!currentUser?.isGuest && (
               <div 
                 className={`nav-item ${['tareas','tareas-completadas','tareas-pendientes'].includes(currentView) ? 'active' : ''}`} 
@@ -1489,7 +1489,7 @@ function App() {
               >
                 <div className="nav-item-content">
                   <span className="nav-icon"><FiCheckSquare size={10} /></span>
-                  <span className="nav-text">Tareas</span>
+                  <span className="nav-text">Notas</span>
                 </div>
               </div>
             )}
@@ -1629,14 +1629,14 @@ function App() {
                 <span className="mobile-nav-icon"><FiSlash /></span>
                 <span className="mobile-nav-text">Agotados</span>
               </div>
-              {/* Tareas - Solo usuarios registrados */}
+              {/* Notas - Solo usuarios registrados */}
               {!currentUser?.isGuest && (
                 <div 
                   className="mobile-nav-item" 
                   onClick={() => { setCurrentView('tareas'); setIsMenuOpen(false); }}
                 >
                   <span className="mobile-nav-icon"><FiCheckSquare /></span>
-                  <span className="mobile-nav-text">Tareas</span>
+                  <span className="mobile-nav-text">Notas</span>
                 </div>
               )}
               {/* Pedidos - Solo usuarios registrados */}
@@ -1744,7 +1744,7 @@ function App() {
                         <h3 className="guide-title">Navegación Principal</h3>
                         <p className="guide-description">
                           Utiliza el menú lateral para acceder a las diferentes secciones: <strong>Bodega</strong> para ver todos tus vinos disponibles, 
-                          <strong> Agotados</strong> para gestionar el stock, y <strong>Tareas</strong> para organizar tu trabajo diario.
+                          <strong> Agotados</strong> para gestionar el stock, y <strong>Notas</strong> para organizar tu trabajo diario.
                         </p>
                         <div className="guide-steps">
                           <div className="guide-step">
@@ -1946,7 +1946,7 @@ function App() {
                   </div>
                 )}
 
-        {/* Vista Tareas */}
+        {/* Vista Notas */}
         {currentView === 'tareas' && (
           <div key="tareas-view" className="content view-enter">
             <div className="section section-full tareas-section">
@@ -2093,12 +2093,12 @@ function App() {
           </div>
         )}
 
-        {/* Vista Tareas Completadas */}
+        {/* Vista Notas Completadas */}
         {currentView === 'tareas-completadas' && (
           <div key="tareas-completadas-view" className="content view-enter">
             <div className="section section-full tareas-section">
               <div className="section-header tareas-header">
-                <h2 className="section-title">Tareas</h2>
+                <h2 className="section-title">Notas</h2>
                 <div className="tareas-header-badge">COMPLETADAS</div>
               </div>
 
@@ -2139,18 +2139,18 @@ function App() {
               </div>
 
               <p className="settings-placeholder tareas-placeholder">
-                Aquí verás el detalle de todas las tareas completadas. De momento es solo un diseño de ejemplo.
+                Aquí verás el detalle de todas las notas completadas. De momento es solo un diseño de ejemplo.
               </p>
             </div>
           </div>
         )}
 
-        {/* Vista Tareas Pendientes */}
+        {/* Vista Notas Pendientes */}
         {currentView === 'tareas-pendientes' && (
           <div key="tareas-pendientes-view" className="content view-enter">
             <div className="section section-full tareas-section">
               <div className="section-header tareas-header">
-                <h2 className="section-title">Tareas</h2>
+                <h2 className="section-title">Notas</h2>
                 <div className="tareas-header-badge">PENDIENTES</div>
               </div>
 
@@ -5516,7 +5516,7 @@ function FontSizeModal({ currentSize, onClose, onSelect }) {
 
 // Modal para seleccionar vista predeterminada
 function DefaultViewModal({ currentView, onClose, onSelect }) {
-  const views = ['Inicio', 'Bodega', 'Tareas', 'Pedidos', 'Valoraciones']
+  const views = ['Inicio', 'Bodega', 'Notas', 'Pedidos', 'Valoraciones']
 
   return (
     <div className="task-modal-overlay" onClick={onClose}>
@@ -5581,4 +5581,3 @@ function SortByModal({ currentSort, onClose, onSelect }) {
 }
 
 export default App
-
