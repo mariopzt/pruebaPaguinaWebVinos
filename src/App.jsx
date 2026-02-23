@@ -67,6 +67,7 @@ function App() {
   // Estado de autenticación
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
+  const currentUserId = currentUser?._id || currentUser?.id
 
   // Vinos (desde backend)
   const [wines, setWines] = useState([])
@@ -162,6 +163,7 @@ function App() {
   const [showEditReviewModal, setShowEditReviewModal] = useState(false)
   const [selectedReview, setSelectedReview] = useState(null)
   const [isReviewsFilterMenuOpen, setIsReviewsFilterMenuOpen] = useState(false)
+  const [detailReview, setDetailReview] = useState(null)
   const [isTareasFilterMenuOpen, setIsTareasFilterMenuOpen] = useState(false)
 
   // Estados para ajustes
@@ -824,11 +826,14 @@ function App() {
     }
   }
 
-  const handleReviewClick = (review) => {
-    const userId = currentUser?._id || currentUser?.id
-    if (!userId || review.userId !== userId) return
+  const handleOpenReviewDetail = (review) => {
+    setDetailReview(review)
+  }
+
+  const handleEditReviewFromDetail = (review) => {
     setSelectedReview(review)
     setShowEditReviewModal(true)
+    setDetailReview(null)
   }
 
   const handleSaveReview = async (reviewData) => {
@@ -873,6 +878,11 @@ function App() {
     } finally {
       setShowEditReviewModal(false)
     }
+  }
+
+  const handleDeleteReviewFromDetail = async (reviewId) => {
+    await handleDeleteReview(reviewId)
+    setDetailReview(null)
   }
 
   const toggleMenu = () => {
@@ -3150,10 +3160,8 @@ function App() {
                     <div
                       key={review.id}
                       className="valoracion-card"
-                      onClick={() => handleReviewClick(review)}
-                      style={{
-                        cursor: review.userId === (currentUser?._id || currentUser?.id) ? 'pointer' : 'default'
-                      }}
+                      onClick={() => handleOpenReviewDetail(review)}
+                      style={{ cursor: 'pointer' }}
                     >
                       <div className="valoracion-card-header">
                         <img
@@ -3484,6 +3492,16 @@ function App() {
         onClose={() => setShowAddReviewModal(false)}
         onSave={handleSaveReview}
         wines={wines}
+      />
+    )}
+
+    {detailReview && (
+      <ReviewDetailModal
+        review={detailReview}
+        onClose={() => setDetailReview(null)}
+        isOwner={detailReview.userId === currentUserId}
+        onEdit={handleEditReviewFromDetail}
+        onDelete={handleDeleteReviewFromDetail}
       />
     )}
 
@@ -5183,6 +5201,78 @@ function EditReviewModal({ review, onClose, onDelete }) {
             }}
           >
             Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ReviewDetailModal({ review, onClose, isOwner, onEdit, onDelete }) {
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="review-detail-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="review-detail-header">
+          <h2>Valoración completa</h2>
+          <button className="task-modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="review-detail-content">
+          <div className="review-detail-wine">
+            <img src={review.wineImage} alt={review.wineName} />
+            <div className="review-detail-wine-info">
+              <strong>{review.wineName}</strong>
+              <span>{review.wineType}</span>
+            </div>
+          </div>
+
+          <div className="review-detail-rating">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <FiStar
+                key={star}
+                className={star <= review.rating ? 'star-filled' : 'star-empty'}
+              />
+            ))}
+            {review.verified && (
+              <span className="review-detail-verified">
+                <FiCheckCircle size={14} /> Verificada
+              </span>
+            )}
+          </div>
+
+          <div className="review-detail-comment">{review.comment}</div>
+
+          <div className="review-detail-meta">
+            <span>Por {review.userName}</span>
+            {review.date && <span>{review.date}</span>}
+          </div>
+        </div>
+
+        <div className="review-detail-actions">
+          {isOwner && (
+            <>
+              <button
+                type="button"
+                className="task-modal-btn task-modal-btn-cancel"
+                onClick={() => onEdit(review)}
+              >
+                Editar
+              </button>
+              <button
+                type="button"
+                className="task-modal-btn task-modal-btn-delete"
+                onClick={() => onDelete(review.id)}
+              >
+                Eliminar
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            className="task-modal-btn task-modal-btn-save"
+            onClick={onClose}
+          >
+            Cerrar
           </button>
         </div>
       </div>

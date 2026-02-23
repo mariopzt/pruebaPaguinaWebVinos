@@ -5830,6 +5830,100 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   transform: translateY(-2px);
 }
 
+.review-detail-modal {
+  background: #0f172a;
+  border-radius: 16px;
+  padding: 24px;
+  width: min(90vw, 520px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 40px rgba(15, 23, 42, 0.55);
+}
+
+.review-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.review-detail-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #f8fafc;
+}
+
+.review-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.review-detail-wine {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.review-detail-wine img {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.review-detail-wine-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  color: #cbd5f5;
+}
+
+.review-detail-wine-info strong {
+  font-size: 16px;
+  color: #ffffff;
+}
+
+.review-detail-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.review-detail-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #a5f3fc;
+}
+
+.review-detail-comment {
+  color: #c0c2d8;
+  line-height: 1.8;
+  max-height: 220px;
+  overflow-y: auto;
+  word-break: break-word;
+  white-space: pre-wrap;
+  padding-right: 8px;
+}
+
+.review-detail-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.review-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
 /* Responsive para modales de tareas */
 @media (max-width: 768px) {
   .task-modal {
