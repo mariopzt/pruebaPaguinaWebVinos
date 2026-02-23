@@ -764,6 +764,29 @@ function extractDescriptionFromMessage(message) {
   return null;
 }
 
+function extractWineQtyList(message) {
+  if (!message) return [];
+  let cleaned = message
+    .toLowerCase()
+    .replace(/resta(les)?|quita(les)?|descuenta(les)?|reduce(les)?/g, '')
+    .replace(/a\s+estos\s+vinos|a\s+estos\s+vinos|a\s+estos|a\s+los\s+vinos|a\s+los/gi, '')
+    .replace(/del\s+stock|stock/gi, '')
+    .replace(/[:;]/g, ' ')
+    .trim();
+
+  const pairs = [];
+  const regex = /([^,]+?)\s+(\d+[.,]?\d*)/g;
+  let match;
+  while ((match = regex.exec(cleaned)) !== null) {
+    const name = match[1]?.trim();
+    const qty = parseFloat(match[2].replace(',', '.'));
+    if (name && Number.isFinite(qty)) {
+      pairs.push({ name, qty });
+    }
+  }
+  return pairs;
+}
+
 /**
  * Buscar vino en la bodega por nombre (con coincidencia parcial)
  */
@@ -1116,6 +1139,24 @@ exports.processCommand = async (req, res, next) => {
       });
     }
 
+    // Caso: Modificar stock para varios vinos en una sola frase
+    if (userIntent.type === 'modify_stock' && !foundWine) {
+      const list = extractWineQtyList(message);
+      if (list.length > 0) {
+        return res.json({
+          success: true,
+          action: 'update_stock',
+          response: `✅ Actualizando stock de ${list.length} vinos.`,
+          data: {
+            wines: list.map(item => ({
+              name: item.name,
+              stockChange: -Math.abs(item.qty)
+            }))
+          }
+        });
+      }
+    }
+
     // Caso: Eliminar vino individual
     if (userIntent.type === 'delete_wine' && foundWine && !explicitAll) {
       return res.json({
@@ -1160,15 +1201,18 @@ exports.processCommand = async (req, res, next) => {
       const winesToProcess = winesWithoutDesc.slice(0, 10);
       const updatedWines = [];
       const errors = [];
+      const notFound = [];
       
       for (const wine of winesToProcess) {
         try {
-          const description = await searchWineDescription(wine.name, wine.type, wine.region);
+          const description = await searchWineDescription(wine.name, wine.type, wine.region, { strictWeb: true });
           if (description) {
             const wineId = wine._id || wine.id;
             await Wine.findByIdAndUpdate(wineId, { description });
             updatedWines.push({ name: wine.name, description });
             console.log(`[AI] ✅ Descripción actualizada: ${wine.name}`);
+          } else {
+            notFound.push(wine.name);
           }
         } catch (err) {
           errors.push(wine.name);
@@ -1178,11 +1222,14 @@ exports.processCommand = async (req, res, next) => {
       
       const remaining = winesWithoutDesc.length - winesToProcess.length;
       const remainingText = remaining > 0 ? `\n\n(Quedan ${remaining} vinos más sin descripción)` : '';
+      const notFoundText = notFound.length > 0
+        ? `\n\nNo encontré descripción para: ${notFound.join(', ')}.`
+        : '';
       
       return res.json({
         success: true,
         action: 'update_wine',
-        response: `✅ ¡Listo! He actualizado las descripciones de ${updatedWines.length} vinos:\n\n${updatedWines.map(w => `• ${w.name}`).join('\n')}${remainingText}`,
+        response: `✅ ¡Listo! He actualizado las descripciones de ${updatedWines.length} vinos:\n\n${updatedWines.map(w => `• ${w.name}`).join('\n')}${notFoundText}${remainingText}`,
         data: { wines: updatedWines.map(w => ({ name: w.name, updates: { description: w.description } })) },
         descriptionUpdated: true,
         updatedCount: updatedWines.length
@@ -1195,7 +1242,7 @@ exports.processCommand = async (req, res, next) => {
       
       try {
         // Buscar descripción en la web
-        const description = await searchWineDescription(foundWine.name, foundWine.type, foundWine.region);
+        const description = await searchWineDescription(foundWine.name, foundWine.type, foundWine.region, { strictWeb: true });
         
         if (description) {
           // Actualizar directamente en la base de datos
@@ -1212,6 +1259,13 @@ exports.processCommand = async (req, res, next) => {
             descriptionUpdated: true
           });
         }
+        
+        return res.json({
+          success: true,
+          action: 'none',
+          response: `No encontré una descripción en la web para "${foundWine.name}". ¿Quieres que ponga una descripción manual?`,
+          data: null
+        });
       } catch (descError) {
         console.error(`[AI] ❌ Error buscando descripción:`, descError);
       }
@@ -1744,7 +1798,8 @@ function isValidImageUrl(url) {
 /**
  * Buscar DESCRIPCIÓN de un vino específico en internet
  */
-async function searchWineDescription(wineName, wineType = '', wineRegion = '') {
+async function searchWineDescription(wineName, wineType = '', wineRegion = '', options = {}) {
+  const { strictWeb = false } = options;
   console.log(`📝 [DESC SEARCH] Buscando descripción para: "${wineName}"`);
   
   const headers = {
@@ -1852,6 +1907,11 @@ async function searchWineDescription(wineName, wineType = '', wineRegion = '') {
     
     console.log(`📝 [DESC SEARCH] ✅ Descripción encontrada: ${finalDesc.substring(0, 100)}...`);
     return finalDesc;
+  }
+
+  if (strictWeb) {
+    console.log(`📝 [DESC SEARCH] ⚠️ No se encontró descripción en la web para: "${wineName}"`);
+    return null;
   }
 
   // Si no encontramos nada, generar descripción genérica basada en el tipo
