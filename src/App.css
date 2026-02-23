@@ -5419,6 +5419,42 @@ flex-direction: column;
   flex-direction: column;
 }
 
+.confirm-logout-modal {
+  max-width: 430px;
+  animation: confirmModalPop 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.confirm-logout-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.confirm-logout-text {
+  color: #cbd5e1;
+  margin: 0;
+}
+
+.confirm-logout-content .task-modal-actions {
+  justify-content: center;
+  gap: 12px;
+  margin-left: 0;
+}
+
+@keyframes confirmModalPop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .task-modal.voucher-modal-wide {
   max-width: 860px;
 }

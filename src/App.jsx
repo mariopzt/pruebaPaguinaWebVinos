@@ -208,6 +208,7 @@ function App() {
   })
   const [showEditProfileModal, setShowEditProfileModal] = useState(false)
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
+  const [showLogoutConfirmModal, setShowLogoutConfirmModal] = useState(false)
 
   // Helpers de tiempo para notificaciones (formato relativo sencillo)
   const formatTimeAgoEs = (date) => {
@@ -1620,7 +1621,7 @@ function App() {
     }))
   }
 
-  const handleLogout = () => {
+  const performLogout = () => {
     setIsAuthenticated(false)
     setCurrentUser(null)
     setCurrentView('home')
@@ -1635,6 +1636,10 @@ function App() {
     setTasks([])
     setOrders([])
     setVouchers([])
+  }
+
+  const handleLogout = () => {
+    setShowLogoutConfirmModal(true)
   }
 
   // Si no está autenticado, mostrar Login
@@ -3650,6 +3655,16 @@ function App() {
       />
     )}
 
+    {showLogoutConfirmModal && (
+      <ConfirmLogoutModal
+        onClose={() => setShowLogoutConfirmModal(false)}
+        onConfirm={() => {
+          setShowLogoutConfirmModal(false)
+          performLogout()
+        }}
+      />
+    )}
+
     </>
   )
 }
@@ -3884,7 +3899,7 @@ function TaskModal({ task, onClose, onSave, onDelete }) {
                 ✎ Editar
               </button>
             )}
-            <button className="task-modal-close" onClick={onClose}>✕</button>
+            <button className="task-modal-close" onClick={onClose}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
           </div>
         </div>
         
@@ -4117,7 +4132,7 @@ function AddTaskModal({ onClose, onSave }) {
       <div className={`task-modal ${withPreview ? 'voucher-modal-wide' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className="task-modal-header">
           <h3>Nueva Tarea</h3>
-          <button className="task-modal-close" onClick={onClose}>✕</button>
+          <button className="task-modal-close" onClick={onClose}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
         </div>
         
         <form className="task-modal-content" onSubmit={handleSubmit}>
@@ -4252,7 +4267,7 @@ function VoucherModal({ title, initialVoucher, submitLabel, onClose, onSave, onD
       <div className="task-modal" onClick={(e) => e.stopPropagation()}>
         <div className="task-modal-header">
           <h3>{title}</h3>
-          <button className="task-modal-close" onClick={onClose}>x</button>
+          <button className="task-modal-close" onClick={onClose}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
         </div>
 
         <form className="task-modal-content" onSubmit={handleSubmit}>
@@ -4609,7 +4624,7 @@ function AddOrderModal({ onClose, onSave, wines = [] }) {
       <div className="task-modal" onClick={(e) => e.stopPropagation()}>
         <div className="task-modal-header">
           <h3>Nuevo Pedido</h3>
-          <button className="task-modal-close" onClick={onClose}>✕</button>
+          <button className="task-modal-close" onClick={onClose}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
         </div>
         
         <form className="task-modal-content" onSubmit={handleSubmit}>
@@ -4993,7 +5008,7 @@ function EditOrderModal({ order, onClose, onSave, onDelete, wines = [] }) {
       <div className="task-modal" onClick={(e) => e.stopPropagation()}>
         <div className="task-modal-header">
           <h3>Editar Pedido</h3>
-          <button className="task-modal-close" onClick={onClose}>✕</button>
+          <button className="task-modal-close" onClick={onClose}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
         </div>
         
         <form className="task-modal-content" onSubmit={handleSubmit}>
@@ -5494,7 +5509,7 @@ function ReviewDetailModal({ review, onClose, isOwner, onEdit, onDelete }) {
       <div className="review-detail-modal" onClick={(e) => e.stopPropagation()}>
         <div className="review-detail-header">
           <h2>Valoración completa</h2>
-          <button className="task-modal-close" onClick={onClose}>×</button>
+          <button className="task-modal-close" onClick={onClose}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
         </div>
 
         <div className="review-detail-content">
@@ -5576,7 +5591,7 @@ function EditProfileModal({ data, onClose, onSave, currentAvatar, availableAvata
       <div className="task-modal" onClick={(e) => e.stopPropagation()}>
         <div className="task-modal-header">
           <h2>Editar perfil</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="task-modal-close" onClick={onClose}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
         </div>
 
         <form onSubmit={handleSubmit} className="task-modal-content">
@@ -5641,6 +5656,34 @@ function EditProfileModal({ data, onClose, onSave, currentAvatar, availableAvata
 }
 
 // Modal para cambiar contraseña
+function ConfirmLogoutModal({ onClose, onConfirm }) {
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal confirm-logout-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="task-modal-header">
+          <h2>Cerrar sesión</h2>
+          <button className="task-modal-close" onClick={onClose}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
+        </div>
+
+        <div className="task-modal-content confirm-logout-content">
+          <p className="confirm-logout-text">
+            ¿Seguro que quieres cerrar sesión?
+          </p>
+
+          <div className="task-modal-actions">
+            <button type="button" className="task-modal-btn task-modal-btn-cancel" onClick={onClose}>
+              Cancelar
+            </button>
+            <button type="button" className="task-modal-btn task-modal-btn-delete" onClick={onConfirm}>
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ChangePasswordModal({ onClose, onSave }) {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -5669,7 +5712,7 @@ function ChangePasswordModal({ onClose, onSave }) {
       <div className="task-modal" onClick={(e) => e.stopPropagation()}>
         <div className="task-modal-header">
           <h2>Cambiar contraseña</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="task-modal-close" onClick={onClose}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
         </div>
 
         <form onSubmit={handleSubmit} className="task-modal-content">
@@ -5734,6 +5777,8 @@ function ChangePasswordModal({ onClose, onSave }) {
 }
 
 export default App
+
+
 
 
 
