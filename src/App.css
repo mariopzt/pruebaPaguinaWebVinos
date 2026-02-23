@@ -6359,7 +6359,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 290px;
+  min-height: 340px;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   position: relative;
   overflow: hidden;
@@ -6396,15 +6396,29 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .vale-layout {
   display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 14px;
+  align-items: start;
+}
+
+.vale-layout-main {
+  display: grid;
   gap: 10px;
 }
 
 .vale-main-title {
   margin: 0;
-  font-size: 34px;
-  line-height: 0.95;
+  font-size: 56px;
+  line-height: 0.9;
   font-weight: 300;
   color: #2f2316;
+  letter-spacing: -0.01em;
+  transform: rotate(90deg);
+  transform-origin: center;
+  text-align: center;
+  align-self: center;
+  justify-self: center;
+  white-space: nowrap;
 }
 
 .vale-form-row {
@@ -6414,10 +6428,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .vale-form-field {
-  border-radius: 999px;
-  background: rgba(144, 126, 98, 0.12);
+  border-radius: 18px;
+  background: rgba(144, 126, 98, 0.14);
   border: 1px solid rgba(77, 58, 36, 0.12);
-  padding: 8px 12px;
+  padding: 9px 12px;
   display: grid;
   gap: 2px;
 }
@@ -6437,7 +6451,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: #5f513d;
   font-size: 12px;
   line-height: 1.35;
-  margin-top: 4px;
+  margin-top: 10px;
 }
 
 .vale-note {
@@ -6445,6 +6459,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: #75654c;
   border-top: 1px solid rgba(77, 58, 36, 0.14);
   padding-top: 8px;
+  margin-top: 2px;
 }
 
 .vale-card-header {
@@ -6550,7 +6565,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .vale-actions {
-  margin-top: 4px;
+  margin-top: auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
@@ -6616,6 +6631,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 @media (max-width: 600px) {
+  .vale-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .vale-main-title {
+    transform: none;
+    font-size: 40px;
+    white-space: normal;
+    justify-self: start;
+  }
+
   .vale-actions {
     grid-template-columns: 1fr;
   }

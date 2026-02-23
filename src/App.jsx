@@ -559,12 +559,6 @@ function App() {
     setShowAddOrderModal(true)
   }
 
-  const formatVoucherDiscount = (voucher) => (
-    voucher.discountType === 'percent'
-      ? `${voucher.discountValue}%`
-      : `${voucher.discountValue}€`
-  )
-
   const handleCreateVoucher = () => {
     setSelectedVoucher(null)
     setShowAddVoucherModal(true)
@@ -2725,39 +2719,35 @@ function App() {
                       </div>
 
                       <div className="vale-layout">
+                        <div className="vale-layout-main">
+                          <div className="vale-form-field">
+                            <span>Para:</span>
+                            <strong>{voucher.title}</strong>
+                          </div>
+
+                          <div className="vale-form-row">
+                            <div className="vale-form-field">
+                              <span>Ref:</span>
+                              <strong>{voucher.code}</strong>
+                            </div>
+                            <div className="vale-form-field">
+                              <span>Expira:</span>
+                              <strong>{new Date(voucher.expiresAt).toLocaleDateString('es-ES')}</strong>
+                            </div>
+                          </div>
+
+                          <div className="vale-contact">
+                            Plaza de Espana 6-7<br />
+                            881 924 882<br />
+                            miga@migacoruna.com
+                          </div>
+
+                          <div className="vale-note">
+                            Vale por un menu degustacion "Dejate llevar". Consulta condiciones en el local.
+                          </div>
+                        </div>
+
                         <h3 className="vale-main-title">Vale "Dejate llevar"</h3>
-
-                        <div className="vale-form-field">
-                          <span>Para:</span>
-                          <strong>{voucher.title}</strong>
-                        </div>
-
-                        <div className="vale-form-row">
-                          <div className="vale-form-field">
-                            <span>Ref:</span>
-                            <strong>{voucher.code}</strong>
-                          </div>
-                          <div className="vale-form-field">
-                            <span>Expira:</span>
-                            <strong>{new Date(voucher.expiresAt).toLocaleDateString('es-ES')}</strong>
-                          </div>
-                        </div>
-
-                        <div className="vale-contact">
-                          Plaza de Espana 6-7<br />
-                          881 924 882<br />
-                          miga@migacoruna.com
-                        </div>
-
-                        <div className="vale-note">
-                          Vale por un menu degustacion. Consulta condiciones en el local.
-                        </div>
-                      </div>
-
-                      <div className="vale-meta">
-                        <span>Descuento: {formatVoucherDiscount(voucher)}</span>
-                        <span>Pedido minimo: {voucher.minOrder} EUR</span>
-                        <span>Usos restantes: {voucher.usesLeft}</span>
                       </div>
 
                       <div className="vale-actions">
@@ -4152,6 +4142,7 @@ function VoucherModal({ title, initialVoucher, submitLabel, onClose, onSave, onD
       : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     status: initialVoucher?.status || 'activo',
   }))
+  const [showExpiryCalendar, setShowExpiryCalendar] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -4216,12 +4207,31 @@ function VoucherModal({ title, initialVoucher, submitLabel, onClose, onSave, onD
 
               <div className="task-modal-field">
                 <label>Expira:</label>
-                <input
-                  type="date"
-                  value={voucher.expiresAt}
-                  onChange={(e) => setVoucher({ ...voucher, expiresAt: e.target.value })}
-                  required
-                />
+                <div
+                  className="date-display-field"
+                  onClick={() => setShowExpiryCalendar(true)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  <span>{voucher.expiresAt}</span>
+                </div>
+                {showExpiryCalendar && (
+                  <CustomCalendar
+                    selectedDate={voucher.expiresAt}
+                    onDateSelect={(date) => {
+                      const year = date.getFullYear()
+                      const month = String(date.getMonth() + 1).padStart(2, '0')
+                      const day = String(date.getDate()).padStart(2, '0')
+                      const dateValue = `${year}-${month}-${day}`
+                      setVoucher({ ...voucher, expiresAt: dateValue })
+                    }}
+                    onClose={() => setShowExpiryCalendar(false)}
+                  />
+                )}
               </div>
             </>
           ) : (
