@@ -170,7 +170,8 @@ export function AIChat({
     sendMessage,
     isLoading,
     error,
-    clearHistory
+    clearHistory,
+    cancel
   } = useAI({ wines, onWinesChange, onUIChange, currentUser });
 
   // Auto-scroll al último mensaje con animación suave
@@ -233,6 +234,14 @@ export function AIChat({
       }]);
     }
   }, [inputMessage, isLoading, sendMessage, onMessagesChange]);
+
+  // Si el usuario cambia de sección y este componente se desmonta,
+  // cancelamos la petición en curso para evitar estados desincronizados.
+  useEffect(() => {
+    return () => {
+      cancel();
+    };
+  }, [cancel]);
 
   const handleSuggestedOption = (optionText) => {
     handleSendMessage(optionText);

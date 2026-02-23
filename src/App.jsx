@@ -2645,25 +2645,21 @@ function App() {
           </div>
         )}
 
-        {/* Vista IA con chat embebido */}
-        {currentView === 'ia' && (
-          <div key="ia-view" className="content view-enter" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100%' }}>
-            <AIChat
-              wines={wines}
-              onWinesChange={setWines}
-              onUIChange={(changes) => {
-                if (changes.currentView) setCurrentView(changes.currentView);
-                if (changes.searchTerm !== undefined) {
-                  console.log('Buscar:', changes.searchTerm);
-                }
-              }}
-              currentUser={currentUser}
-              isVisible={true}
-              messages={aiChatMessages}
-              onMessagesChange={setAiChatMessages}
-            />
-          </div>
-        )}
+        {/* IA embebida persistente: se mantiene montada para conservar estado de "pensando" */}
+        <AIChat
+          wines={wines}
+          onWinesChange={setWines}
+          onUIChange={(changes) => {
+            if (changes.currentView) setCurrentView(changes.currentView);
+            if (changes.searchTerm !== undefined) {
+              console.log('Buscar:', changes.searchTerm);
+            }
+          }}
+          currentUser={currentUser}
+          isVisible={currentView === 'ia'}
+          messages={aiChatMessages}
+          onMessagesChange={setAiChatMessages}
+        />
 
         {/* Vista Valoraciones */}
         {currentView === 'valoraciones' && (
