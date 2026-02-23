@@ -5891,6 +5891,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   gap: 6px;
 }
 
+.review-detail-rating svg {
+  width: 20px;
+  height: 20px;
+}
+
+.review-detail-rating .star-filled {
+  color: #fbbf24;
+  fill: #fbbf24;
+}
+
+.review-detail-rating .star-empty {
+  color: #4b5563;
+}
+
 .review-detail-verified {
   display: inline-flex;
   align-items: center;
