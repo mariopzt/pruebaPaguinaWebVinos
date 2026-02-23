@@ -137,7 +137,7 @@ function App() {
   const [showAddWineModal, setShowAddWineModal] = useState(false)
   const [wineListVersion, setWineListVersion] = useState(0)
   const [showNotifications, setShowNotifications] = useState(false)
-  const [highlightedWineId, setHighlightedWineId] = useState(null)
+  const [pendingNotificationWineId, setPendingNotificationWineId] = useState(null)
   const [chatMessages, setChatMessages] = useState([])
   const [suggestedOptions, setSuggestedOptions] = useState([])
   const [aiChatMessages, setAiChatMessages] = useState([]) // Mensajes del chat IA (persisten entre vistas)
@@ -408,6 +408,15 @@ function App() {
     likesInitializedRef.current = true; // Marcar como inicializado
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wines.length, currentUser?._id])
+
+  useEffect(() => {
+    if (!pendingNotificationWineId || !wines || wines.length === 0) return
+    const targetWine = wines.find(w => (w.id || w._id) === pendingNotificationWineId)
+    if (targetWine) {
+      setSelectedWine(targetWine)
+      setPendingNotificationWineId(null)
+    }
+  }, [pendingNotificationWineId, wines])
 
   const filteredOrders =
     ordersFilter === 'todos'
@@ -948,17 +957,22 @@ function App() {
         : notif
     ));
     
-    setCurrentView('agotados');
-    setHighlightedWineId(wineId);
+    setCurrentView('bodega');
+    if (wineId) {
+      const targetWine = wines.find(w => (w.id || w._id) === wineId)
+      if (targetWine) {
+        setSelectedWine(targetWine)
+      } else {
+        setPendingNotificationWineId(wineId)
+      }
+    }
     setShowNotifications(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    // Remover highlight después de 2 segundos
-    setTimeout(() => setHighlightedWineId(null), 2000);
   };
 
   // Remover notificación
   const removeNotification = (notificationId) => {
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
+    setNotifications(prev => prev.filter(n => (n.id !== notificationId && n._id !== notificationId)));
   };
 
   // Derivados de notificaciones
@@ -1203,6 +1217,8 @@ function App() {
           const targetWine = wines.find(w => (w.id || w._id) === notif.wineId)
           if (targetWine) {
             setSelectedWine(targetWine)
+          } else {
+            setPendingNotificationWineId(notif.wineId)
           }
         }
         break;
@@ -1964,7 +1980,6 @@ function App() {
                       onNavigateHome={navigateToHome} 
                       onSelectWine={setSelectedWine}
                       onWineOutOfStock={addNotification}
-                      highlightedWineId={highlightedWineId}
                       wines={wines}
                       wineLikes={wineLikes}
                       onToggleWineLike={handleToggleWineLike}
