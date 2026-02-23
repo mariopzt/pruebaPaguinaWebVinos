@@ -13,6 +13,12 @@ const userService = {
     // Nota: la baseURL ya incluye /api, así que no lo repetimos aquí
     const response = await api.get(`/users/${userId}`)
     return response.data
+  },
+
+  // Cambiar contraseña
+  changePassword: async (userId, data) => {
+    const response = await api.post(`/users/${userId}/change-password`, data)
+    return response.data
   }
 }
 

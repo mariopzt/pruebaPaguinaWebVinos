@@ -103,16 +103,29 @@ function App() {
     const savedView = localStorage.getItem('currentView')
     return savedView || 'home'
   })
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    const stored = localStorage.getItem('notificationsEnabled')
+    return stored ? stored === 'true' : true
+  })
 
   // Guardar la vista actual en localStorage cuando cambie
   useEffect(() => {
     localStorage.setItem('currentView', currentView)
   }, [currentView])
 
+  useEffect(() => {
+    localStorage.setItem('notificationsEnabled', String(notificationsEnabled))
+  }, [notificationsEnabled])
+
+  useEffect(() => {
+    if (!notificationsEnabled && currentView === 'ayuda') {
+      setCurrentView('home')
+    }
+  }, [notificationsEnabled, currentView])
+
   const [selectedWine, setSelectedWine] = useState(null)
   const [showAddWineModal, setShowAddWineModal] = useState(false)
   const [wineListVersion, setWineListVersion] = useState(0)
-  const NOTIFICATIONS_ENABLED = true
   const [showNotifications, setShowNotifications] = useState(false)
   const [highlightedWineId, setHighlightedWineId] = useState(null)
   const [chatMessages, setChatMessages] = useState([])
@@ -910,6 +923,7 @@ function App() {
 
   // Agregar notificación cuando un vino se agota
   const addNotification = async (wine) => {
+    if (!notificationsEnabled) return
     const newNotification = {
       type: 'stock-bajo',
       icon: 'FiBox',
@@ -936,6 +950,7 @@ function App() {
 
   // Abrir el panel de notificaciones (ya NO marca como leídas automáticamente)
   const handleOpenNotifications = async () => {
+    if (!notificationsEnabled) return
     setShowNotifications(true);
     // Ya no marcamos como leídas al entrar, el usuario debe hacerlo manualmente
   };
@@ -1028,7 +1043,7 @@ function App() {
 
   // Cargar notificaciones desde API al autenticarse (solo si están habilitadas)
   useEffect(() => {
-    if (!NOTIFICATIONS_ENABLED || !isAuthenticated) {
+    if (!notificationsEnabled || !isAuthenticated) {
       setNotifications([]);
       return;
     }
@@ -1066,7 +1081,7 @@ function App() {
     // Recargar notificaciones cada 30 segundos (solo si autenticado)
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
-  }, [isAuthenticated, NOTIFICATIONS_ENABLED]);
+  }, [isAuthenticated, notificationsEnabled]);
 
   // Detectar token de activación en URL (aunque no esté /activate en la ruta)
   useEffect(() => {
@@ -1320,7 +1335,7 @@ function App() {
 
   // Bloquear scroll del fondo si ajustes lo permiten (solo si están habilitadas)
   useEffect(() => {
-    if (!NOTIFICATIONS_ENABLED) return;
+    if (!notificationsEnabled) return;
     if (showNotifications && settings.lockScrollOnNotifications) {
       const previousOverflow = document.body.style.overflow
       document.body.style.overflow = 'hidden'
@@ -1328,7 +1343,7 @@ function App() {
         document.body.style.overflow = previousOverflow
       }
     }
-  }, [showNotifications, settings.lockScrollOnNotifications, NOTIFICATIONS_ENABLED])
+  }, [showNotifications, settings.lockScrollOnNotifications, notificationsEnabled])
 
   // NOTA: Ya no marcamos como leídas automáticamente al cerrar el panel
   // Solo se marcan cuando el usuario entra a la vista de notificaciones
@@ -1573,7 +1588,7 @@ function App() {
                     <span className="nav-text">Ajustes</span>
                   </div>
                 </div>
-                {NOTIFICATIONS_ENABLED && (
+                {notificationsEnabled && (
                   <div 
                     className={`nav-item ${currentView === 'ayuda' ? 'active' : ''}`} 
                     onClick={() => {
@@ -1706,7 +1721,7 @@ function App() {
                     <span className="mobile-nav-icon"><FiSettings /></span>
                     <span className="mobile-nav-text">Ajustes</span>
                   </div>
-                  {NOTIFICATIONS_ENABLED && (
+                  {notificationsEnabled && (
                     <div 
                       className="mobile-nav-item" 
                       onClick={() => { 
@@ -2498,30 +2513,48 @@ function App() {
                   </button>
                 </div>
 
-                {/* Cuenta */}
+                {/* Notificaciones */}
                 <div className="ajustes-group">
-                  <h4 className="ajustes-group-title">Cuenta</h4>
+                  <h4 className="ajustes-group-title">Notificaciones</h4>
+                  <div className="ajustes-items">
+                    <div className="ajustes-item">
+                      <div className="ajustes-item-left">
+                        <FiBell className="ajustes-item-icon" />
+                        <div className="ajustes-item-info">
+                          <span className="ajustes-item-label">Activar notificaciones</span>
+                          <span className="ajustes-item-desc">
+                            {notificationsEnabled ? 'Recibir alertas y avisos' : 'Notificaciones desactivadas'}
+                          </span>
+                        </div>
+                      </div>
+                      <label className="ajustes-toggle">
+                        <input 
+                          type="checkbox" 
+                          checked={notificationsEnabled}
+                          onChange={(e) => {
+                            const enabled = e.target.checked
+                            setNotificationsEnabled(enabled)
+                            if (!enabled) {
+                              setShowNotifications(false)
+                              if (currentView === 'ayuda') {
+                                setCurrentView('home')
+                              }
+                            }
+                          }}
+                        />
+                        <span className="ajustes-toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Seguridad */}
+                <div className="ajustes-group">
+                  <h4 className="ajustes-group-title">Seguridad</h4>
                   <div className="ajustes-items">
                     <div className="ajustes-item" onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
-                      console.log('Abriendo modal de información personal')
-                      setShowEditInfoModal(true)
-                    }}>
-                      <div className="ajustes-item-left">
-                        <FiUser className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Información personal</span>
-                          <span className="ajustes-item-desc">Nombre, email, teléfono</span>
-                        </div>
-                      </div>
-                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
-                    </div>
-                    
-                    <div className="ajustes-item" onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      console.log('Abriendo modal de cambiar contraseña')
                       setShowChangePasswordModal(true)
                     }}>
                       <div className="ajustes-item-left">
@@ -2532,405 +2565,6 @@ function App() {
                         </div>
                       </div>
                       <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Notificaciones */}
-                <div className="ajustes-group">
-                  <h4 className="ajustes-group-title">Notificaciones</h4>
-                  <div className="ajustes-items">
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiBell className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Notificaciones push</span>
-                          <span className="ajustes-item-desc">Recibe alertas en tiempo real</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.notificationsPush}
-                          onChange={(e) => setAjustesData({...ajustesData, notificationsPush: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-                    
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiPackage className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Actualizaciones de pedidos</span>
-                          <span className="ajustes-item-desc">Estado de tus órdenes</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.notificationsOrders}
-                          onChange={(e) => setAjustesData({...ajustesData, notificationsOrders: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiTag className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Ofertas y promociones</span>
-                          <span className="ajustes-item-desc">Descuentos exclusivos</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.notificationsPromotions}
-                          onChange={(e) => setAjustesData({...ajustesData, notificationsPromotions: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiBox className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Alertas de stock bajo</span>
-                          <span className="ajustes-item-desc">Aviso cuando queden pocas unidades</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.notificationsStockAlerts}
-                          onChange={(e) => setAjustesData({...ajustesData, notificationsStockAlerts: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiBell className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Sonido de notificaciones</span>
-                          <span className="ajustes-item-desc">Reproducir sonido al recibir alertas</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.notificationsSound}
-                          onChange={(e) => setAjustesData({...ajustesData, notificationsSound: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Apariencia */}
-                <div className="ajustes-group">
-                  <h4 className="ajustes-group-title">Apariencia</h4>
-                  <div className="ajustes-items">
-                    <div className="ajustes-item" onClick={() => setShowThemeModal(true)}>
-                      <div className="ajustes-item-left">
-                        <FiStar className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Tema</span>
-                          <span className="ajustes-item-desc">{ajustesData.theme}</span>
-                        </div>
-                      </div>
-                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
-                    </div>
-                    
-                    <div className="ajustes-item" onClick={() => setShowLanguageModal(true)}>
-                      <div className="ajustes-item-left">
-                        <FiUser className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Idioma</span>
-                          <span className="ajustes-item-desc">{ajustesData.language}</span>
-                        </div>
-                      </div>
-                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
-                    </div>
-
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiStar className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Animaciones</span>
-                          <span className="ajustes-item-desc">Efectos visuales y transiciones</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.animations}
-                          onChange={(e) => setAjustesData({...ajustesData, animations: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiBox className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Modo compacto</span>
-                          <span className="ajustes-item-desc">Reduce espacios y márgenes</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.compactMode}
-                          onChange={(e) => setAjustesData({...ajustesData, compactMode: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Privacidad y seguridad */}
-                <div className="ajustes-group">
-                  <h4 className="ajustes-group-title">Privacidad y seguridad</h4>
-                  <div className="ajustes-items">
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiSettings className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Privacidad de datos</span>
-                          <span className="ajustes-item-desc">Gestiona tu información</span>
-                        </div>
-                      </div>
-                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
-                    </div>
-                    
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiCheckSquare className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Autenticación de dos factores</span>
-                          <span className="ajustes-item-desc">Seguridad adicional</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.twoFactorAuth}
-                          onChange={(e) => setAjustesData({...ajustesData, twoFactorAuth: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiUser className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Autenticación biométrica</span>
-                          <span className="ajustes-item-desc">Huella digital o Face ID</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.biometricAuth}
-                          onChange={(e) => setAjustesData({...ajustesData, biometricAuth: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Preferencias de la aplicación */}
-                <div className="ajustes-group">
-                  <h4 className="ajustes-group-title">Preferencias de la aplicación</h4>
-                  <div className="ajustes-items">
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiRefreshCw className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Sincronización automática</span>
-                          <span className="ajustes-item-desc">Actualizar datos en segundo plano</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.autoSync}
-                          onChange={(e) => setAjustesData({...ajustesData, autoSync: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiWifi className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Modo sin conexión</span>
-                          <span className="ajustes-item-desc">Acceso a datos guardados</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.offlineMode}
-                          onChange={(e) => setAjustesData({...ajustesData, offlineMode: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiDatabase className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Compresión de datos</span>
-                          <span className="ajustes-item-desc">Reduce el uso de almacenamiento</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.dataCompression}
-                          onChange={(e) => setAjustesData({...ajustesData, dataCompression: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Accesibilidad */}
-                <div className="ajustes-group">
-                  <h4 className="ajustes-group-title">Accesibilidad</h4>
-                  <div className="ajustes-items">
-                    <div className="ajustes-item" onClick={() => setShowFontSizeModal(true)}>
-                      <div className="ajustes-item-left">
-                        <FiType className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Tamaño de texto</span>
-                          <span className="ajustes-item-desc">{ajustesData.fontSize}</span>
-                        </div>
-                      </div>
-                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
-                    </div>
-
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiEye className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Alto contraste</span>
-                          <span className="ajustes-item-desc">Mejora la visibilidad</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.highContrast}
-                          onChange={(e) => setAjustesData({...ajustesData, highContrast: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiZap className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Reducir movimiento</span>
-                          <span className="ajustes-item-desc">Minimiza animaciones</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.reduceMotion}
-                          onChange={(e) => setAjustesData({...ajustesData, reduceMotion: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Preferencias de bodega */}
-                <div className="ajustes-group">
-                  <h4 className="ajustes-group-title">Preferencias de bodega</h4>
-                  <div className="ajustes-items">
-                    <div className="ajustes-item" onClick={() => setShowDefaultViewModal(true)}>
-                      <div className="ajustes-item-left">
-                        <FiHome className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Vista predeterminada</span>
-                          <span className="ajustes-item-desc">{ajustesData.defaultView}</span>
-                        </div>
-                      </div>
-                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
-                    </div>
-
-                    <div className="ajustes-item" onClick={() => setShowSortByModal(true)}>
-                      <div className="ajustes-item-left">
-                        <FiFilter className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Ordenar por</span>
-                          <span className="ajustes-item-desc">{ajustesData.sortBy}</span>
-                        </div>
-                      </div>
-                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
-                    </div>
-
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiSlash className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Mostrar vinos agotados</span>
-                          <span className="ajustes-item-desc">En la vista de bodega</span>
-                        </div>
-                      </div>
-                      <label className="ajustes-toggle">
-                        <input 
-                          type="checkbox" 
-                          checked={ajustesData.showOutOfStock}
-                          onChange={(e) => setAjustesData({...ajustesData, showOutOfStock: e.target.checked})}
-                        />
-                        <span className="ajustes-toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sobre la app */}
-                <div className="ajustes-group">
-                  <h4 className="ajustes-group-title">Sobre VinosStK</h4>
-                  <div className="ajustes-items">
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiHelpCircle className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Centro de ayuda</span>
-                          <span className="ajustes-item-desc">Preguntas frecuentes</span>
-                        </div>
-                      </div>
-                      <FiChevronDown className="ajustes-item-arrow" style={{ transform: 'rotate(-90deg)' }} />
-                    </div>
-                    
-                    <div className="ajustes-item">
-                      <div className="ajustes-item-left">
-                        <FiBox className="ajustes-item-icon" />
-                        <div className="ajustes-item-info">
-                          <span className="ajustes-item-label">Versión</span>
-                          <span className="ajustes-item-desc">1.0.0</span>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -2946,7 +2580,7 @@ function App() {
         )}
 
         {/* Vista Notificaciones (antes Ayuda) */}
-        {currentView === 'ayuda' && (
+        {currentView === 'ayuda' && notificationsEnabled && (
           <div key="notificaciones-view" className="content view-enter">
             <div className="section section-full notificaciones-section">
               <div className="notificaciones-header">
@@ -3313,7 +2947,7 @@ function App() {
 
 
     {/* Panel de Notificaciones */}
-    {NOTIFICATIONS_ENABLED && showNotifications && (
+    {notificationsEnabled && showNotifications && (
       <div 
         className="notifications-overlay"
         onClick={() => setShowNotifications(false)}
@@ -3609,9 +3243,19 @@ function App() {
     {showChangePasswordModal && (
       <ChangePasswordModal
         onClose={() => setShowChangePasswordModal(false)}
-        onSave={() => {
-          // Por ahora no guardamos nada
-          setShowChangePasswordModal(false)
+        onSave={async ({ currentPassword, newPassword }) => {
+          try {
+            const userId = currentUser?._id || currentUser?.id
+            if (!userId) {
+              alert('No se pudo identificar al usuario. Inicia sesión de nuevo.')
+              return
+            }
+            await userService.changePassword(userId, { currentPassword, newPassword })
+            alert('Contraseña actualizada')
+            setShowChangePasswordModal(false)
+          } catch (error) {
+            alert(error.response?.data?.message || error.message || 'No se pudo cambiar la contraseña')
+          }
         }}
       />
     )}
@@ -5452,7 +5096,7 @@ function ChangePasswordModal({ onClose, onSave }) {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
@@ -5466,7 +5110,7 @@ function ChangePasswordModal({ onClose, onSave }) {
       return
     }
 
-    onSave()
+    await onSave({ currentPassword, newPassword })
   }
 
   return (

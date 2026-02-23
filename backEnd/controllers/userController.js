@@ -73,8 +73,53 @@ const updateUser = async (req, res) => {
   }
 }
 
+// @desc    Cambiar contraseña del usuario
+// @route   POST /api/users/:id/change-password
+// @access  Private
+const changePassword = async (req, res) => {
+  try {
+    const userId = req.params.id
+    const { currentPassword, newPassword } = req.body
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Datos inválidos' })
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' })
+    }
+
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'No autorizado' })
+    }
+
+    if (req.user._id.toString() !== userId) {
+      return res.status(403).json({ message: 'No autorizado para cambiar esta contraseña' })
+    }
+
+    const user = await User.findById(userId).select('+password')
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' })
+    }
+
+    const isMatch = await user.matchPassword(currentPassword)
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Contraseña actual incorrecta' })
+    }
+
+    user.password = newPassword
+    await user.save()
+
+    res.json({ success: true, message: 'Contraseña actualizada' })
+  } catch (error) {
+    console.error('Error al cambiar contraseña:', error)
+    res.status(500).json({ message: 'Error del servidor' })
+  }
+}
+
 module.exports = {
   getUser,
-  updateUser
+  updateUser,
+  changePassword
 }
 
