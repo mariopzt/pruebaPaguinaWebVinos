@@ -718,43 +718,86 @@ function detectUserIntent(message) {
   return { type: 'general', action: 'none' };
 }
 
+function normalizeText(text) {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/^el vino\s+/, "")
+    .replace(/^vino\s+/, "")
+    .trim();
+}
+
+function scoreMatch(wineName, searchName) {
+  if (!wineName || !searchName) return 0;
+  if (wineName === searchName) return 1;
+  if (wineName.includes(searchName) || searchName.includes(wineName)) return 0.9;
+  const wineWords = wineName.split(" ").filter(w => w.length > 2);
+  const searchWords = searchName.split(" ").filter(w => w.length > 2);
+  if (wineWords.length === 0 || searchWords.length === 0) return 0;
+  const overlap = searchWords.filter(w => wineWords.includes(w)).length;
+  return overlap / Math.max(wineWords.length, searchWords.length);
+}
+
 /**
  * Buscar vino en la bodega por nombre (con coincidencia parcial)
  */
 function findWineInBodega(wineName, allWines) {
   if (!wineName || !allWines || allWines.length === 0) return null;
   
-  const searchName = wineName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  const searchName = normalizeText(wineName);
+  if (!searchName) return null;
   
   // 1. Coincidencia exacta
-  let found = allWines.find(w => 
-    w.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === searchName
-  );
+  let found = allWines.find(w => normalizeText(w.name) === searchName);
   if (found) return found;
   
   // 2. El vino contiene el nombre buscado
-  found = allWines.find(w => 
-    w.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(searchName)
-  );
+  found = allWines.find(w => normalizeText(w.name).includes(searchName));
   if (found) return found;
   
   // 3. El nombre buscado contiene el nombre del vino
-  found = allWines.find(w => 
-    searchName.includes(w.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
-  );
+  found = allWines.find(w => searchName.includes(normalizeText(w.name)));
   if (found) return found;
   
   // 4. Coincidencia por palabras
-  const searchWords = searchName.split(/\s+/).filter(w => w.length > 2);
-  for (const wine of allWines) {
-    const wineNameNorm = wine.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const matches = searchWords.filter(word => wineNameNorm.includes(word));
-    if (matches.length >= 1 && matches.length >= searchWords.length * 0.5) {
-      return wine;
-    }
+  const scored = allWines
+    .map(w => ({ wine: w, score: scoreMatch(normalizeText(w.name), searchName) }))
+    .sort((a, b) => b.score - a.score);
+
+  if (scored.length > 0 && scored[0].score >= 0.5) {
+    return scored[0].wine;
   }
-  
+
   return null;
+}
+
+/**
+ * Buscar vinos en la bodega por nombre (devuelve lista ordenada)
+ */
+function findWinesInBodega(wineName, allWines) {
+  if (!wineName || !allWines || allWines.length === 0) return [];
+  const searchName = normalizeText(wineName);
+  if (!searchName) return [];
+
+  let found = allWines.filter(w => normalizeText(w.name) === searchName);
+  if (found.length > 0) return found;
+
+  found = allWines.filter(w => normalizeText(w.name).includes(searchName));
+  if (found.length > 0) return found;
+
+  found = allWines.filter(w => searchName.includes(normalizeText(w.name)));
+  if (found.length > 0) return found;
+
+  const scored = allWines
+    .map(w => ({ wine: w, score: scoreMatch(normalizeText(w.name), searchName) }))
+    .filter(item => item.score >= 0.5)
+    .sort((a, b) => b.score - a.score);
+
+  return scored.map(item => item.wine);
 }
 
 /**
@@ -768,6 +811,8 @@ function extractWineNameFromMessage(message) {
     /(?:del?|al?)\s+vino\s+["']?([^"'\n,]+?)["']?\s*(?:por|$|\.)/i,
     /vino\s+["']?([^"'\n,]+?)["']?\s*(?:por|$|\.)/i,
     /(?:cambiale|ponle|actualiza)\s+(?:la\s+)?(?:foto|imagen|descripcion|precio)\s+(?:del?|al?)\s+["']?([^"'\n,]+?)["']?/i,
+    /(?:cambiar|pon|poner|actualizar|editar)\s+(?:la\s+)?(?:descripcion|precio|stock)\s+(?:de|del|al)\s+["']?([^"'\n,]+?)["']?/i,
+    /(?:eliminar|borra|borrar|quita|quitar)\s+(?:el\s+)?vino\s+["']?([^"'\n,]+?)["']?/i,
     /["']([^"']+)["']/i,  // Texto entre comillas
   ];
   
@@ -838,6 +883,49 @@ exports.processCommand = async (req, res, next) => {
     if (mentionedWineName) {
       foundWine = findWineInBodega(mentionedWineName, allWines);
       console.log(`[AI] 🍷 Vino mencionado: "${mentionedWineName}" → ${foundWine ? `Encontrado: "${foundWine.name}"` : 'NO encontrado'}`);
+    }
+
+    const explicitAllRegex = /\b(todos?|todas?|todo|toda)\b.*\b(vinos?|bodega|inventario)\b|\b(elimina|borra|eliminar|borrar)\b.*\b(todo|toda|todos|todas)\b|\bvac[ií]a\b.*\b(bodega|inventario)\b/i;
+    const explicitAll = explicitAllRegex.test(message);
+    const needsWineName = ['change_image', 'search_description', 'change_description', 'change_price', 'modify_stock', 'set_stock', 'delete_wine'].includes(userIntent.type);
+
+    if (needsWineName && !explicitAll && !mentionedWineName) {
+      return res.json({
+        success: true,
+        action: 'none',
+        response: '¿A qué vino quieres aplicar el cambio? Indica el nombre exacto (por ejemplo: "cambia la descripción de Marqués de Riscal").',
+        data: null
+      });
+    }
+
+    if (needsWineName && mentionedWineName) {
+      const matches = findWinesInBodega(mentionedWineName, allWines);
+      if (matches.length === 0) {
+        const suggestions = allWines
+          .map(w => w.name)
+          .filter(n => normalizeText(n).includes(normalizeText(mentionedWineName).slice(0, 3)))
+          .slice(0, 3);
+        const suggestionText = suggestions.length > 0
+          ? `\n\n¿Quizás te refieres a: ${suggestions.join(', ')}?`
+          : '\n\nPuedes decirme el nombre exacto para buscarlo.';
+        return res.json({
+          success: true,
+          action: 'none',
+          response: `No encontré un vino llamado "${mentionedWineName}" en la bodega.${suggestionText}`,
+          data: null
+        });
+      }
+      if (matches.length > 1 && !foundWine) {
+        return res.json({
+          success: true,
+          action: 'none',
+          response: `Encontré varios vinos que coinciden con "${mentionedWineName}": ${matches.map(w => w.name).join(', ')}. ¿Cuál quieres usar?`,
+          data: null
+        });
+      }
+      if (!foundWine) {
+        foundWine = matches[0];
+      }
     }
     
     // ========== RESPUESTAS DIRECTAS SIN IA (para casos claros) ==========

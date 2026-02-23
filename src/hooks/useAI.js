@@ -73,59 +73,91 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
   const [conversationHistory, setConversationHistory] = useState([]);
   const abortControllerRef = useRef(null);
 
-  // Buscar vino por nombre (búsqueda flexible) - devuelve el primero
+  const normalizeText = useCallback((text) => {
+    if (!text) return '';
+    let normalized = text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    normalized = normalized.replace(/^el vino\s+/, '').replace(/^vino\s+/, '');
+    return normalized;
+  }, []);
+
+  const scoreMatch = useCallback((wineName, searchName) => {
+    if (!wineName || !searchName) return 0;
+    if (wineName === searchName) return 1;
+    if (wineName.includes(searchName) || searchName.includes(wineName)) return 0.9;
+    const wineWords = wineName.split(' ').filter(w => w.length > 2);
+    const searchWords = searchName.split(' ').filter(w => w.length > 2);
+    if (wineWords.length === 0 || searchWords.length === 0) return 0;
+    const overlap = searchWords.filter(w => wineWords.includes(w)).length;
+    return overlap / Math.max(wineWords.length, searchWords.length);
+  }, []);
+
+  // Buscar vino por nombre (búsqueda flexible) - devuelve el mejor match
   const findWineByName = useCallback((name) => {
     if (!wines || !name) return null;
-    const searchName = name.toLowerCase().trim();
-    
-    // Búsqueda exacta
-    let found = wines.find(w => w.name?.toLowerCase() === searchName);
+    const searchName = normalizeText(name);
+    if (!searchName) return null;
+
+    let found = wines.find(w => normalizeText(w.name) === searchName);
     if (found) return found;
-    
-    // Búsqueda parcial
-    found = wines.find(w => w.name?.toLowerCase().includes(searchName));
+
+    found = wines.find(w => normalizeText(w.name).includes(searchName));
     if (found) return found;
-    
-    // Búsqueda inversa (nombre del vino contiene la búsqueda)
-    found = wines.find(w => searchName.includes(w.name?.toLowerCase()));
+
+    found = wines.find(w => searchName.includes(normalizeText(w.name)));
     if (found) return found;
-    
-    // Búsqueda por palabras
-    const words = searchName.split(' ').filter(w => w.length > 2);
-    found = wines.find(w => {
-      const wineName = w.name?.toLowerCase() || '';
-      return words.some(word => wineName.includes(word));
-    });
-    
-    return found;
-  }, [wines]);
+
+    let best = null;
+    let bestScore = 0;
+    for (const wine of wines) {
+      const score = scoreMatch(normalizeText(wine.name), searchName);
+      if (score > bestScore) {
+        bestScore = score;
+        best = wine;
+      }
+    }
+
+    return bestScore >= 0.5 ? best : null;
+  }, [wines, normalizeText, scoreMatch]);
 
   // Buscar TODOS los vinos que coincidan con el nombre
   const findAllWinesByName = useCallback((name) => {
     if (!wines || !name) return [];
-    const searchName = name.toLowerCase().trim();
+    const searchName = normalizeText(name);
+    if (!searchName) return [];
     
     // Búsqueda exacta - devuelve TODOS los que coincidan
-    let found = wines.filter(w => w.name?.toLowerCase() === searchName);
+    let found = wines.filter(w => normalizeText(w.name) === searchName);
     if (found.length > 0) return found;
     
     // Búsqueda parcial
-    found = wines.filter(w => w.name?.toLowerCase().includes(searchName));
+    found = wines.filter(w => normalizeText(w.name).includes(searchName));
     if (found.length > 0) return found;
     
     // Búsqueda inversa
-    found = wines.filter(w => searchName.includes(w.name?.toLowerCase()));
+    found = wines.filter(w => searchName.includes(normalizeText(w.name)));
     if (found.length > 0) return found;
     
     // Búsqueda por palabras
     const words = searchName.split(' ').filter(w => w.length > 2);
     found = wines.filter(w => {
-      const wineName = w.name?.toLowerCase() || '';
+      const wineName = normalizeText(w.name);
       return words.some(word => wineName.includes(word));
     });
-    
-    return found;
-  }, [wines]);
+    if (found.length > 0) return found;
+
+    const scored = wines
+      .map(w => ({ wine: w, score: scoreMatch(normalizeText(w.name), searchName) }))
+      .filter(item => item.score >= 0.5)
+      .sort((a, b) => b.score - a.score);
+
+    return scored.map(item => item.wine);
+  }, [wines, normalizeText, scoreMatch]);
 
   // Ejecutar acción de modificar stock (uno o varios vinos)
   const executeUpdateStock = useCallback(async (data, originalMessage = '') => {
@@ -391,7 +423,7 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
   }, [wines, findAllWinesByName, onWinesChange]);
 
   // Ejecutar acción de eliminar vino(s)
-  const executeDeleteWine = useCallback(async (data) => {
+  const executeDeleteWine = useCallback(async (data, originalMessage = '') => {
     console.log('🗑️ [DELETE] Iniciando eliminación con data:', JSON.stringify(data));
     
     if (!data) {
@@ -399,8 +431,17 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
       return { success: false, error: 'No se especificó qué vino eliminar' };
     }
 
+    const explicitAllRegex = /\b(todos?|todas?|todo|toda)\b.*\b(vinos?|bodega|inventario)\b|\b(elimina|borra|eliminar|borrar)\b.*\b(todo|toda|todos|todas)\b|\bvac[ií]a\b.*\b(bodega|inventario)\b/i;
+    const isExplicitAll = explicitAllRegex.test(originalMessage || '');
+
     // Si es "all" o hay lista de wines, eliminar múltiples
     if (data?.all === true || data?.wines) {
+      if (data?.all === true && !isExplicitAll) {
+        return { 
+          success: false, 
+          error: 'Para eliminar todos los vinos necesito confirmación explícita. Di: \"elimina todos los vinos\".' 
+        };
+      }
       console.log('🗑️ [DELETE] Modo: Múltiples vinos o todos');
       
       let winesToDelete = [];
@@ -557,7 +598,7 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
 
         case 'delete_wine':
           console.log('🗑️ [CMD] Eliminando vino...');
-          return await executeDeleteWine(data);
+          return await executeDeleteWine(data, originalMessage);
 
         case 'navigate':
           if (onUIChange && data?.view) {
