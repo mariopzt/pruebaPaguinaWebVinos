@@ -2974,13 +2974,24 @@ body {
   }
 
   .home-metrics-row {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
 
   .home-metric {
     gap: 6px;
+    min-width: 0;
     width: 100% !important;
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .home-metric + .home-metric {
+    margin-top: 0;
+    border-top: none;
+    border-left: none;
+    padding-left: 0;
   }
 
   .floating-menu-button {
@@ -6722,6 +6733,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .vale-stat-value {
@@ -6774,6 +6789,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .vales-add-btn svg {
     width: 12px;
     height: 12px;
+  }
+
+  .vale-stat-card {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 }
 
