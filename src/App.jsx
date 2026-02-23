@@ -16,6 +16,7 @@ import orderService from './api/orderService'
 import pendingService from './api/pendingService'
 import userService from './api/userService'
 import statsService from './api/statsService'
+import reviewService from './api/reviewService'
 import { AIChat } from './components/AIChat'
 
 function App() {
@@ -153,60 +154,9 @@ function App() {
   const [selectedOrder, setSelectedOrder] = useState(null)
 
   // Estado para Valoraciones
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      wineId: 1,
-      wineName: 'Viña Albali Reserva 2018',
-      wineImage: 'https://images.pexels.com/photos/39351/pexels-photo-39351.jpeg?auto=compress&cs=tinysrgb&w=300',
-      wineType: 'Tinto',
-      rating: 5,
-      comment: 'Excelente vino, muy equilibrado. Notas de frutas rojas maduras y un final largo y elegante. Perfecto para acompañar carnes rojas.',
-      userName: 'Jonny Alvarez',
-      userAvatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120',
-      date: '2024-12-05',
-      verified: true
-    },
-    {
-      id: 2,
-      wineId: 3,
-      wineName: 'Marqués de Riscal Reserva',
-      wineImage: 'https://images.pexels.com/photos/2795026/pexels-photo-2795026.jpeg?auto=compress&cs=tinysrgb&w=300',
-      wineType: 'Tinto',
-      rating: 4,
-      comment: 'Muy bueno, aunque esperaba un poco más de complejidad. Aroma agradable y buen cuerpo.',
-      userName: 'María García',
-      userAvatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120',
-      date: '2024-12-03',
-      verified: true
-    },
-    {
-      id: 3,
-      wineId: 2,
-      wineName: 'Martín Códax Albariño',
-      wineImage: 'https://images.pexels.com/photos/2224060/pexels-photo-2224060.jpeg?auto=compress&cs=tinysrgb&w=300',
-      wineType: 'Blanco',
-      rating: 5,
-      comment: 'Increíble frescura y mineralidad. Perfecto para mariscos. De los mejores albariños que he probado.',
-      userName: 'Carlos Ruiz',
-      userAvatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=120',
-      date: '2024-12-01',
-      verified: true
-    },
-    {
-      id: 4,
-      wineId: 1,
-      wineName: 'Viña Albali Reserva 2018',
-      wineImage: 'https://images.pexels.com/photos/39351/pexels-photo-39351.jpeg?auto=compress&cs=tinysrgb&w=300',
-      wineType: 'Tinto',
-      rating: 4,
-      comment: 'Relación calidad-precio excepcional. Un Reserva que cumple todas las expectativas.',
-      userName: 'Laura Martínez',
-      userAvatar: 'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=120',
-      date: '2024-11-28',
-      verified: false
-    },
-  ])
+  const [reviews, setReviews] = useState([])
+  const [reviewsLoading, setReviewsLoading] = useState(false)
+  const [reviewsError, setReviewsError] = useState('')
   const [reviewsFilter, setReviewsFilter] = useState('todos') // todos, 5stars, 4stars, 3stars, 2stars, 1star
   const [showAddReviewModal, setShowAddReviewModal] = useState(false)
   const [showEditReviewModal, setShowEditReviewModal] = useState(false)
@@ -545,9 +495,22 @@ function App() {
           ? tasks.filter((t) => t.group === 'ayer' && t.status !== 'completed')
           : tasksFilter === 'semana'
             ? tasks.filter((t) => t.group === 'semana' && t.status !== 'completed')
-            : tasksFilter === 'terminadas'
-              ? tasks.filter((t) => t.status === 'completed')
-              : tasks
+              : tasksFilter === 'terminadas'
+                ? tasks.filter((t) => t.status === 'completed')
+                : tasks
+
+  const filteredReviews = reviews.filter((review) => {
+    if (reviewsFilter === 'todos') return true
+    if (reviewsFilter === '5stars') return review.rating === 5
+    if (reviewsFilter === '4stars') return review.rating === 4
+    if (reviewsFilter === '3stars') return review.rating === 3
+    return true
+  })
+
+  const reviewPlaceholderMessage =
+    reviews.length === 0
+      ? 'Todavía no hay valoraciones. Sé el primero en dejar una reseña.'
+      : 'No hay valoraciones que coincidan con ese filtro.'
 
   const handleTaskClick = (task) => {
     setSelectedTask(task)
@@ -769,6 +732,11 @@ function App() {
 
   // Handlers para Valoraciones
   const handleAddReview = () => {
+    if (!isAuthenticated || currentUser?.isGuest) {
+      alert('Para escribir una reseña debes iniciar sesión.')
+      return
+    }
+
     setSelectedReview(null)
     setShowAddReviewModal(true)
   }
@@ -857,33 +825,54 @@ function App() {
   }
 
   const handleReviewClick = (review) => {
+    const userId = currentUser?._id || currentUser?.id
+    if (!userId || review.userId !== userId) return
     setSelectedReview(review)
     setShowEditReviewModal(true)
   }
 
-  const handleSaveReview = (reviewData) => {
-    if (reviewData.id) {
-      // Editar valoración existente
-      setReviews(reviews.map(r => r.id === reviewData.id ? reviewData : r))
-    } else {
-      // Agregar nueva valoración
-      const newReview = {
-        ...reviewData,
-        id: Date.now(),
-        userName: 'Jonny Alvarez',
-        userAvatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120',
-        date: new Date().toISOString().split('T')[0],
-        verified: true
-      }
-      setReviews([newReview, ...reviews])
+  const handleSaveReview = async (reviewData) => {
+    if (!isAuthenticated || currentUser?.isGuest) {
+      alert('Necesitas iniciar sesión para publicar una valoración')
+      return
     }
-    setShowAddReviewModal(false)
-    setShowEditReviewModal(false)
+
+    try {
+      if (reviewData.id) {
+        const response = await reviewService.update(reviewData.id, {
+          rating: reviewData.rating,
+          comment: reviewData.comment
+        })
+      const saved = response.data?.data || response.data
+      setReviews((prev) => prev.map((r) => (r.id === saved.id ? saved : r)))
+    } else {
+      const payload = {
+        wineId: reviewData.wineId,
+        rating: reviewData.rating,
+        comment: reviewData.comment
+      }
+      const response = await reviewService.create(payload)
+      const saved = response.data?.data || response.data
+      setReviews((prev) => [saved, ...prev])
+    }
+      setShowAddReviewModal(false)
+      setShowEditReviewModal(false)
+    } catch (error) {
+      console.error('Error al guardar valoración', error)
+      alert(error.response?.data?.message || error.message || 'No se pudo guardar la valoración')
+    }
   }
 
-  const handleDeleteReview = (reviewId) => {
-    setReviews(reviews.filter(r => r.id !== reviewId))
-    setShowEditReviewModal(false)
+  const handleDeleteReview = async (reviewId) => {
+    try {
+      await reviewService.delete(reviewId)
+      setReviews((prev) => prev.filter((r) => r.id !== reviewId))
+    } catch (error) {
+      console.error('Error al eliminar valoración', error)
+      alert(error.response?.data?.message || error.message || 'No se pudo eliminar la valoración')
+    } finally {
+      setShowEditReviewModal(false)
+    }
   }
 
   const toggleMenu = () => {
@@ -1164,6 +1153,30 @@ function App() {
     };
     fetchTasksAndOrders();
   }, [isAuthenticated, fetchOrders]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!isAuthenticated || currentUser?.isGuest) {
+        setReviews([])
+        return
+      }
+
+      setReviewsLoading(true)
+      setReviewsError('')
+      try {
+        const resp = await reviewService.getAll()
+        const fetched = resp.data?.data || resp.data || []
+        setReviews(fetched)
+      } catch (error) {
+        console.error('Error al cargar valoraciones', error)
+        setReviewsError(error.response?.data?.message || error.message || 'No se pudieron cargar las valoraciones')
+      } finally {
+        setReviewsLoading(false)
+      }
+    }
+
+    fetchReviews()
+  }, [isAuthenticated, currentUser?.isGuest]);
 
   // Manejar acciones de las notificaciones
   const handleNotificationAction = async (action, notificationId) => {
@@ -3116,28 +3129,30 @@ function App() {
                 </button>
               </div>
 
+              {reviewsError && (
+                <div className="valoraciones-error">
+                  {reviewsError}
+                </div>
+              )}
               {/* Grid de Valoraciones */}
               <div className="valoraciones-grid">
-                {reviews
-                  .filter(review => {
-                    if (reviewsFilter === 'todos') return true
-                    if (reviewsFilter === '5stars') return review.rating === 5
-                    if (reviewsFilter === '4stars') return review.rating === 4
-                    if (reviewsFilter === '3stars') return review.rating === 3
-                    return true
-                  })
-                  .map((review) => (
+                {reviewsLoading && (
+                  <div className="valoraciones-placeholder">
+                    Cargando valoraciones...
+                  </div>
+                )}
+                {!reviewsLoading && filteredReviews.length === 0 && (
+                  <div className="valoraciones-placeholder">
+                    {reviewPlaceholderMessage}
+                  </div>
+                )}
+                {!reviewsLoading && filteredReviews.length > 0 && filteredReviews.map((review) => (
                     <div
                       key={review.id}
                       className="valoracion-card"
-                      onClick={() => {
-                        // Solo permitir abrir el modal si es tu propia valoración
-                        if (review.userName === 'Jonny Alvarez') {
-                          handleReviewClick(review)
-                        }
-                      }}
+                      onClick={() => handleReviewClick(review)}
                       style={{
-                        cursor: review.userName === 'Jonny Alvarez' ? 'pointer' : 'default'
+                        cursor: review.userId === (currentUser?._id || currentUser?.id) ? 'pointer' : 'default'
                       }}
                     >
                       <div className="valoracion-card-header">

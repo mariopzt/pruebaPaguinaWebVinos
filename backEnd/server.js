@@ -53,6 +53,7 @@ app.use('/api/pending', require('./routes/pendingRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/stats', require('./routes/statsRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
+app.use('/api/reviews', require('./routes/reviewRoutes'));
 
 // Ruta de prueba
 app.get('/', (req, res) => {
