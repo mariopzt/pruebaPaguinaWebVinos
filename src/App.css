@@ -5260,6 +5260,7 @@ flex-direction: column;
 /* --- Versión móvil de filtros en Tareas (similar a Bodega) --- */
 @media (max-width: 640px) {
   .tareas-filters-row {
+    margin-top: 10px;
     gap: 8px;
   }
 }
@@ -6342,6 +6343,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   flex-direction: column;
   gap: 20px;
   padding: 20px;
+  position: relative;
 }
 
 .vales-grid {
@@ -6353,6 +6355,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .vales-section .search-container {
   margin-bottom: 0;
   margin-left: 8px;
+}
+
+.vales-add-btn {
+  position: static;
 }
 
 .vale-card {
@@ -6667,6 +6673,24 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
   .vale-actions {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .vales-add-btn {
+    position: absolute;
+    top: -4px;
+    right: 12px;
+    z-index: 20;
+    padding: 4px 8px;
+    font-size: 9px;
+    border-radius: 7px;
+    gap: 3px;
+  }
+
+  .vales-add-btn svg {
+    width: 12px;
+    height: 12px;
   }
 }
 
