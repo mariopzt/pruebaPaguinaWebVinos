@@ -5263,6 +5263,10 @@ flex-direction: column;
     margin-top: 10px;
     gap: 8px;
   }
+
+  .voucher-create-layout.with-preview {
+    grid-template-columns: 1fr;
+  }
 }
 
 
@@ -5402,6 +5406,10 @@ flex-direction: column;
   animation: slideIn 0.3s ease-out;
   display: flex;
   flex-direction: column;
+}
+
+.task-modal.voucher-modal-wide {
+  max-width: 860px;
 }
 
 .task-modal-header {
@@ -5568,6 +5576,81 @@ flex-direction: column;
 
 .date-display-field span {
   flex: 1;
+}
+
+.voucher-create-layout {
+  display: grid;
+  gap: 14px;
+}
+
+.voucher-create-layout.with-preview {
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.voucher-preview-column {
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.voucher-form-column {
+  min-width: 0;
+  width: 100%;
+}
+
+.voucher-preview-card {
+  background: linear-gradient(165deg, #efe9db 0%, #e8dfcf 58%, #e2d8c5 100%);
+  border: 1px solid rgba(77, 58, 36, 0.22);
+  border-radius: 10px;
+  padding: 16px;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  display: grid;
+  gap: 10px;
+}
+
+.voucher-preview-title {
+  margin: 0;
+  text-align: center;
+  color: #2f2316;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 400;
+}
+
+.voucher-preview-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.voucher-preview-field {
+  border-radius: 9px;
+  background: rgba(144, 126, 98, 0.16);
+  border: 1px solid rgba(77, 58, 36, 0.12);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.voucher-preview-field span {
+  color: #6a5843;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.voucher-preview-field strong {
+  color: #2f2316;
+  font-size: 10px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Input date oculto pero funcional */
@@ -6679,7 +6762,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @media (max-width: 768px) {
   .vales-add-btn {
     position: absolute;
-    top: -4px;
+    top: -1px;
     right: 12px;
     z-index: 20;
     padding: 4px 8px;

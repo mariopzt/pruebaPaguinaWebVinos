@@ -4114,7 +4114,7 @@ function AddTaskModal({ onClose, onSave }) {
 
   return (
     <div className="task-modal-overlay" onClick={onClose}>
-      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
+      <div className={`task-modal ${withPreview ? 'voucher-modal-wide' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className="task-modal-header">
           <h3>Nueva Tarea</h3>
           <button className="task-modal-close" onClick={onClose}>✕</button>
@@ -4205,7 +4205,7 @@ function AddTaskModal({ onClose, onSave }) {
 }
 
 // Modal base para crear/editar vales
-function VoucherModal({ title, initialVoucher, submitLabel, onClose, onSave, onDelete = null, simpleCreate = false }) {
+function VoucherModal({ title, initialVoucher, submitLabel, onClose, onSave, onDelete = null, simpleCreate = false, withPreview = false }) {
   const [voucher, setVoucher] = useState(() => ({
     id: initialVoucher?.id || '',
     code: initialVoucher?.code || '',
@@ -4257,60 +4257,84 @@ function VoucherModal({ title, initialVoucher, submitLabel, onClose, onSave, onD
 
         <form className="task-modal-content" onSubmit={handleSubmit}>
           {simpleCreate ? (
-            <>
-              <div className="task-modal-field">
-                <label>Para:</label>
-                <input
-                  type="text"
-                  value={voucher.title}
-                  onChange={(e) => setVoucher({ ...voucher, title: e.target.value })}
-                  placeholder="Nombre o concepto"
-                  maxLength={80}
-                  required
-                />
-              </div>
-
-              <div className="task-modal-field">
-                <label>Referencia:</label>
-                <input
-                  type="text"
-                  value={voucher.code}
-                  onChange={(e) => setVoucher({ ...voucher, code: e.target.value.toUpperCase() })}
-                  placeholder="Ej: VALE-2026-001"
-                  maxLength={30}
-                  required
-                />
-              </div>
-
-              <div className="task-modal-field">
-                <label>Expira:</label>
-                <div
-                  className="date-display-field"
-                  onClick={() => setShowExpiryCalendar(true)}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" />
-                    <line x1="8" y1="2" x2="8" y2="6" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
-                  <span>{voucher.expiresAt}</span>
+            <div className={`voucher-create-layout ${withPreview ? 'with-preview' : ''}`}>
+              {withPreview && (
+                <div className="voucher-preview-column">
+                  <article className="voucher-preview-card">
+                    <h3 className="voucher-preview-title">Vale "Dejate llevar"</h3>
+                    <div className="voucher-preview-field">
+                      <span>Para:</span>
+                      <strong>{voucher.title || 'Nombre o concepto'}</strong>
+                    </div>
+                    <div className="voucher-preview-row">
+                      <div className="voucher-preview-field">
+                        <span>Ref:</span>
+                        <strong>{voucher.code || 'VALE-2026-001'}</strong>
+                      </div>
+                      <div className="voucher-preview-field">
+                        <span>Expira:</span>
+                        <strong>{voucher.expiresAt || 'AAAA-MM-DD'}</strong>
+                      </div>
+                    </div>
+                  </article>
                 </div>
-                {showExpiryCalendar && (
-                  <CustomCalendar
-                    selectedDate={voucher.expiresAt}
-                    onDateSelect={(date) => {
-                      const year = date.getFullYear()
-                      const month = String(date.getMonth() + 1).padStart(2, '0')
-                      const day = String(date.getDate()).padStart(2, '0')
-                      const dateValue = `${year}-${month}-${day}`
-                      setVoucher({ ...voucher, expiresAt: dateValue })
-                    }}
-                    onClose={() => setShowExpiryCalendar(false)}
+              )}
+
+              <div className="voucher-form-column">
+                <div className="task-modal-field">
+                  <label>Para:</label>
+                  <input
+                    type="text"
+                    value={voucher.title}
+                    onChange={(e) => setVoucher({ ...voucher, title: e.target.value })}
+                    placeholder="Nombre o concepto"
+                    maxLength={80}
+                    required
                   />
-                )}
+                </div>
+
+                <div className="task-modal-field">
+                  <label>Referencia:</label>
+                  <input
+                    type="text"
+                    value={voucher.code}
+                    onChange={(e) => setVoucher({ ...voucher, code: e.target.value.toUpperCase() })}
+                    placeholder="Ej: VALE-2026-001"
+                    maxLength={30}
+                    required
+                  />
+                </div>
+
+                <div className="task-modal-field">
+                  <label>Expira:</label>
+                  <div
+                    className="date-display-field"
+                    onClick={() => setShowExpiryCalendar(true)}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    <span>{voucher.expiresAt}</span>
+                  </div>
+                  {showExpiryCalendar && (
+                    <CustomCalendar
+                      selectedDate={voucher.expiresAt}
+                      onDateSelect={(date) => {
+                        const year = date.getFullYear()
+                        const month = String(date.getMonth() + 1).padStart(2, '0')
+                        const day = String(date.getDate()).padStart(2, '0')
+                        const dateValue = `${year}-${month}-${day}`
+                        setVoucher({ ...voucher, expiresAt: dateValue })
+                      }}
+                      onClose={() => setShowExpiryCalendar(false)}
+                    />
+                  )}
+                </div>
               </div>
-            </>
+            </div>
           ) : (
             <>
               <div className="task-modal-row">
@@ -4445,6 +4469,7 @@ function AddVoucherModal({ onClose, onSave }) {
       title="Nuevo Vale"
       submitLabel="Crear Vale"
       simpleCreate
+      withPreview
       initialVoucher={null}
       onClose={onClose}
       onSave={onSave}
