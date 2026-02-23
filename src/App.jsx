@@ -31,7 +31,17 @@ function App() {
       '/avatars/avatar-07.svg',
       '/avatars/avatar-08.svg',
       '/avatars/avatar-09.svg',
-      '/avatars/avatar-10.svg'
+      '/avatars/avatar-10.svg',
+      '/avatars/avatar-11.svg',
+      '/avatars/avatar-12.svg',
+      '/avatars/avatar-13.svg',
+      '/avatars/avatar-14.svg',
+      '/avatars/avatar-15.svg',
+      '/avatars/avatar-16.svg',
+      '/avatars/avatar-17.svg',
+      '/avatars/avatar-18.svg',
+      '/avatars/avatar-19.svg',
+      '/avatars/avatar-20.svg'
     ],
     []
   )
