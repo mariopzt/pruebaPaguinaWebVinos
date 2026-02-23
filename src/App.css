@@ -3013,7 +3013,7 @@ body {
   
   .content {
     padding: 8px;
-    padding-top: 65px;
+    padding-top: 20px;
   }
   
   .main-content {
@@ -6528,6 +6528,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   filter: grayscale(0.34);
 }
 
+.vale-card.is-exiting {
+  animation: valeCardOut 0.26s ease forwards !important;
+  pointer-events: none;
+}
+
 .vale-badge-row {
   position: static;
   display: flex;
@@ -6814,6 +6819,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes valeCardOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
   }
 }
 

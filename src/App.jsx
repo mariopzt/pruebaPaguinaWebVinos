@@ -196,6 +196,7 @@ function App() {
   const [showAddVoucherModal, setShowAddVoucherModal] = useState(false)
   const [showEditVoucherModal, setShowEditVoucherModal] = useState(false)
   const [selectedVoucher, setSelectedVoucher] = useState(null)
+  const [voucherExitingIds, setVoucherExitingIds] = useState([])
   // Activación por token (se lee desde la URL en el estado inicial)
   const [activationToken, setActivationToken] = useState(() => {
     const params = new URLSearchParams(window.location.search)
@@ -627,11 +628,22 @@ function App() {
 
     const nextStatus = target.status === 'activo' ? 'usado' : 'activo'
     const nextUsesLeft = nextStatus === 'usado' ? 0 : (target.usesLeft > 0 ? target.usesLeft : 1)
+    const isExpired = isVoucherExpired(target)
+    const leavesCurrentFilter =
+      !isExpired &&
+      ((vouchersFilter === 'activos' && nextStatus !== 'activo') ||
+        (vouchersFilter === 'usados' && nextStatus !== 'usado'))
+
+    if (leavesCurrentFilter) {
+      setVoucherExitingIds((prev) => (prev.includes(voucherId) ? prev : [...prev, voucherId]))
+      await new Promise((resolve) => setTimeout(resolve, 260))
+    }
 
     setVouchers((prev) => prev.map((voucher) => {
       if (voucher.id !== voucherId && voucher._id !== voucherId) return voucher
       return { ...voucher, status: nextStatus, usesLeft: nextUsesLeft }
     }))
+    setVoucherExitingIds((prev) => prev.filter((id) => id !== voucherId))
 
     try {
       await voucherService.update(voucherId, {
@@ -644,6 +656,7 @@ function App() {
         if (voucher.id !== voucherId && voucher._id !== voucherId) return voucher
         return target
       }))
+      setVoucherExitingIds((prev) => prev.filter((id) => id !== voucherId))
       alert('No se pudo actualizar el vale')
     }
   }
@@ -2999,11 +3012,12 @@ function App() {
                 {!vouchersLoading && !vouchersError && filteredVouchers.map((voucher, index) => {
                   const expired = isVoucherExpired(voucher)
                   const statusLabel = expired ? 'Vencido' : (voucher.status === 'usado' ? 'Usado' : 'Activo')
+                  const isExiting = voucherExitingIds.includes(voucher.id)
 
                   return (
                     <article
                       key={voucher.id}
-                      className={`vale-card ${expired ? 'is-expired' : ''}`}
+                      className={`vale-card ${expired ? 'is-expired' : ''} ${isExiting ? 'is-exiting' : ''}`}
                       style={{ '--vale-delay': `${Math.min(index, 12) * 55}ms` }}
                     >
                       <div className="vale-badge-row">
@@ -3056,7 +3070,7 @@ function App() {
                           type="button"
                           className="vale-action-btn"
                           onClick={() => handleToggleVoucherStatus(voucher.id)}
-                          disabled={expired}
+                          disabled={expired || isExiting}
                         >
                           {voucher.status === 'activo' ? 'Marcar usado' : 'Reactivar'}
                         </button>

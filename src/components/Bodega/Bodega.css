@@ -628,6 +628,7 @@
 @media (max-width: 480px) {
   .bodega-container {
     padding: 12px;
+    margin-top: 20px;
   }
   
   .bodega-grid {
