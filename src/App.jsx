@@ -764,6 +764,7 @@ function App() {
       const topData = response.data?.data || response.data || []
       setTopWines(topData.map((item, index) => ({
         ...item,
+        wine: normalizeWine(item.wine),
         rank: item.rank || index + 1
       })))
     } catch (error) {
