@@ -10,7 +10,21 @@ const reviewSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true
+      required: false
+    },
+    guestId: {
+      type: String,
+      trim: true
+    },
+    guestName: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    guestAvatar: {
+      type: String,
+      trim: true,
+      default: ''
     },
     rating: {
       type: Number,
@@ -37,6 +51,13 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
-reviewSchema.index({ wine: 1, user: 1 }, { unique: true });
+reviewSchema.index(
+  { wine: 1, user: 1 },
+  { unique: true, partialFilterExpression: { user: { $exists: true, $ne: null } } }
+);
+reviewSchema.index(
+  { wine: 1, guestId: 1 },
+  { unique: true, partialFilterExpression: { guestId: { $exists: true, $type: 'string' } } }
+);
 
 module.exports = mongoose.model('Review', reviewSchema);

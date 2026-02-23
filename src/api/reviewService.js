@@ -4,7 +4,8 @@ const reviewService = {
   getAll: (params = {}) => api.get('/reviews', { params }),
   create: (payload) => api.post('/reviews', payload),
   update: (id, payload) => api.put(`/reviews/${id}`, payload),
-  delete: (id) => api.delete(`/reviews/${id}`)
+  delete: (id, payload = null) =>
+    payload ? api.delete(`/reviews/${id}`, { data: payload }) : api.delete(`/reviews/${id}`)
 };
 
 export default reviewService;

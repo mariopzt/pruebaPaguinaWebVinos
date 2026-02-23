@@ -393,7 +393,7 @@ function App() {
   useEffect(() => {
     if (!currentUser?.isGuest) return;
     
-    const restrictedViews = ['tareas', 'tareas-completadas', 'tareas-pendientes', 'pedidos', 'vales', 'valoraciones', 'ajustes', 'ayuda', 'ia'];
+    const restrictedViews = ['tareas', 'tareas-completadas', 'tareas-pendientes', 'pedidos', 'vales', 'ajustes', 'ayuda', 'ia'];
     if (restrictedViews.includes(currentView)) {
       setCurrentView('bodega');
     }
@@ -848,8 +848,8 @@ function App() {
 
   // Handlers para Valoraciones
   const handleAddReview = () => {
-    if (!isAuthenticated || currentUser?.isGuest) {
-      alert('Para escribir una reseña debes iniciar sesión.')
+    if (!isAuthenticated) {
+      alert('Para escribir una resena debes iniciar sesion.')
       return
     }
 
@@ -981,44 +981,60 @@ function App() {
   }
 
   const handleSaveReview = async (reviewData) => {
-    if (!isAuthenticated || currentUser?.isGuest) {
-      alert('Necesitas iniciar sesión para publicar una valoración')
+    if (!isAuthenticated) {
+      alert('Necesitas iniciar sesion para publicar una valoracion')
       return
     }
+
+    const guestContext = currentUser?.isGuest
+      ? {
+          guestId: currentUser._id || currentUser.id,
+          guestName: currentUser.name || 'Invitado',
+          guestAvatar: currentUser.avatar || getUserAvatar(currentUser),
+        }
+      : {}
 
     try {
       if (reviewData.id) {
         const response = await reviewService.update(reviewData.id, {
           rating: reviewData.rating,
-          comment: reviewData.comment
+          comment: reviewData.comment,
+          ...guestContext
         })
-      const saved = response.data?.data || response.data
-      setReviews((prev) => prev.map((r) => (r.id === saved.id ? saved : r)))
-    } else {
-      const payload = {
-        wineId: reviewData.wineId,
-        rating: reviewData.rating,
-        comment: reviewData.comment
+        const saved = response.data?.data || response.data
+        setReviews((prev) => prev.map((r) => (r.id === saved.id ? saved : r)))
+      } else {
+        const payload = {
+          wineId: reviewData.wineId,
+          rating: reviewData.rating,
+          comment: reviewData.comment,
+          ...guestContext
+        }
+        const response = await reviewService.create(payload)
+        const saved = response.data?.data || response.data
+        setReviews((prev) => [saved, ...prev])
       }
-      const response = await reviewService.create(payload)
-      const saved = response.data?.data || response.data
-      setReviews((prev) => [saved, ...prev])
-    }
       setShowAddReviewModal(false)
       setShowEditReviewModal(false)
     } catch (error) {
-      console.error('Error al guardar valoración', error)
-      alert(error.response?.data?.message || error.message || 'No se pudo guardar la valoración')
+      console.error('Error al guardar valoracion', error)
+      alert(error.response?.data?.message || error.message || 'No se pudo guardar la valoracion')
     }
   }
 
   const handleDeleteReview = async (reviewId) => {
     try {
-      await reviewService.delete(reviewId)
+      if (currentUser?.isGuest) {
+        await reviewService.delete(reviewId, {
+          guestId: currentUser._id || currentUser.id
+        })
+      } else {
+        await reviewService.delete(reviewId)
+      }
       setReviews((prev) => prev.filter((r) => r.id !== reviewId))
     } catch (error) {
-      console.error('Error al eliminar valoración', error)
-      alert(error.response?.data?.message || error.message || 'No se pudo eliminar la valoración')
+      console.error('Error al eliminar valoracion', error)
+      alert(error.response?.data?.message || error.message || 'No se pudo eliminar la valoracion')
     } finally {
       setShowEditReviewModal(false)
     }
@@ -1347,7 +1363,7 @@ function App() {
 
   useEffect(() => {
     const fetchReviews = async () => {
-      if (!isAuthenticated || currentUser?.isGuest) {
+      if (!isAuthenticated) {
         setReviews([])
         return
       }
@@ -1355,7 +1371,10 @@ function App() {
       setReviewsLoading(true)
       setReviewsError('')
       try {
-        const resp = await reviewService.getAll()
+        const params = currentUser?.isGuest
+          ? { guestId: currentUser._id || currentUser.id }
+          : {}
+        const resp = await reviewService.getAll(params)
         const fetched = resp.data?.data || resp.data || []
         setReviews(fetched)
       } catch (error) {
@@ -1367,7 +1386,7 @@ function App() {
     }
 
     fetchReviews()
-  }, [isAuthenticated, currentUser?.isGuest]);
+  }, [isAuthenticated, currentUser?.isGuest, currentUser?._id, currentUser?.id]);
 
   // Manejar acciones de las notificaciones
   const handleNotificationAction = async (action, notif) => {
@@ -1745,18 +1764,15 @@ function App() {
           {/* Sección Opiniones (subida bajo Menú) */}
           <div className="sidebar-menu-label">Opiniones</div>
           <nav className="sidebar-nav">
-            {/* Valoraciones - Solo usuarios registrados */}
-            {!currentUser?.isGuest && (
-              <div 
-                className={`nav-item ${currentView === 'valoraciones' ? 'active' : ''}`} 
-                onClick={() => setCurrentView('valoraciones')}
-              >
-                <div className="nav-item-content">
-                  <span className="nav-icon"><FiStar size={10} /></span>
-                  <span className="nav-text">Valoraciones</span>
-                </div>
+            <div 
+              className={`nav-item ${currentView === 'valoraciones' ? 'active' : ''}`} 
+              onClick={() => setCurrentView('valoraciones')}
+            >
+              <div className="nav-item-content">
+                <span className="nav-icon"><FiStar size={10} /></span>
+                <span className="nav-text">Valoraciones</span>
               </div>
-            )}
+            </div>
             <div 
               className={`nav-item ${currentView === 'top-vinos' ? 'active' : ''}`} 
               onClick={() => setCurrentView('top-vinos')}
@@ -1895,16 +1911,13 @@ function App() {
 
               {/* Sección OPINIONES */}
               <div className="mobile-menu-section-label">OPINIONES</div>
-              {/* Valoraciones - Solo usuarios registrados */}
-              {!currentUser?.isGuest && (
-                <div 
-                  className="mobile-nav-item" 
-                  onClick={() => { setCurrentView('valoraciones'); setIsMenuOpen(false); }}
-                >
-                  <span className="mobile-nav-icon"><FiStar /></span>
-                  <span className="mobile-nav-text">Valoraciones</span>
-                </div>
-              )}
+              <div 
+                className="mobile-nav-item" 
+                onClick={() => { setCurrentView('valoraciones'); setIsMenuOpen(false); }}
+              >
+                <span className="mobile-nav-icon"><FiStar /></span>
+                <span className="mobile-nav-text">Valoraciones</span>
+              </div>
               <div 
                 className="mobile-nav-item" 
                 onClick={() => { setCurrentView('top-vinos'); setIsMenuOpen(false); }}
@@ -5777,6 +5790,7 @@ function ChangePasswordModal({ onClose, onSave }) {
 }
 
 export default App
+
 
 
 
