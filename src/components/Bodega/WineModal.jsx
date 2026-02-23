@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './WineModal.css';
+import statsService from '../../api/statsService';
 
 // Imagen de fallback confiable (Unsplash)
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&h=600&fit=crop&q=80';
@@ -204,7 +205,6 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
     // Si se resta stock, registrar como venta
     if (adjustType === 'subtract') {
       try {
-        const statsService = await import('../../api/statsService').then(m => m.default);
         await statsService.registerSale(wine._id || wine.id, value);
         console.log(`✅ Venta registrada: ${value} unidades de ${wine.name}`);
       } catch (err) {
@@ -263,7 +263,6 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
 
       // Registrar venta cuando se resta del restaurante
       try {
-        const statsService = await import('../../api/statsService').then(m => m.default);
         await statsService.registerSale(wine._id || wine.id, value);
         console.log(`✅ Venta registrada: ${value} unidades de ${wine.name}`);
       } catch (err) {
@@ -347,7 +346,6 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
 
     // Registrar la pérdida en estadísticas
     try {
-      const statsService = await import('../../api/statsService').then(m => m.default);
       await statsService.registerLoss(wine._id || wine.id, value, reasonText);
     } catch (err) {
       console.warn('No se pudo registrar la pérdida en estadísticas:', err);
@@ -1182,4 +1180,3 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
 }
 
 export default WineModal;
-
