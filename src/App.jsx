@@ -1182,20 +1182,29 @@ function App() {
   }, [isAuthenticated, currentUser?.isGuest]);
 
   // Manejar acciones de las notificaciones
-  const handleNotificationAction = async (action, notificationId) => {
+  const handleNotificationAction = async (action, notif) => {
+    const notificationId = notif?.id || notif?._id
     try {
-      await notificationService.markAsRead(notificationId)
+      if (notificationId) {
+        await notificationService.markAsRead(notificationId)
+      }
     } catch (e) {
       // ignorar si falla
     }
     setNotifications(prev => prev.map(notif => 
-      notif.id === notificationId ? { ...notif, unread: false, readAt: new Date() } : notif
+      (notif.id === notificationId || notif._id === notificationId) ? { ...notif, unread: false, readAt: new Date() } : notif
     ));
 
     // Navegar según la acción
     switch(action) {
       case 'Ver bodega':
         setCurrentView('bodega');
+        if (notif?.wineId) {
+          const targetWine = wines.find(w => (w.id || w._id) === notif.wineId)
+          if (targetWine) {
+            setSelectedWine(targetWine)
+          }
+        }
         break;
       case 'Hacer pedido':
         setCurrentView('pedidos');
@@ -1220,6 +1229,7 @@ function App() {
         console.log('Acción no reconocida:', action);
     }
 
+    setShowNotifications(false);
     // Scroll suave al inicio
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -2602,7 +2612,7 @@ function App() {
                               <button 
                                 key={idx}
                                 className={idx === 0 ? 'notificacion-btn-primary' : 'notificacion-btn-secondary'}
-                                onClick={() => handleNotificationAction(action, notif.id)}
+                                onClick={() => handleNotificationAction(action, notif)}
                               >
                                 {action}
                               </button>
