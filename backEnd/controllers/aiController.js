@@ -898,9 +898,23 @@ exports.processCommand = async (req, res, next) => {
     const userIntent = detectUserIntent(message);
     console.log(`[AI] 🎯 Intención detectada: ${userIntent.type} (acción: ${userIntent.action})`);
     
+    // Detectar si pide descripción para todos (antes de tratar "de la bodega" como nombre)
+    const wantsAllDescriptionsEarly = /descripcion(es)?\s+(de\s+)?(todos|all|varios|cada|los\s+vinos)/i.test(message) ||
+                                      /busca(r)?\s+descripcion(es)?\s+(para\s+)?(todos|all|cada)/i.test(message) ||
+                                      /pon(er|le|les)?\s+descripcion(es)?\s+(a\s+)?(todos|all|cada|los)/i.test(message) ||
+                                      /agrega(r|les?)?\s+(una\s+)?descripcion\s+(a\s+)?(todos|cada|los)/i.test(message) ||
+                                      /(a\s+)?cada\s+vino/i.test(message) ||
+                                      /(a\s+)?todos\s+(los\s+)?vinos/i.test(message) ||
+                                      /descripcion(es)?\s+a\s+cada/i.test(message) ||
+                                      /descripcion(es)?\s+a\s+todos/i.test(message);
+
     // Extraer nombre del vino mencionado
-    const mentionedWineName = extractWineNameFromMessage(message);
+    let mentionedWineName = extractWineNameFromMessage(message);
     let foundWine = null;
+
+    if (wantsAllDescriptionsEarly) {
+      mentionedWineName = null;
+    }
     
     if (mentionedWineName) {
       foundWine = findWineInBodega(mentionedWineName, allWines);
@@ -912,15 +926,6 @@ exports.processCommand = async (req, res, next) => {
     const needsWineName = ['change_image', 'search_description', 'change_description', 'change_price', 'modify_stock', 'set_stock', 'delete_wine'].includes(userIntent.type);
 
     // Detectar si pide descripción para todos antes de exigir nombre
-    const wantsAllDescriptionsEarly = /descripcion(es)?\s+(de\s+)?(todos|all|varios|cada|los\s+vinos)/i.test(message) ||
-                                      /busca(r)?\s+descripcion(es)?\s+(para\s+)?(todos|all|cada)/i.test(message) ||
-                                      /pon(er|le|les)?\s+descripcion(es)?\s+(a\s+)?(todos|all|cada|los)/i.test(message) ||
-                                      /agrega(r|les?)?\s+(una\s+)?descripcion\s+(a\s+)?(todos|cada|los)/i.test(message) ||
-                                      /(a\s+)?cada\s+vino/i.test(message) ||
-                                      /(a\s+)?todos\s+(los\s+)?vinos/i.test(message) ||
-                                      /descripcion(es)?\s+a\s+cada/i.test(message) ||
-                                      /descripcion(es)?\s+a\s+todos/i.test(message);
-
     if (needsWineName && !explicitAll && !mentionedWineName && !wantsAllDescriptionsEarly) {
       return res.json({
         success: true,
