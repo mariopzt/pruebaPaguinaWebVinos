@@ -22,26 +22,16 @@ import { AIChat } from './components/AIChat'
 function App() {
   const DEFAULT_AVATARS = useMemo(
     () => [
-      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk1',
-      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk2',
-      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk3',
-      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk4',
-      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk5',
-      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk6',
-      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk7',
-      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk8',
-      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk9',
-      'https://api.dicebear.com/7.x/bottts-neutral/png?seed=vinosstk10',
-      'https://api.dicebear.com/7.x/notionists-neutral/png?seed=vinospro1',
-      'https://api.dicebear.com/7.x/notionists-neutral/png?seed=vinospro2',
-      'https://api.dicebear.com/7.x/notionists-neutral/png?seed=vinospro3',
-      'https://api.dicebear.com/7.x/notionists-neutral/png?seed=vinospro4',
-      'https://api.dicebear.com/7.x/notionists-neutral/png?seed=vinospro5',
-      'https://api.dicebear.com/7.x/notionists-neutral/png?seed=vinospro6',
-      'https://api.dicebear.com/7.x/notionists-neutral/png?seed=vinospro7',
-      'https://api.dicebear.com/7.x/notionists-neutral/png?seed=vinospro8',
-      'https://api.dicebear.com/7.x/notionists-neutral/png?seed=vinospro9',
-      'https://api.dicebear.com/7.x/notionists-neutral/png?seed=vinospro10'
+      '/avatars/avatar-01.svg',
+      '/avatars/avatar-02.svg',
+      '/avatars/avatar-03.svg',
+      '/avatars/avatar-04.svg',
+      '/avatars/avatar-05.svg',
+      '/avatars/avatar-06.svg',
+      '/avatars/avatar-07.svg',
+      '/avatars/avatar-08.svg',
+      '/avatars/avatar-09.svg',
+      '/avatars/avatar-10.svg'
     ],
     []
   )
