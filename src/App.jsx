@@ -181,46 +181,12 @@ function App() {
 
   // Estados para ajustes
   const [ajustesData, setAjustesData] = useState({
-    // Datos del usuario
     userName: 'Jonny Alvarez',
     userEmail: 'jonny.alvarez@vinos.com',
-    userPhone: '+34 612 345 678',
-    userAvatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120',
-    // Notificaciones
-    notificationsPush: true,
-    notificationsOrders: true,
-    notificationsPromotions: false,
-    notificationsSound: true,
-    notificationsStockAlerts: true,
-    // Apariencia
-    theme: 'Oscuro',
-    language: 'Español',
-    animations: true,
-    compactMode: false,
-    // Seguridad
-    twoFactorAuth: false,
-    biometricAuth: false,
-    // Preferencias de la app
-    autoSync: true,
-    offlineMode: false,
-    dataCompression: true,
-    // Accesibilidad
-    fontSize: 'Medio',
-    highContrast: false,
-    reduceMotion: false,
-    // Preferencias de bodega
-    defaultView: 'Bodega',
-    sortBy: 'Nombre',
-    showOutOfStock: true
+    userAvatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=120'
   })
   const [showEditProfileModal, setShowEditProfileModal] = useState(false)
-  const [showEditInfoModal, setShowEditInfoModal] = useState(false)
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
-  const [showThemeModal, setShowThemeModal] = useState(false)
-  const [showLanguageModal, setShowLanguageModal] = useState(false)
-  const [showFontSizeModal, setShowFontSizeModal] = useState(false)
-  const [showDefaultViewModal, setShowDefaultViewModal] = useState(false)
-  const [showSortByModal, setShowSortByModal] = useState(false)
 
   // Helpers de tiempo para notificaciones (formato relativo sencillo)
   const formatTimeAgoEs = (date) => {
@@ -3227,18 +3193,6 @@ function App() {
       />
     )}
 
-    {/* Modal de editar información personal */}
-    {showEditInfoModal && (
-      <EditInfoModal
-        data={ajustesData}
-        onClose={() => setShowEditInfoModal(false)}
-        onSave={(newData) => {
-          setAjustesData({...ajustesData, ...newData})
-          setShowEditInfoModal(false)
-        }}
-      />
-    )}
-
     {/* Modal de cambiar contraseña */}
     {showChangePasswordModal && (
       <ChangePasswordModal
@@ -3260,65 +3214,6 @@ function App() {
       />
     )}
 
-    {/* Modal de seleccionar tema */}
-    {showThemeModal && (
-      <ThemeModal
-        currentTheme={ajustesData.theme}
-        onClose={() => setShowThemeModal(false)}
-        onSelect={(theme) => {
-          setAjustesData({...ajustesData, theme})
-          setShowThemeModal(false)
-        }}
-      />
-    )}
-
-    {/* Modal de seleccionar idioma */}
-    {showLanguageModal && (
-      <LanguageModal
-        currentLanguage={ajustesData.language}
-        onClose={() => setShowLanguageModal(false)}
-        onSelect={(language) => {
-          setAjustesData({...ajustesData, language})
-          setShowLanguageModal(false)
-        }}
-      />
-    )}
-
-    {/* Modal de tamaño de fuente */}
-    {showFontSizeModal && (
-      <FontSizeModal
-        currentSize={ajustesData.fontSize}
-        onClose={() => setShowFontSizeModal(false)}
-        onSelect={(fontSize) => {
-          setAjustesData({...ajustesData, fontSize})
-          setShowFontSizeModal(false)
-        }}
-      />
-    )}
-
-    {/* Modal de vista predeterminada */}
-    {showDefaultViewModal && (
-      <DefaultViewModal
-        currentView={ajustesData.defaultView}
-        onClose={() => setShowDefaultViewModal(false)}
-        onSelect={(defaultView) => {
-          setAjustesData({...ajustesData, defaultView})
-          setShowDefaultViewModal(false)
-        }}
-      />
-    )}
-
-    {/* Modal de ordenar por */}
-    {showSortByModal && (
-      <SortByModal
-        currentSort={ajustesData.sortBy}
-        onClose={() => setShowSortByModal(false)}
-        onSelect={(sortBy) => {
-          setAjustesData({...ajustesData, sortBy})
-          setShowSortByModal(false)
-        }}
-      />
-    )}
     </>
   )
 }
@@ -5022,73 +4917,6 @@ function EditProfileModal({ data, onClose, onSave, currentAvatar, availableAvata
   )
 }
 
-// Modal para editar información personal
-function EditInfoModal({ data, onClose, onSave }) {
-  const [userName, setUserName] = useState(data.userName)
-  const [userEmail, setUserEmail] = useState(data.userEmail)
-  const [userPhone, setUserPhone] = useState(data.userPhone)
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    onSave({ userName, userEmail, userPhone })
-  }
-
-  return (
-    <div className="task-modal-overlay" onClick={onClose}>
-      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="task-modal-header">
-          <h2>Información personal</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="task-modal-content">
-          <div className="task-modal-field">
-            <label>Nombre completo</label>
-            <input
-              type="text"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              placeholder="Ingresa tu nombre"
-              required
-            />
-          </div>
-
-          <div className="task-modal-field">
-            <label>Email</label>
-            <input
-              type="email"
-              value={userEmail}
-              onChange={(e) => setUserEmail(e.target.value)}
-              placeholder="tu@email.com"
-              required
-            />
-          </div>
-
-          <div className="task-modal-field">
-            <label>Teléfono</label>
-            <input
-              type="tel"
-              value={userPhone}
-              onChange={(e) => setUserPhone(e.target.value)}
-              placeholder="+34 612 345 678"
-              required
-            />
-          </div>
-
-          <div className="task-modal-actions">
-            <button type="button" className="task-modal-btn task-modal-btn-cancel" onClick={onClose}>
-              Cancelar
-            </button>
-            <button type="submit" className="task-modal-btn task-modal-btn-save">
-              Guardar cambios
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
 // Modal para cambiar contraseña
 function ChangePasswordModal({ onClose, onSave }) {
   const [currentPassword, setCurrentPassword] = useState('')
@@ -5182,169 +5010,6 @@ function ChangePasswordModal({ onClose, onSave }) {
   )
 }
 
-// Modal para seleccionar tema
-function ThemeModal({ currentTheme, onClose, onSelect }) {
-  const themes = ['Claro', 'Oscuro', 'Automático']
-
-  return (
-    <div className="task-modal-overlay" onClick={onClose}>
-      <div className="task-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-        <div className="task-modal-header">
-          <h2>Seleccionar tema</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-
-        <div className="task-modal-content">
-          <div className="ajustes-selection-list">
-            {themes.map((theme) => (
-              <div
-                key={theme}
-                className={`ajustes-selection-item ${currentTheme === theme ? 'selected' : ''}`}
-                onClick={() => onSelect(theme)}
-              >
-                <div className="ajustes-selection-label">{theme}</div>
-                {currentTheme === theme && (
-                  <FiCheckCircle className="ajustes-selection-check" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Modal para seleccionar idioma
-function LanguageModal({ currentLanguage, onClose, onSelect }) {
-  const languages = ['Español', 'English', 'Français', 'Deutsch', 'Italiano', 'Português']
-
-  return (
-    <div className="task-modal-overlay" onClick={onClose}>
-      <div className="task-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-        <div className="task-modal-header">
-          <h2>Seleccionar idioma</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-
-        <div className="task-modal-content">
-          <div className="ajustes-selection-list">
-            {languages.map((language) => (
-              <div
-                key={language}
-                className={`ajustes-selection-item ${currentLanguage === language ? 'selected' : ''}`}
-                onClick={() => onSelect(language)}
-              >
-                <div className="ajustes-selection-label">{language}</div>
-                {currentLanguage === language && (
-                  <FiCheckCircle className="ajustes-selection-check" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Modal para seleccionar tamaño de fuente
-function FontSizeModal({ currentSize, onClose, onSelect }) {
-  const sizes = ['Pequeño', 'Medio', 'Grande', 'Muy grande']
-
-  return (
-    <div className="task-modal-overlay" onClick={onClose}>
-      <div className="task-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-        <div className="task-modal-header">
-          <h2>Tamaño de texto</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-
-        <div className="task-modal-content">
-          <div className="ajustes-selection-list">
-            {sizes.map((size) => (
-              <div
-                key={size}
-                className={`ajustes-selection-item ${currentSize === size ? 'selected' : ''}`}
-                onClick={() => onSelect(size)}
-              >
-                <div className="ajustes-selection-label">{size}</div>
-                {currentSize === size && (
-                  <FiCheckCircle className="ajustes-selection-check" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Modal para seleccionar vista predeterminada
-function DefaultViewModal({ currentView, onClose, onSelect }) {
-  const views = ['Inicio', 'Bodega', 'Notas', 'Pedidos', 'Valoraciones']
-
-  return (
-    <div className="task-modal-overlay" onClick={onClose}>
-      <div className="task-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-        <div className="task-modal-header">
-          <h2>Vista predeterminada</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-
-        <div className="task-modal-content">
-          <div className="ajustes-selection-list">
-            {views.map((view) => (
-              <div
-                key={view}
-                className={`ajustes-selection-item ${currentView === view ? 'selected' : ''}`}
-                onClick={() => onSelect(view)}
-              >
-                <div className="ajustes-selection-label">{view}</div>
-                {currentView === view && (
-                  <FiCheckCircle className="ajustes-selection-check" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Modal para seleccionar orden
-function SortByModal({ currentSort, onClose, onSelect }) {
-  const sorts = ['Nombre', 'Precio (menor a mayor)', 'Precio (mayor a menor)', 'Stock', 'Más recientes', 'Más populares']
-
-  return (
-    <div className="task-modal-overlay" onClick={onClose}>
-      <div className="task-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-        <div className="task-modal-header">
-          <h2>Ordenar por</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-
-        <div className="task-modal-content">
-          <div className="ajustes-selection-list">
-            {sorts.map((sort) => (
-              <div
-                key={sort}
-                className={`ajustes-selection-item ${currentSort === sort ? 'selected' : ''}`}
-                onClick={() => onSelect(sort)}
-              >
-                <div className="ajustes-selection-label">{sort}</div>
-                {currentSort === sort && (
-                  <FiCheckCircle className="ajustes-selection-check" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default App
+
+
