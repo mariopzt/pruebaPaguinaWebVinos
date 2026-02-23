@@ -54,11 +54,11 @@ FRONTEND_URL=http://localhost:5173
 7. Copia el connection string y reemplaza:
    - `<username>` con tu usuario
    - `<password>` con tu contraseña
-   - `<database>` con `vinosStK`
+   - `<database>` con `Miga`
 
 **Ejemplo:**
 ```
-mongodb+srv://mario:mipassword123@cluster0.xxxxx.mongodb.net/vinosStK?retryWrites=true&w=majority
+mongodb+srv://mario:mipassword123@cluster0.xxxxx.mongodb.net/Miga?retryWrites=true&w=majority
 ```
 
 ## 🏃 Ejecutar el servidor
