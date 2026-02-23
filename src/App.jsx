@@ -3143,13 +3143,22 @@ function App() {
                         <input 
                           type="checkbox" 
                           checked={notificationsEnabled}
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const enabled = e.target.checked
                             setNotificationsEnabled(enabled)
                             if (!enabled) {
                               setShowNotifications(false)
                               if (currentView === 'ayuda') {
                                 setCurrentView('home')
+                              }
+                            } else {
+                              try {
+                                if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+                                  await Notification.requestPermission()
+                                }
+                                await ensurePushNotifications()
+                              } catch (error) {
+                                console.warn('No se pudieron activar las notificaciones push', error)
                               }
                             }
                           }}

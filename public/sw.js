@@ -11,6 +11,8 @@ self.addEventListener('push', (event) => {
     body: payload.body || 'Tienes una nueva notificacion',
     tag: payload.tag || `notif-${Date.now()}`,
     renotify: true,
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
     data: payload.data || {},
   };
 
