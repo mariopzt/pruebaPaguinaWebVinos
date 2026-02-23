@@ -76,6 +76,8 @@ const getTopWines = async (req, res, next) => {
 
     const wines = await Wine.find({}).lean();
     const userId = req.user?._id?.toString();
+    const guestId = req.query?.guestId ? String(req.query.guestId) : null;
+    const actorId = userId || guestId || null;
 
     const topWines = wines
       .map((wine) => {
@@ -86,8 +88,8 @@ const getTopWines = async (req, res, next) => {
           ? +(stats.ratingSum / stats.total).toFixed(1)
           : +(wine.rating || 0);
         const growth = computeGrowthLabel(stats.lastWeek, stats.prevWeek);
-        const liked = userId
-          ? (wine.likes?.users || []).some((id) => id?.toString() === userId)
+        const liked = actorId
+          ? (wine.likes?.users || []).some((id) => id?.toString() === actorId)
           : false;
         const score = likesCount * 2 + stats.total * 1.3 + avgRating * 4;
 

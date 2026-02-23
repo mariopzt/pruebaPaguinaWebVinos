@@ -12,9 +12,9 @@ const statsService = {
   },
 
   // Obtener top vinos
-  getTopWines: async () => {
+  getTopWines: async (params = {}) => {
     try {
-      const response = await api.get('/stats/top-wines');
+      const response = await api.get('/stats/top-wines', { params });
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error al obtener top vinos' };

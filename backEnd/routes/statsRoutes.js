@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/auth');
+const { protect, optionalAuth } = require('../middleware/auth');
 const {
   getStats,
   registerSale,
@@ -19,7 +19,7 @@ router.post('/sale', protect, registerSale);
 router.post('/loss', protect, registerLoss);
 
 // Obtener top vinos
-router.get('/top-wines', protect, getTopWines);
+router.get('/top-wines', optionalAuth, getTopWines);
 
 // Resetear estadísticas (solo admin)
 router.delete('/reset', protect, resetStats);

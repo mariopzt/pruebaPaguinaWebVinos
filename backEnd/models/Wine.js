@@ -109,10 +109,7 @@ const wineSchema = new mongoose.Schema(
         default: 0,
         min: 0,
       },
-      users: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-      }],
+      users: [String],
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -129,4 +126,3 @@ const wineSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model('Wine', wineSchema);
-

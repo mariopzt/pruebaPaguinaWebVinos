@@ -893,7 +893,7 @@ function App() {
   }, [currentView])
 
   const fetchTopWines = useCallback(async () => {
-    if (!isAuthenticated || currentUser?.isGuest) {
+    if (!isAuthenticated) {
       setTopWines([])
       return
     }
@@ -902,7 +902,10 @@ function App() {
     setTopWinesError('')
 
     try {
-      const response = await statsService.getTopWines()
+      const params = currentUser?.isGuest
+        ? { guestId: currentUser?._id || currentUser?.id }
+        : {}
+      const response = await statsService.getTopWines(params)
       const topData = response.data?.data || response.data || []
       setTopWines(topData.map((item, index) => ({
         ...item,
@@ -915,7 +918,7 @@ function App() {
     } finally {
       setTopWinesLoading(false)
     }
-  }, [isAuthenticated, currentUser?.isGuest, currentUserId])
+  }, [isAuthenticated, currentUser?.isGuest, currentUser?._id, currentUser?.id, currentUserId])
 
   useEffect(() => {
     fetchTopWines()
@@ -1013,6 +1016,17 @@ function App() {
         const response = await reviewService.create(payload)
         const saved = response.data?.data || response.data
         setReviews((prev) => [saved, ...prev])
+      }
+      setReviewsFilter('todos')
+      try {
+        const params = currentUser?.isGuest
+          ? { guestId: currentUser._id || currentUser.id }
+          : {}
+        const refreshResp = await reviewService.getAll(params)
+        const refreshed = refreshResp.data?.data || refreshResp.data || []
+        setReviews(refreshed)
+      } catch (refreshError) {
+        console.warn('No se pudo refrescar valoraciones tras guardar', refreshError)
       }
       setShowAddReviewModal(false)
       setShowEditReviewModal(false)

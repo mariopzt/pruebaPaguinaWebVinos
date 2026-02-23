@@ -314,18 +314,22 @@ exports.toggleLike = async (req, res) => {
       wine.likes = { count: 0, users: [] };
     }
 
+    const actorId = String(userId);
+    const normalizedUsers = (wine.likes.users || []).map((id) => String(id));
+
     // Verificar si el usuario/invitado ya dio like
-    const userIndex = wine.likes.users.indexOf(userId);
+    const userIndex = normalizedUsers.indexOf(actorId);
 
     if (userIndex > -1) {
       // Si ya dio like, removerlo
-      wine.likes.users.splice(userIndex, 1);
+      normalizedUsers.splice(userIndex, 1);
       wine.likes.count = Math.max(0, wine.likes.count - 1);
     } else {
       // Si no ha dado like, agregarlo
-      wine.likes.users.push(userId);
+      normalizedUsers.push(actorId);
       wine.likes.count += 1;
     }
+    wine.likes.users = normalizedUsers;
 
     await wine.save();
 
@@ -334,7 +338,7 @@ exports.toggleLike = async (req, res) => {
       data: {
         wineId: wine._id,
         likes: wine.likes.count,
-        liked: wine.likes.users.includes(userId)
+        liked: wine.likes.users.includes(actorId)
       }
     });
   } catch (error) {
