@@ -54,10 +54,12 @@ exports.updateTask = async (req, res, next) => {
     const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('user', 'name avatar');
     
     // Si la tarea acaba de completarse, notificar a todos los demás usuarios
+    // solo cuando se solicite explícitamente.
     const isNowCompleted = task?.status === 'completed' || task?.status === 'completada';
+    const shouldNotifyOthers = req.body?.notifyOthers === true || task?.metadata?.notifyOthers === true;
     console.log('[updateTask] wasCompleted:', wasCompleted, 'isNowCompleted:', isNowCompleted, 'status:', task?.status);
     
-    if (isNowCompleted && !wasCompleted && req.user) {
+    if (isNowCompleted && !wasCompleted && shouldNotifyOthers && req.user) {
       console.log('[updateTask] Enviando notificación de tarea completada');
       await notifyAllUsersExcept(req.user._id, {
         type: 'tarea-completada',
@@ -83,4 +85,3 @@ exports.deleteTask = async (req, res, next) => {
     next(error);
   }
 };
-
