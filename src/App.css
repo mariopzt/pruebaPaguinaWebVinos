@@ -6335,6 +6335,168 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   pointer-events: none;
 }
 
+/* --- Vista Vales --- */
+.vales-section {
+  min-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.vales-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+}
+
+.vale-card {
+  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.vale-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+}
+
+.vale-card.is-expired {
+  opacity: 0.72;
+  filter: grayscale(0.15);
+}
+
+.vale-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vale-card-title {
+  margin: 0;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.vale-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.vale-badge.activo {
+  color: #a5b4fc;
+  background: rgba(99, 102, 241, 0.14);
+}
+
+.vale-badge.usado {
+  color: #c9d0f2;
+  background: rgba(70, 80, 120, 0.28);
+}
+
+.vale-badge.expired {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.vale-code {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: #d1d5f9;
+  font-weight: 700;
+}
+
+.vale-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.vale-meta {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+  color: #9ca3c0;
+}
+
+.vale-actions {
+  margin-top: 4px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.vale-action-btn {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  background: rgba(99, 102, 241, 0.12);
+  color: #c7d2fe;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vale-action-btn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.42);
+}
+
+.vale-action-btn-secondary {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(148, 163, 184, 0.1);
+  color: #dbe2f0;
+}
+
+.vale-action-btn-secondary:hover:not(:disabled) {
+  background: rgba(148, 163, 184, 0.18);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.vale-action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.vales-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+}
+
+.vale-stat-card {
+  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.vale-stat-value {
+  font-size: 26px;
+  color: #ffffff;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.vale-stat-label {
+  margin-top: 6px;
+  color: #9ca3c0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .tareas-header {
   display: flex;
   align-items: center;

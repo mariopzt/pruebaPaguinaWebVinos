@@ -49,6 +49,7 @@ app.use('/api/wines', require('./routes/wineRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
+app.use('/api/vouchers', require('./routes/voucherRoutes'));
 app.use('/api/pending', require('./routes/pendingRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/stats', require('./routes/statsRoutes'));

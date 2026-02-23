@@ -13,6 +13,7 @@ import wineService from './api/wineService'
 import notificationService from './api/notificationService'
 import taskService from './api/taskService'
 import orderService from './api/orderService'
+import voucherService from './api/voucherService'
 import pendingService from './api/pendingService'
 import userService from './api/userService'
 import statsService from './api/statsService'
@@ -163,6 +164,13 @@ function App() {
   const [orders, setOrders] = useState([])
   const [ordersFilter, setOrdersFilter] = useState('todos')
   const [showAddOrderModal, setShowAddOrderModal] = useState(false)
+  const [vouchers, setVouchers] = useState([])
+  const [vouchersLoading, setVouchersLoading] = useState(false)
+  const [vouchersError, setVouchersError] = useState('')
+  const [vouchersFilter, setVouchersFilter] = useState('activos')
+  const [showAddVoucherModal, setShowAddVoucherModal] = useState(false)
+  const [showEditVoucherModal, setShowEditVoucherModal] = useState(false)
+  const [selectedVoucher, setSelectedVoucher] = useState(null)
   // Activación por token (se lee desde la URL en el estado inicial)
   const [activationToken, setActivationToken] = useState(() => {
     const params = new URLSearchParams(window.location.search)
@@ -381,7 +389,7 @@ function App() {
   useEffect(() => {
     if (!currentUser?.isGuest) return;
     
-    const restrictedViews = ['tareas', 'tareas-completadas', 'tareas-pendientes', 'pedidos', 'valoraciones', 'ajustes', 'ayuda', 'ia'];
+    const restrictedViews = ['tareas', 'tareas-completadas', 'tareas-pendientes', 'pedidos', 'vales', 'valoraciones', 'ajustes', 'ayuda', 'ia'];
     if (restrictedViews.includes(currentView)) {
       setCurrentView('bodega');
     }
@@ -449,6 +457,23 @@ function App() {
   }).length
 
   const totalOrdersCount = orders.length
+
+  const isVoucherExpired = (voucher) => {
+    const expiryTime = new Date(voucher.expiresAt).getTime()
+    return voucher.status === 'activo' && Number.isFinite(expiryTime) && expiryTime < Date.now()
+  }
+
+  const filteredVouchers = vouchers.filter((voucher) => {
+    if (vouchersFilter === 'todos') return true
+    if (vouchersFilter === 'activos') return voucher.status === 'activo' && !isVoucherExpired(voucher)
+    if (vouchersFilter === 'usados') return voucher.status === 'usado'
+    if (vouchersFilter === 'vencidos') return isVoucherExpired(voucher)
+    return true
+  })
+
+  const activeVouchersCount = vouchers.filter((v) => v.status === 'activo' && !isVoucherExpired(v)).length
+  const usedVouchersCount = vouchers.filter((v) => v.status === 'usado').length
+  const expiredVouchersCount = vouchers.filter((v) => isVoucherExpired(v)).length
 
   const taskFilters = [
     { id: 'todas', label: 'Todas' },
@@ -532,6 +557,101 @@ function App() {
   // Handlers para Pedidos
   const handleAddOrder = () => {
     setShowAddOrderModal(true)
+  }
+
+  const formatVoucherDiscount = (voucher) => (
+    voucher.discountType === 'percent'
+      ? `${voucher.discountValue}%`
+      : `${voucher.discountValue}€`
+  )
+
+  const handleCreateVoucher = () => {
+    setSelectedVoucher(null)
+    setShowAddVoucherModal(true)
+  }
+
+  const handleToggleVoucherStatus = async (voucherId) => {
+    const target = vouchers.find((voucher) => voucher.id === voucherId || voucher._id === voucherId)
+    if (!target) return
+
+    const nextStatus = target.status === 'activo' ? 'usado' : 'activo'
+    const nextUsesLeft = nextStatus === 'usado' ? 0 : (target.usesLeft > 0 ? target.usesLeft : 1)
+
+    setVouchers((prev) => prev.map((voucher) => {
+      if (voucher.id !== voucherId && voucher._id !== voucherId) return voucher
+      return { ...voucher, status: nextStatus, usesLeft: nextUsesLeft }
+    }))
+
+    try {
+      await voucherService.update(voucherId, {
+        status: nextStatus,
+        usesLeft: nextUsesLeft
+      })
+    } catch (error) {
+      console.error('Error al actualizar vale', error)
+      setVouchers((prev) => prev.map((voucher) => {
+        if (voucher.id !== voucherId && voucher._id !== voucherId) return voucher
+        return target
+      }))
+      alert('No se pudo actualizar el vale')
+    }
+  }
+
+  const handleSaveVoucher = async (voucherData) => {
+    try {
+      const payload = {
+        ...voucherData,
+        code: (voucherData.code || '').trim().toUpperCase(),
+      }
+      const resp = await voucherService.create(payload)
+      const saved = normalizeVoucher(resp.data?.data || resp.data || payload)
+      setVouchers((prev) => [saved, ...prev])
+      setShowAddVoucherModal(false)
+    } catch (error) {
+      console.error('Error al crear vale', error)
+      alert(error.response?.data?.message || 'No se pudo crear el vale')
+    }
+  }
+
+  const handleOpenEditVoucher = (voucher) => {
+    setSelectedVoucher(voucher)
+    setShowEditVoucherModal(true)
+  }
+
+  const handleUpdateVoucher = async (voucherData) => {
+    if (!voucherData?.id) return
+    try {
+      const payload = {
+        ...voucherData,
+        code: (voucherData.code || '').trim().toUpperCase(),
+      }
+      const resp = await voucherService.update(voucherData.id, payload)
+      const saved = normalizeVoucher(resp.data?.data || resp.data || payload)
+      setVouchers((prev) => prev.map((voucher) =>
+        voucher.id === saved.id || voucher._id === saved._id ? saved : voucher
+      ))
+      setShowEditVoucherModal(false)
+      setSelectedVoucher(null)
+    } catch (error) {
+      console.error('Error al editar vale', error)
+      alert(error.response?.data?.message || 'No se pudo editar el vale')
+    }
+  }
+
+  const handleDeleteVoucher = async (voucherId) => {
+    if (!voucherId) return
+    const shouldDelete = window.confirm('¿Eliminar este vale? Esta acción no se puede deshacer.')
+    if (!shouldDelete) return
+
+    try {
+      await voucherService.delete(voucherId)
+      setVouchers((prev) => prev.filter((voucher) => voucher.id !== voucherId && voucher._id !== voucherId))
+      setShowEditVoucherModal(false)
+      setSelectedVoucher(null)
+    } catch (error) {
+      console.error('Error al eliminar vale', error)
+      alert(error.response?.data?.message || 'No se pudo eliminar el vale')
+    }
   }
 
   const handleSaveOrder = async (orderData) => {
@@ -1127,6 +1247,15 @@ function App() {
     };
   };
 
+  function normalizeVoucher(voucher) {
+    return {
+      ...voucher,
+      id: voucher._id || voucher.id,
+      code: (voucher.code || '').toUpperCase(),
+      expiresAt: voucher.expiresAt ? new Date(voucher.expiresAt).toISOString() : null,
+    }
+  }
+
   const fetchOrders = useCallback(async () => {
     if (!isAuthenticated) {
       setOrders([]);
@@ -1141,11 +1270,31 @@ function App() {
     }
   }, [isAuthenticated]);
 
+  const fetchVouchers = useCallback(async () => {
+    if (!isAuthenticated) {
+      setVouchers([]);
+      return;
+    }
+    setVouchersLoading(true);
+    setVouchersError('');
+    try {
+      const resp = await voucherService.getAll();
+      const vouchersData = resp.data?.data || resp.data || [];
+      setVouchers(vouchersData.map(normalizeVoucher));
+    } catch (e) {
+      console.error('Error al cargar vales', e);
+      setVouchersError('No se pudieron cargar los vales');
+    } finally {
+      setVouchersLoading(false);
+    }
+  }, [isAuthenticated]);
+
   useEffect(() => {
     const fetchTasksAndOrders = async () => {
       if (!isAuthenticated) {
         setTasks([]);
         setOrders([]);
+        setVouchers([]);
         return;
       }
       try {
@@ -1164,12 +1313,13 @@ function App() {
         });
         setTasks(tasksData.map(normalizeTask));
         fetchOrders();
+        fetchVouchers();
       } catch (e) {
         console.error('Error al cargar tareas/pedidos', e);
       }
     };
     fetchTasksAndOrders();
-  }, [isAuthenticated, fetchOrders]);
+  }, [isAuthenticated, fetchOrders, fetchVouchers]);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -1459,6 +1609,9 @@ function App() {
     // Resetear likes para que se reinicialicen en próximo login
     likesInitializedRef.current = false
     setWineLikes({})
+    setTasks([])
+    setOrders([])
+    setVouchers([])
   }
 
   // Si no está autenticado, mostrar Login
@@ -1545,6 +1698,17 @@ function App() {
                 <div className="nav-item-content">
                   <span className="nav-icon"><FiShoppingBag size={10} /></span>
                   <span className="nav-text">Pedidos</span>
+                </div>
+              </div>
+            )}
+            {!currentUser?.isGuest && (
+              <div 
+                className={`nav-item ${currentView === 'vales' ? 'active' : ''}`} 
+                onClick={() => setCurrentView('vales')}
+              >
+                <div className="nav-item-content">
+                  <span className="nav-icon"><FiTag size={10} /></span>
+                  <span className="nav-text">Vales</span>
                 </div>
               </div>
             )}
@@ -1689,6 +1853,15 @@ function App() {
                 >
                   <span className="mobile-nav-icon"><FiPackage /></span>
                   <span className="mobile-nav-text">Pedidos</span>
+                </div>
+              )}
+              {!currentUser?.isGuest && (
+                <div 
+                  className="mobile-nav-item" 
+                  onClick={() => { setCurrentView('vales'); setIsMenuOpen(false); }}
+                >
+                  <span className="mobile-nav-icon"><FiTag /></span>
+                  <span className="mobile-nav-text">Vales</span>
                 </div>
               )}
 
@@ -2486,6 +2659,121 @@ function App() {
           </div>
         )}
 
+        {/* Vista Vales */}
+        {currentView === 'vales' && (
+          <div key="vales-view" className="content view-enter">
+            <div className="section section-full vales-section">
+              <div className="tareas-filters-row" style={{ marginBottom: 16 }}>
+                <div className="tareas-filter-bar">
+                  <button
+                    type="button"
+                    className={`tareas-filter-chip ${vouchersFilter === 'activos' ? 'active' : ''}`}
+                    onClick={() => setVouchersFilter('activos')}
+                  >
+                    Activos
+                  </button>
+                  <button
+                    type="button"
+                    className={`tareas-filter-chip ${vouchersFilter === 'usados' ? 'active' : ''}`}
+                    onClick={() => setVouchersFilter('usados')}
+                  >
+                    Usados
+                  </button>
+                  <button
+                    type="button"
+                    className={`tareas-filter-chip ${vouchersFilter === 'vencidos' ? 'active' : ''}`}
+                    onClick={() => setVouchersFilter('vencidos')}
+                  >
+                    Vencidos
+                  </button>
+                  <button
+                    type="button"
+                    className={`tareas-filter-chip ${vouchersFilter === 'todos' ? 'active' : ''}`}
+                    onClick={() => setVouchersFilter('todos')}
+                  >
+                    Todos
+                  </button>
+                </div>
+                <button className="tareas-add-btn" onClick={handleCreateVoucher}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 5v14M5 12h14"/>
+                  </svg>
+                  Nuevo vale
+                </button>
+              </div>
+
+              <div className="vales-grid">
+                {vouchersLoading && (
+                  <div className="empty-state">Cargando vales...</div>
+                )}
+                {!vouchersLoading && vouchersError && (
+                  <div className="empty-state">{vouchersError}</div>
+                )}
+                {!vouchersLoading && !vouchersError && filteredVouchers.length === 0 && (
+                  <div className="empty-state">No hay vales en este filtro.</div>
+                )}
+                {!vouchersLoading && !vouchersError && filteredVouchers.map((voucher) => {
+                  const expired = isVoucherExpired(voucher)
+                  const statusLabel = expired ? 'Vencido' : (voucher.status === 'usado' ? 'Usado' : 'Activo')
+
+                  return (
+                    <article key={voucher.id} className={`vale-card ${expired ? 'is-expired' : ''}`}>
+                      <div className="vale-card-header">
+                        <h3 className="vale-card-title">{voucher.title}</h3>
+                        <span className={`vale-badge ${expired ? 'expired' : voucher.status}`}>
+                          {statusLabel}
+                        </span>
+                      </div>
+
+                      <p className="vale-code">{voucher.code}</p>
+                      <div className="vale-value">{formatVoucherDiscount(voucher)} de descuento</div>
+
+                      <div className="vale-meta">
+                        <span>Pedido mínimo: {voucher.minOrder}€</span>
+                        <span>Usos restantes: {voucher.usesLeft}</span>
+                        <span>Caduca: {new Date(voucher.expiresAt).toLocaleDateString('es-ES')}</span>
+                      </div>
+
+                      <div className="vale-actions">
+                        <button
+                          type="button"
+                          className="vale-action-btn vale-action-btn-secondary"
+                          onClick={() => handleOpenEditVoucher(voucher)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="vale-action-btn"
+                          onClick={() => handleToggleVoucherStatus(voucher.id)}
+                          disabled={expired}
+                        >
+                          {voucher.status === 'activo' ? 'Marcar usado' : 'Reactivar'}
+                        </button>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+
+              <div className="vales-summary">
+                <div className="vale-stat-card">
+                  <div className="vale-stat-value">{activeVouchersCount}</div>
+                  <div className="vale-stat-label">Activos</div>
+                </div>
+                <div className="vale-stat-card">
+                  <div className="vale-stat-value">{usedVouchersCount}</div>
+                  <div className="vale-stat-label">Usados</div>
+                </div>
+                <div className="vale-stat-card">
+                  <div className="vale-stat-value">{expiredVouchersCount}</div>
+                  <div className="vale-stat-label">Vencidos</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Vista Ajustes */}
         {currentView === 'ajustes' && (
           <div key="ajustes-view" className="content view-enter">
@@ -3123,6 +3411,14 @@ function App() {
       />
     )}
 
+    {/* Modal de agregar vale */}
+    {showAddVoucherModal && (
+      <AddVoucherModal
+        onClose={() => setShowAddVoucherModal(false)}
+        onSave={handleSaveVoucher}
+      />
+    )}
+
     {/* Modal de editar pedido */}
     {showEditOrderModal && selectedOrder && (
       <EditOrderModal
@@ -3134,6 +3430,19 @@ function App() {
         onSave={handleSaveOrder}
         onDelete={handleDeleteOrder}
         wines={wines}
+      />
+    )}
+
+    {/* Modal de editar/eliminar vale */}
+    {showEditVoucherModal && selectedVoucher && (
+      <EditVoucherModal
+        voucher={selectedVoucher}
+        onClose={() => {
+          setShowEditVoucherModal(false)
+          setSelectedVoucher(null)
+        }}
+        onSave={handleUpdateVoucher}
+        onDelete={handleDeleteVoucher}
       />
     )}
 
@@ -3799,6 +4108,206 @@ function AddTaskModal({ onClose, onSave }) {
         </form>
       </div>
     </div>
+  )
+}
+
+// Modal base para crear/editar vales
+function VoucherModal({ title, initialVoucher, submitLabel, onClose, onSave, onDelete = null }) {
+  const [voucher, setVoucher] = useState(() => ({
+    id: initialVoucher?.id || '',
+    code: initialVoucher?.code || '',
+    title: initialVoucher?.title || '',
+    discountType: initialVoucher?.discountType || 'percent',
+    discountValue: initialVoucher?.discountValue ?? 10,
+    minOrder: initialVoucher?.minOrder ?? 0,
+    usesLeft: initialVoucher?.usesLeft ?? 1,
+    expiresAt: initialVoucher?.expiresAt
+      ? new Date(initialVoucher.expiresAt).toISOString().split('T')[0]
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    status: initialVoucher?.status || 'activo',
+  }))
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (!voucher.code.trim()) {
+      alert('El código del vale es obligatorio')
+      return
+    }
+    if (!voucher.title.trim()) {
+      alert('El título del vale es obligatorio')
+      return
+    }
+    if (!voucher.expiresAt) {
+      alert('La fecha de caducidad es obligatoria')
+      return
+    }
+
+    onSave({
+      ...voucher,
+      code: voucher.code.trim().toUpperCase(),
+      title: voucher.title.trim(),
+      discountValue: Number(voucher.discountValue),
+      minOrder: Number(voucher.minOrder),
+      usesLeft: Number(voucher.usesLeft),
+      expiresAt: new Date(`${voucher.expiresAt}T23:59:59`).toISOString(),
+    })
+  }
+
+  return (
+    <div className="task-modal-overlay" onClick={onClose}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="task-modal-header">
+          <h3>{title}</h3>
+          <button className="task-modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <form className="task-modal-content" onSubmit={handleSubmit}>
+          <div className="task-modal-row">
+            <div className="task-modal-field">
+              <label>Código</label>
+              <input
+                type="text"
+                value={voucher.code}
+                onChange={(e) => setVoucher({ ...voucher, code: e.target.value.toUpperCase() })}
+                placeholder="Ej: BIENVENIDA10"
+                maxLength={30}
+                required
+              />
+            </div>
+            <div className="task-modal-field">
+              <label>Estado</label>
+              <select
+                value={voucher.status}
+                onChange={(e) => setVoucher({ ...voucher, status: e.target.value })}
+              >
+                <option value="activo">Activo</option>
+                <option value="usado">Usado</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="task-modal-field">
+            <label>Título</label>
+            <input
+              type="text"
+              value={voucher.title}
+              onChange={(e) => setVoucher({ ...voucher, title: e.target.value })}
+              placeholder="Ej: Vale de bienvenida"
+              maxLength={80}
+              required
+            />
+          </div>
+
+          <div className="task-modal-row">
+            <div className="task-modal-field">
+              <label>Tipo de descuento</label>
+              <select
+                value={voucher.discountType}
+                onChange={(e) => setVoucher({ ...voucher, discountType: e.target.value })}
+              >
+                <option value="percent">Porcentaje (%)</option>
+                <option value="fixed">Importe fijo (€)</option>
+              </select>
+            </div>
+            <div className="task-modal-field">
+              <label>Valor descuento</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={voucher.discountValue}
+                onChange={(e) => setVoucher({ ...voucher, discountValue: e.target.value })}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="task-modal-row">
+            <div className="task-modal-field">
+              <label>Pedido mínimo (€)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={voucher.minOrder}
+                onChange={(e) => setVoucher({ ...voucher, minOrder: e.target.value })}
+              />
+            </div>
+            <div className="task-modal-field">
+              <label>Usos restantes</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={voucher.usesLeft}
+                onChange={(e) => setVoucher({ ...voucher, usesLeft: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="task-modal-field">
+            <label>Caduca el</label>
+            <input
+              type="date"
+              value={voucher.expiresAt}
+              onChange={(e) => setVoucher({ ...voucher, expiresAt: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="task-modal-actions">
+            {onDelete ? (
+              <button
+                type="button"
+                className="task-modal-btn task-modal-btn-delete"
+                onClick={() => onDelete(voucher.id)}
+              >
+                Eliminar
+              </button>
+            ) : (
+              <div />
+            )}
+            <div className="task-modal-actions-right">
+              <button
+                type="button"
+                className="task-modal-btn task-modal-btn-cancel"
+                onClick={onClose}
+              >
+                Cancelar
+              </button>
+              <button type="submit" className="task-modal-btn task-modal-btn-save">
+                {submitLabel}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function AddVoucherModal({ onClose, onSave }) {
+  return (
+    <VoucherModal
+      title="Nuevo Vale"
+      submitLabel="Crear Vale"
+      initialVoucher={null}
+      onClose={onClose}
+      onSave={onSave}
+    />
+  )
+}
+
+function EditVoucherModal({ voucher, onClose, onSave, onDelete }) {
+  return (
+    <VoucherModal
+      title="Editar Vale"
+      submitLabel="Guardar Cambios"
+      initialVoucher={voucher}
+      onClose={onClose}
+      onSave={onSave}
+      onDelete={onDelete}
+    />
   )
 }
 
@@ -5045,5 +5554,6 @@ function ChangePasswordModal({ onClose, onSave }) {
 }
 
 export default App
+
 
 
