@@ -6351,26 +6351,100 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .vale-card {
-  background: radial-gradient(circle at top left, #1e1e38 0, #111118 60%);
-  border-radius: 14px;
+  background: linear-gradient(165deg, #efe9db 0%, #e8dfcf 58%, #e2d8c5 100%);
+  border-radius: 12px;
   padding: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(77, 58, 36, 0.22);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.34);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  min-height: 290px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.vale-card::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(77, 58, 36, 0.13);
+  border-radius: 10px;
+  pointer-events: none;
 }
 
 .vale-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+  transform: translateY(-3px) rotate(-0.2deg);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
 }
 
 .vale-card.is-expired {
-  opacity: 0.72;
-  filter: grayscale(0.15);
+  opacity: 0.75;
+  filter: grayscale(0.34);
+}
+
+.vale-badge-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.vale-badge-floating {
+  position: relative;
+  z-index: 1;
+}
+
+.vale-layout {
+  display: grid;
+  gap: 10px;
+}
+
+.vale-main-title {
+  margin: 0;
+  font-size: 34px;
+  line-height: 0.95;
+  font-weight: 300;
+  color: #2f2316;
+}
+
+.vale-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.vale-form-field {
+  border-radius: 999px;
+  background: rgba(144, 126, 98, 0.12);
+  border: 1px solid rgba(77, 58, 36, 0.12);
+  padding: 8px 12px;
+  display: grid;
+  gap: 2px;
+}
+
+.vale-form-field span {
+  color: #6a5843;
+  font-size: 12px;
+}
+
+.vale-form-field strong {
+  color: #2f2316;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.vale-contact {
+  color: #5f513d;
+  font-size: 12px;
+  line-height: 1.35;
+  margin-top: 4px;
+}
+
+.vale-note {
+  font-size: 10px;
+  color: #75654c;
+  border-top: 1px solid rgba(77, 58, 36, 0.14);
+  padding-top: 8px;
 }
 
 .vale-card-header {
@@ -6382,53 +6456,97 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .vale-card-title {
   margin: 0;
-  color: #ffffff;
-  font-size: 16px;
+  color: #392d1d;
+  font-size: 15px;
   font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .vale-badge {
-  padding: 4px 10px;
+  padding: 4px 9px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(77, 58, 36, 0.26);
+  background: rgba(248, 243, 232, 0.8);
 }
 
 .vale-badge.activo {
-  color: #a5b4fc;
-  background: rgba(99, 102, 241, 0.14);
+  color: #365b24;
+  background: rgba(77, 132, 59, 0.12);
 }
 
 .vale-badge.usado {
-  color: #c9d0f2;
-  background: rgba(70, 80, 120, 0.28);
+  color: #615747;
+  background: rgba(97, 87, 71, 0.12);
 }
 
 .vale-badge.expired {
-  color: #fca5a5;
-  background: rgba(239, 68, 68, 0.12);
+  color: #8a3a2a;
+  background: rgba(190, 78, 50, 0.12);
+}
+
+.vale-seal {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  width: 178px;
+  height: 178px;
+  border-radius: 50%;
+  border: 2px solid rgba(68, 54, 36, 0.2);
+  margin: 2px auto 6px;
+  position: relative;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.34), rgba(235, 226, 208, 0));
+}
+
+.vale-seal-ring {
+  position: absolute;
+  width: 142px;
+  height: 142px;
+  border-radius: 50%;
+  border: 1px dashed rgba(68, 54, 36, 0.2);
+  color: rgba(68, 54, 36, 0.55);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  line-height: 1.25;
+  padding: 24px;
+}
+
+.vale-seal-core {
+  color: #22222a;
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  transform: rotate(-90deg);
 }
 
 .vale-code {
   margin: 0;
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.08em;
-  color: #d1d5f9;
+  color: #5f513d;
   font-weight: 700;
+  text-align: center;
 }
 
 .vale-value {
   font-size: 20px;
   font-weight: 700;
-  color: #ffffff;
+  color: #2f2316;
+  text-align: center;
 }
 
 .vale-meta {
   display: grid;
   gap: 5px;
   font-size: 12px;
-  color: #9ca3c0;
+  color: #5f513d;
+  margin-top: 4px;
 }
 
 .vale-actions {
@@ -6441,28 +6559,28 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .vale-action-btn {
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(99, 102, 241, 0.28);
-  background: rgba(99, 102, 241, 0.12);
-  color: #c7d2fe;
+  border: 1px solid rgba(77, 58, 36, 0.3);
+  background: rgba(244, 237, 223, 0.95);
+  color: #392d1d;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .vale-action-btn:hover:not(:disabled) {
-  background: rgba(99, 102, 241, 0.2);
-  border-color: rgba(99, 102, 241, 0.42);
+  background: rgba(236, 226, 207, 1);
+  border-color: rgba(77, 58, 36, 0.45);
 }
 
 .vale-action-btn-secondary {
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  background: rgba(148, 163, 184, 0.1);
-  color: #dbe2f0;
+  border: 1px solid rgba(112, 94, 67, 0.3);
+  background: rgba(230, 220, 199, 0.8);
+  color: #4a3b27;
 }
 
 .vale-action-btn-secondary:hover:not(:disabled) {
-  background: rgba(148, 163, 184, 0.18);
-  border-color: rgba(148, 163, 184, 0.4);
+  background: rgba(221, 208, 185, 0.9);
+  border-color: rgba(112, 94, 67, 0.5);
 }
 
 .vale-action-btn:disabled {
@@ -6495,6 +6613,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: #9ca3c0;
   font-size: 12px;
   font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .vale-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 .tareas-header {

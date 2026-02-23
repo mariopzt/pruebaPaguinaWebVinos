@@ -2718,20 +2718,46 @@ function App() {
 
                   return (
                     <article key={voucher.id} className={`vale-card ${expired ? 'is-expired' : ''}`}>
-                      <div className="vale-card-header">
-                        <h3 className="vale-card-title">{voucher.title}</h3>
-                        <span className={`vale-badge ${expired ? 'expired' : voucher.status}`}>
+                      <div className="vale-badge-row">
+                        <span className={`vale-badge vale-badge-floating ${expired ? 'expired' : voucher.status}`}>
                           {statusLabel}
                         </span>
                       </div>
 
-                      <p className="vale-code">{voucher.code}</p>
-                      <div className="vale-value">{formatVoucherDiscount(voucher)} de descuento</div>
+                      <div className="vale-layout">
+                        <h3 className="vale-main-title">Vale "Dejate llevar"</h3>
+
+                        <div className="vale-form-field">
+                          <span>Para:</span>
+                          <strong>{voucher.title}</strong>
+                        </div>
+
+                        <div className="vale-form-row">
+                          <div className="vale-form-field">
+                            <span>Ref:</span>
+                            <strong>{voucher.code}</strong>
+                          </div>
+                          <div className="vale-form-field">
+                            <span>Expira:</span>
+                            <strong>{new Date(voucher.expiresAt).toLocaleDateString('es-ES')}</strong>
+                          </div>
+                        </div>
+
+                        <div className="vale-contact">
+                          Plaza de Espana 6-7<br />
+                          881 924 882<br />
+                          miga@migacoruna.com
+                        </div>
+
+                        <div className="vale-note">
+                          Vale por un menu degustacion. Consulta condiciones en el local.
+                        </div>
+                      </div>
 
                       <div className="vale-meta">
-                        <span>Pedido mínimo: {voucher.minOrder}€</span>
+                        <span>Descuento: {formatVoucherDiscount(voucher)}</span>
+                        <span>Pedido minimo: {voucher.minOrder} EUR</span>
                         <span>Usos restantes: {voucher.usesLeft}</span>
-                        <span>Caduca: {new Date(voucher.expiresAt).toLocaleDateString('es-ES')}</span>
                       </div>
 
                       <div className="vale-actions">
@@ -5554,6 +5580,7 @@ function ChangePasswordModal({ onClose, onSave }) {
 }
 
 export default App
+
 
 
 
