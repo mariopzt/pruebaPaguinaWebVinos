@@ -2718,6 +2718,8 @@ function App() {
                         </span>
                       </div>
 
+                      <h3 className="vale-main-title">Vale "Dejate llevar"</h3>
+
                       <div className="vale-layout">
                         <div className="vale-layout-main">
                           <div className="vale-form-field">
@@ -2746,8 +2748,6 @@ function App() {
                             Vale por un menu degustacion "Dejate llevar". Consulta condiciones en el local.
                           </div>
                         </div>
-
-                        <h3 className="vale-main-title">Vale "Dejate llevar"</h3>
                       </div>
 
                       <div className="vale-actions">
@@ -4380,6 +4380,7 @@ function EditVoucherModal({ voucher, onClose, onSave, onDelete }) {
     <VoucherModal
       title="Editar Vale"
       submitLabel="Guardar Cambios"
+      simpleCreate
       initialVoucher={voucher}
       onClose={onClose}
       onSave={onSave}

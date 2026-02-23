@@ -6385,10 +6385,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .vale-badge-row {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
+  position: static;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2px;
 }
 
 .vale-badge-floating {
@@ -6397,7 +6397,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .vale-layout {
-  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 8px;
@@ -6408,22 +6407,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .vale-layout-main {
   display: grid;
   gap: 6px;
-  padding-right: 78px;
+  padding-right: 0;
 }
 
 .vale-main-title {
   margin: 0;
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%) rotate(90deg);
-  transform-origin: center;
-  font-size: clamp(22px, 2.6vw, 34px);
+  position: static;
+  transform: none;
+  font-size: clamp(24px, 3vw, 36px);
   line-height: 0.95;
   font-weight: 300;
   color: #2f2316;
   letter-spacing: -0.02em;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
   pointer-events: none;
 }
 
@@ -6434,11 +6431,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .vale-form-field {
-  border-radius: 999px;
+  border-radius: 9px;
   background: rgba(144, 126, 98, 0.16);
   border: 1px solid rgba(77, 58, 36, 0.12);
   padding: 6px 10px;
-  display: grid;
+  display: flex;
   gap: 1px;
 }
 
@@ -6454,6 +6451,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .vale-contact {
+  display: flex;
+  justify-content: center;
+  text-align: center;
   color: #5f513d;
   font-size: 10px;
   line-height: 1.2;
@@ -6466,6 +6466,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border-top: 1px solid rgba(77, 58, 36, 0.14);
   padding-top: 6px;
   margin-top: 2px;
+  text-align: center;
 }
 
 .vale-card-header {
@@ -6646,13 +6647,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     grid-template-columns: 1fr;
   }
 
-  .vale-layout-main {
-    padding-right: 0;
-  }
-
   .vale-main-title {
-    position: static;
-    transform: none;
     font-size: 38px;
     white-space: normal;
     justify-self: start;
