@@ -1917,12 +1917,53 @@ async function searchWineDescription(wineName, wineType = '', wineRegion = '', o
   }
 
   if (strictWeb) {
+    // Intento 1: Wikipedia/Wikidata (fuente estable)
+    try {
+      const wikiCandidates = [
+        wineName,
+        `${wineName} vino`,
+        `${wineName} bodega`
+      ];
+      for (const candidate of wikiCandidates) {
+        const title = encodeURIComponent(candidate.replace(/\s+/g, '_'));
+        const wikiUrl = `https://es.wikipedia.org/api/rest_v1/page/summary/${title}`;
+        try {
+          const wikiRes = await axios.get(wikiUrl, { timeout: 5000 });
+          const extract = (wikiRes.data?.extract || '').replace(/\s+/g, ' ').trim();
+          if (extract.length >= 40) {
+            const trimmed = extract.length > 300 ? `${extract.slice(0, 297)}...` : extract;
+            console.log(`📝 [DESC SEARCH] ✅ Wikipedia encontró texto para: "${wineName}"`);
+            return trimmed;
+          }
+        } catch (e) {
+          // continuar con siguiente candidato
+        }
+      }
+    } catch (e) {
+      console.log('[DESC] Error Wikipedia summary:', e.message);
+    }
+
+    // Intento 2: tiendas/fuentes de vino (scraping interno existente)
+    try {
+      const shopInfo = await scrapeWineFromWeb(wineName);
+      const shopText = shopInfo?.results
+        ?.map(r => (r.info || '').replace(/\s+/g, ' ').trim())
+        .find(t => t && t.length >= 30);
+      if (shopText) {
+        const trimmed = shopText.length > 300 ? `${shopText.slice(0, 297)}...` : shopText;
+        console.log(`📝 [DESC SEARCH] ✅ Tiendas web encontraron texto para: "${wineName}"`);
+        return trimmed;
+      }
+    } catch (e) {
+      console.log('[DESC] Error fallback tiendas:', e.message);
+    }
+
     // Intento final: usar búsqueda general web y guardar el mejor fragmento real disponible
     try {
       const webInfo = await searchWineInfo(wineName);
       const fragment = webInfo?.results
         ?.map(r => (r.content || r.info || '').replace(/\s+/g, ' ').trim())
-        .find(t => t && t.length >= 40);
+        .find(t => t && t.length >= 30);
       if (fragment) {
         const trimmed = fragment.length > 300 ? `${fragment.slice(0, 297)}...` : fragment;
         console.log(`📝 [DESC SEARCH] ✅ Fragmento web encontrado para: "${wineName}"`);
