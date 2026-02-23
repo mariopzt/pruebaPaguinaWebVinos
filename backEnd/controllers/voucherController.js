@@ -4,9 +4,8 @@ const normalizeCode = (code) => (code || '').toString().trim().toUpperCase();
 
 exports.getVouchers = async (req, res, next) => {
   try {
-    const query = {};
-    if (req.user) query.$or = [{ user: req.user._id }, { user: null }];
-    const vouchers = await Voucher.find(query).sort({ createdAt: -1 }).lean();
+    // Vales globales: visibles para todas las cuentas.
+    const vouchers = await Voucher.find({}).sort({ createdAt: -1 }).lean();
     res.json({ success: true, data: vouchers });
   } catch (error) {
     next(error);
@@ -17,7 +16,8 @@ exports.createVoucher = async (req, res, next) => {
   try {
     const payload = { ...req.body };
     payload.code = normalizeCode(payload.code);
-    if (req.user && !payload.user) payload.user = req.user._id;
+    // Forzamos vale compartido (no ligado a un usuario concreto).
+    payload.user = null;
     const voucher = await Voucher.create(payload);
     res.status(201).json({ success: true, data: voucher });
   } catch (error) {
