@@ -1205,7 +1205,6 @@ function App() {
 
   const showBrowserNotification = useCallback((notif) => {
     if (!notificationsEnabled) return
-    if (pushEndpointRef.current) return
     if (typeof window === 'undefined' || !('Notification' in window)) return
     if (Notification.permission !== 'granted') return
 
