@@ -6350,6 +6350,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   gap: 12px;
 }
 
+.vales-section .search-container {
+  margin-bottom: 0;
+  margin-left: 8px;
+}
+
 .vale-card {
   background: linear-gradient(165deg, #efe9db 0%, #e8dfcf 58%, #e2d8c5 100%);
   border-radius: 10px;
@@ -6436,7 +6441,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border: 1px solid rgba(77, 58, 36, 0.12);
   padding: 6px 10px;
   display: flex;
+  align-items: center;
   gap: 1px;
+  min-width: 0;
 }
 
 .vale-form-field span {
@@ -6448,6 +6455,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: #2f2316;
   font-size: 10px;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .vale-contact {

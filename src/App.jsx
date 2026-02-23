@@ -168,6 +168,9 @@ function App() {
   const [vouchersLoading, setVouchersLoading] = useState(false)
   const [vouchersError, setVouchersError] = useState('')
   const [vouchersFilter, setVouchersFilter] = useState('activos')
+  const [vouchersSearch, setVouchersSearch] = useState('')
+  const [isVouchersSearchOpen, setIsVouchersSearchOpen] = useState(false)
+  const [isVouchersFilterMenuOpen, setIsVouchersFilterMenuOpen] = useState(false)
   const [showAddVoucherModal, setShowAddVoucherModal] = useState(false)
   const [showEditVoucherModal, setShowEditVoucherModal] = useState(false)
   const [selectedVoucher, setSelectedVoucher] = useState(null)
@@ -464,6 +467,11 @@ function App() {
   }
 
   const filteredVouchers = vouchers.filter((voucher) => {
+    const search = vouchersSearch.trim().toLowerCase()
+    const matchesSearch = !search ||
+      (voucher.title || '').toLowerCase().includes(search) ||
+      (voucher.code || '').toLowerCase().includes(search)
+    if (!matchesSearch) return false
     if (vouchersFilter === 'todos') return true
     if (vouchersFilter === 'activos') return voucher.status === 'activo' && !isVoucherExpired(voucher)
     if (vouchersFilter === 'usados') return voucher.status === 'usado'
@@ -474,6 +482,27 @@ function App() {
   const activeVouchersCount = vouchers.filter((v) => v.status === 'activo' && !isVoucherExpired(v)).length
   const usedVouchersCount = vouchers.filter((v) => v.status === 'usado').length
   const expiredVouchersCount = vouchers.filter((v) => isVoucherExpired(v)).length
+  const voucherFilterOptions = [
+    { id: 'activos', label: 'Activos' },
+    { id: 'usados', label: 'Usados' },
+    { id: 'vencidos', label: 'Vencidos' },
+    { id: 'todos', label: 'Todos' },
+  ]
+
+  const handleVouchersSearchToggle = () => {
+    setIsVouchersSearchOpen((prev) => !prev)
+  }
+
+  const handleCloseVouchersSearch = () => {
+    setIsVouchersSearchOpen(false)
+    setVouchersSearch('')
+  }
+
+  const handleVouchersSearchKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      handleCloseVouchersSearch()
+    }
+  }
 
   const taskFilters = [
     { id: 'todas', label: 'Todas' },
@@ -2657,36 +2686,84 @@ function App() {
         {currentView === 'vales' && (
           <div key="vales-view" className="content view-enter">
             <div className="section section-full vales-section">
+
               <div className="tareas-filters-row" style={{ marginBottom: 16 }}>
                 <div className="tareas-filter-bar">
-                  <button
-                    type="button"
-                    className={`tareas-filter-chip ${vouchersFilter === 'activos' ? 'active' : ''}`}
-                    onClick={() => setVouchersFilter('activos')}
-                  >
-                    Activos
-                  </button>
-                  <button
-                    type="button"
-                    className={`tareas-filter-chip ${vouchersFilter === 'usados' ? 'active' : ''}`}
-                    onClick={() => setVouchersFilter('usados')}
-                  >
-                    Usados
-                  </button>
-                  <button
-                    type="button"
-                    className={`tareas-filter-chip ${vouchersFilter === 'vencidos' ? 'active' : ''}`}
-                    onClick={() => setVouchersFilter('vencidos')}
-                  >
-                    Vencidos
-                  </button>
-                  <button
-                    type="button"
-                    className={`tareas-filter-chip ${vouchersFilter === 'todos' ? 'active' : ''}`}
-                    onClick={() => setVouchersFilter('todos')}
-                  >
-                    Todos
-                  </button>
+                  <div className="tareas-filter-buttons-desktop">
+                    {voucherFilterOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className={`tareas-filter-chip ${vouchersFilter === option.id ? 'active' : ''}`}
+                        onClick={() => setVouchersFilter(option.id)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="tareas-filter-dropdown-mobile">
+                    <div className="filter-dropdown-container">
+                      <button
+                        type="button"
+                        className={`filter-dropdown-button ${isVouchersFilterMenuOpen ? 'open' : ''}`}
+                        onClick={() => setIsVouchersFilterMenuOpen((prev) => !prev)}
+                      >
+                        {voucherFilterOptions.find((opt) => opt.id === vouchersFilter)?.label || 'Todos'}
+                        <FiChevronDown className="chevron" size={14} />
+                      </button>
+                      {isVouchersFilterMenuOpen && (
+                        <div className="filter-dropdown-menu">
+                          {voucherFilterOptions.map((option) => (
+                            <button
+                              key={option.id}
+                              className={`filter-dropdown-item ${vouchersFilter === option.id ? 'active' : ''}`}
+                              onClick={() => {
+                                setVouchersFilter(option.id)
+                                setIsVouchersFilterMenuOpen(false)
+                              }}
+                            >
+                              {vouchersFilter === option.id && <span className="checkmark">✓</span>}
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={`search-container ${isVouchersSearchOpen ? 'open' : ''}`}>
+                    <button
+                      className="search-button"
+                      onClick={handleVouchersSearchToggle}
+                      title={isVouchersSearchOpen ? 'Cerrar búsqueda' : 'Abrir búsqueda'}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                      </svg>
+                    </button>
+                    <input
+                      type="text"
+                      className="search-input"
+                      placeholder="Buscar por nombre o referencia..."
+                      value={vouchersSearch}
+                      onChange={(e) => setVouchersSearch(e.target.value)}
+                      onKeyDown={handleVouchersSearchKeyDown}
+                    />
+                    {isVouchersSearchOpen && (
+                      <button
+                        className="close-search-button"
+                        onClick={handleCloseVouchersSearch}
+                        title="Cerrar búsqueda"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M18 6 6 18"></path>
+                          <path d="m6 6 12 12"></path>
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <button className="tareas-add-btn" onClick={handleCreateVoucher}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
