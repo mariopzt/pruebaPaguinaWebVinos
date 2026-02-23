@@ -796,17 +796,17 @@ body {
 /* Animaciones de transición de vistas */
 .view-enter {
   margin-left: 10px;
-  animation: slideInFade 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: slideInFade 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
 
 @keyframes slideInFade {
   from {
     opacity: 0;
-    transform: translateX(50px) scale(0.96);
+    transform: translateY(10px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -3376,7 +3376,7 @@ body {
   gap: 8px;
   padding: 8px 10px;
   cursor: pointer;
-  transition: background-color 0.2s, box-shadow 0.2s, transform 0.08s;
+  transition: background-color 0.2s, box-shadow 0.2s, transform 0.08s, opacity 0.2s;
   align-items: center;
   height: 50px;
   box-sizing: border-box;
@@ -3385,6 +3385,7 @@ body {
   border-radius: 8px;
   box-shadow: 0 1px 1px rgba(0,0,0,0.02);
   animation: notifIn 0.16s ease both;
+  animation-delay: var(--stagger, 0ms);
 }
 
 .notification-item:hover {
@@ -4811,8 +4812,9 @@ flex-direction: column;
   grid-template-columns: 48px 1fr auto;
   gap: 16px;
   align-items: start;
-  transition: all 0.3s ease;
+  transition: transform 0.26s ease, border-color 0.26s ease, box-shadow 0.26s ease, opacity 0.22s ease, filter 0.22s ease;
   animation: taskFadeIn 0.4s ease forwards;
+  animation-delay: var(--stagger, 0ms);
   position: relative;
   opacity: 0.4;
   filter: grayscale(0.3);
@@ -7085,9 +7087,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   gap: 24px;
   align-items: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.26s ease, border-color 0.26s ease, box-shadow 0.26s ease;
   animation: taskFadeIn 0.4s ease forwards;
+  animation-delay: var(--stagger, 0ms);
   opacity: 0;
+  will-change: transform, opacity;
 }
 
 .top-vino-item:hover {
@@ -7115,12 +7119,49 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.02);
+  position: relative;
 }
 
 .top-vino-icon img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.top-vino-rank {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: rankPop 0.24s ease-out both;
+  animation-delay: calc(var(--stagger, 0ms) + 65ms);
+}
+
+.top-vino-item.top-three .top-vino-rank {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+@keyframes rankPop {
+  from {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .top-vino-info {
@@ -7671,3 +7712,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     padding: 0 10px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .view-enter,
+  .top-vino-item,
+  .top-vino-rank,
+  .notificacion-item,
+  .notification-item {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+

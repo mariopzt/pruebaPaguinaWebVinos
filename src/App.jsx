@@ -2594,7 +2594,7 @@ function App() {
               </div>
 
               <div className="notificaciones-container">
-                {sortedNotifications.map((notif) => {
+                {sortedNotifications.map((notif, index) => {
                   const IconComponent = 
                     notif.icon === 'FiBox' ? FiBox :
                     notif.icon === 'FiPackage' ? FiPackage :
@@ -2608,6 +2608,7 @@ function App() {
                     <div 
                       key={notif.id || `${notif.title}-${notif.message}-${notif.createdAt}`}
                       className={`notificacion-item ${notif.unread ? 'unread' : ''}`}
+                      style={{ '--stagger': `${index * 35}ms` }}
                     >
                       <div className={`notificacion-icon ${notif.type}`}>
                         <IconComponent />
@@ -2873,12 +2874,13 @@ function App() {
                   <div 
                     key={item.id} 
                     className={`top-vino-item ${item.rank <= 3 ? 'top-three' : ''}`}
-                    style={{ animationDelay: `${index * 0.05}s` }}
+                    style={{ '--stagger': `${index * 45}ms` }}
                   >
                     {/* Icono y nombre del vino */}
                     <div className="top-vino-main" onClick={() => setSelectedWine(item.wine)}>
                       <div className="top-vino-icon">
                         <img src={item.wine.image} alt={item.wine.name} />
+                        <span className="top-vino-rank">#{item.rank}</span>
                       </div>
                       <div className="top-vino-info">
                         <h3 className="top-vino-title">{item.wine.name}</h3>
@@ -2969,10 +2971,11 @@ function App() {
           
           <div className="notifications-list">
             {sortedNotifications.length > 0 ? (
-              sortedNotifications.map(notification => (
+              sortedNotifications.map((notification, index) => (
                 <div 
                   key={notification._id || notification.id || `${notification.title}-${notification.createdAt}`}
                   className={`notification-item ${notification.unread ? 'unread' : ''}`}
+                  style={{ '--stagger': `${index * 22}ms` }}
                   onClick={() => handleNotificationClick(notification.wineId, notification._id || notification.id)}
                 >
                   <div className="notification-icon"><AiOutlineWarning size={14} /></div>
