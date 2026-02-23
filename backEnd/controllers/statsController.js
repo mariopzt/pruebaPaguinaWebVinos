@@ -37,8 +37,6 @@ exports.getStats = async (req, res) => {
   }
 };
 
-exports.getTopWines = getTopWines;
-
 const computeGrowthLabel = (current, previous) => {
   if (previous === 0 && current === 0) return '0.0%';
   if (previous === 0) return '+100.0%';
@@ -118,6 +116,8 @@ const getTopWines = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getTopWines = getTopWines;
 
 // @desc    Registrar venta de vino
 // @route   POST /api/stats/sale
