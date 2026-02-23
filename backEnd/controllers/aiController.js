@@ -1197,8 +1197,8 @@ exports.processCommand = async (req, res, next) => {
         });
       }
       
-      // Limitar a 10 vinos para no sobrecargar
-      const winesToProcess = winesWithoutDesc.slice(0, 10);
+      // Procesar vino por vino todos los que no tienen descripción
+      const winesToProcess = winesWithoutDesc;
       const updatedWines = [];
       const errors = [];
       const notFound = [];
@@ -1810,6 +1810,7 @@ async function searchWineDescription(wineName, wineType = '', wineRegion = '', o
 
   let descriptions = [];
   let wineInfo = { grapes: [], region: '', type: wineType };
+  const wineTokens = normalizeText(wineName).split(' ').filter(t => t.length > 2);
 
   try {
     // 1. Buscar en Google con términos específicos de vino
@@ -1823,9 +1824,12 @@ async function searchWineDescription(wineName, wineType = '', wineRegion = '', o
     // Extraer snippets de Google
     $g('.VwiC3b, .IsZvec, .lEBKkf').each((i, el) => {
       const text = $g(el).text().trim();
-      if (text && text.length > 50 && text.length < 500) {
+      if (text && text.length > 30 && text.length < 600) {
         // Filtrar solo textos que parezcan descripciones de vino
-        if (/vino|bodega|uva|aroma|sabor|nota|cata|barrica|crianza|tanino|frut/i.test(text)) {
+        const normalizedSnippet = normalizeText(text);
+        const hasWineContext = /vino|bodega|uva|aroma|sabor|nota|cata|barrica|crianza|tanino|frut/i.test(text);
+        const hasWineToken = wineTokens.some(t => normalizedSnippet.includes(t));
+        if (hasWineContext || hasWineToken) {
           descriptions.push(text);
         }
       }
@@ -1867,8 +1871,11 @@ async function searchWineDescription(wineName, wineType = '', wineRegion = '', o
     
     $ddg('.result__snippet').each((i, el) => {
       const text = $ddg(el).text().trim();
-      if (text && text.length > 50 && text.length < 500) {
-        if (/vino|bodega|uva|aroma|sabor|nota|cata|barrica/i.test(text)) {
+      if (text && text.length > 30 && text.length < 600) {
+        const normalizedSnippet = normalizeText(text);
+        const hasWineContext = /vino|bodega|uva|aroma|sabor|nota|cata|barrica/i.test(text);
+        const hasWineToken = wineTokens.some(t => normalizedSnippet.includes(t));
+        if (hasWineContext || hasWineToken) {
           descriptions.push(text);
         }
       }
@@ -1910,6 +1917,21 @@ async function searchWineDescription(wineName, wineType = '', wineRegion = '', o
   }
 
   if (strictWeb) {
+    // Intento final: usar búsqueda general web y guardar el mejor fragmento real disponible
+    try {
+      const webInfo = await searchWineInfo(wineName);
+      const fragment = webInfo?.results
+        ?.map(r => (r.content || r.info || '').replace(/\s+/g, ' ').trim())
+        .find(t => t && t.length >= 40);
+      if (fragment) {
+        const trimmed = fragment.length > 300 ? `${fragment.slice(0, 297)}...` : fragment;
+        console.log(`📝 [DESC SEARCH] ✅ Fragmento web encontrado para: "${wineName}"`);
+        return trimmed;
+      }
+    } catch (e) {
+      console.log('[DESC] Error fallback web info:', e.message);
+    }
+
     console.log(`📝 [DESC SEARCH] ⚠️ No se encontró descripción en la web para: "${wineName}"`);
     return null;
   }
