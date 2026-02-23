@@ -158,6 +158,53 @@ DELETE /api/wines/:id
 Authorization: Bearer <token>
 ```
 
+### Valoraciones
+
+#### Obtener valoraciones
+```http
+GET /api/reviews
+Authorization: Bearer <token>
+```
+
+#### Crear valoración
+```http
+POST /api/reviews
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "wineId": "<id del vino>",
+  "rating": 5,
+  "comment": "Muy equilibrado y elegante."
+}
+```
+
+#### Actualizar valoración propia
+```http
+PUT /api/reviews/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "rating": 4,
+  "comment": "Actualicé la puntuación tras catarlo de nuevo."
+}
+```
+
+#### Eliminar valoración propia
+```http
+DELETE /api/reviews/:id
+Authorization: Bearer <token>
+```
+
+### Estadísticas (Top vinos)
+
+#### Obtener top vinos
+```http
+GET /api/stats/top-wines
+Authorization: Bearer <token>
+```
+
 ## 📁 Estructura del proyecto
 
 ```

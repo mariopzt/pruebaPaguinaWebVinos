@@ -1,5 +1,6 @@
 const WineStats = require('../models/WineStats');
 const Wine = require('../models/Wine');
+const Review = require('../models/Review');
 
 // @desc    Obtener estadísticas actuales
 // @route   GET /api/stats
@@ -31,8 +32,90 @@ exports.getStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener estadísticas',
-      error: error.message
+    error: error.message
+  });
+  }
+};
+
+exports.getTopWines = getTopWines;
+
+const computeGrowthLabel = (current, previous) => {
+  if (previous === 0 && current === 0) return '0.0%';
+  if (previous === 0) return '+100.0%';
+  const diff = current - previous;
+  const percent = ((diff / previous) * 100).toFixed(1);
+  return `${diff >= 0 ? '+' : ''}${percent}%`;
+};
+
+const getTopWines = async (req, res, next) => {
+  try {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    const reviews = await Review.find().lean();
+    const reviewStats = {};
+
+    reviews.forEach((review) => {
+      const wineId = review.wine?.toString();
+      if (!wineId) return;
+
+      const stats = reviewStats[wineId] || { total: 0, ratingSum: 0, lastWeek: 0, prevWeek: 0 };
+      stats.total += 1;
+      stats.ratingSum += Number(review.rating) || 0;
+
+      const createdAt = review.createdAt ? new Date(review.createdAt) : null;
+      if (createdAt) {
+        if (createdAt >= weekAgo) {
+          stats.lastWeek += 1;
+        } else if (createdAt >= twoWeeksAgo) {
+          stats.prevWeek += 1;
+        }
+      }
+
+      reviewStats[wineId] = stats;
     });
+
+    const wines = await Wine.find({}).lean();
+    const userId = req.user?._id?.toString();
+
+    const topWines = wines
+      .map((wine) => {
+        const wineId = wine._id.toString();
+        const stats = reviewStats[wineId] || { total: 0, ratingSum: 0, lastWeek: 0, prevWeek: 0 };
+        const likesCount = wine.likes?.count || 0;
+        const avgRating = stats.total > 0
+          ? +(stats.ratingSum / stats.total).toFixed(1)
+          : +(wine.rating || 0);
+        const growth = computeGrowthLabel(stats.lastWeek, stats.prevWeek);
+        const liked = userId
+          ? (wine.likes?.users || []).some((id) => id?.toString() === userId)
+          : false;
+        const score = likesCount * 2 + stats.total * 1.3 + avgRating * 4;
+
+        return {
+          wine,
+          likes: likesCount,
+          growth,
+          rating: avgRating,
+          reviews: stats.total,
+          liked,
+          score
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8)
+      .map((item, index) => ({
+        ...item,
+        rank: index + 1
+      }));
+
+    res.status(200).json({
+      success: true,
+      data: topWines
+    });
+  } catch (error) {
+    next(error);
   }
 };
 

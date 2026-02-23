@@ -328,6 +328,8 @@ function App() {
 
   // Estado para Top Vinos - se calcula dinámicamente basado en wineLikes
   const [topWines, setTopWines] = useState([])
+  const [topWinesLoading, setTopWinesLoading] = useState(false)
+  const [topWinesError, setTopWinesError] = useState('')
 
   // Normalizar vinos desde backend a formato de la UI
   const normalizeWine = (wine) => ({
@@ -417,36 +419,6 @@ function App() {
     likesInitializedRef.current = true; // Marcar como inicializado
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wines.length, currentUser?._id])
-
-  // Actualizar Top Vinos cuando cambien los likes
-  useEffect(() => {
-    if (!wines || wines.length === 0) return
-    // Crear array de vinos con sus likes
-    const winesWithLikes = wines.map(wine => ({
-      wine,
-      likes: wineLikes[wine._id || wine.id]?.count || 0,
-      liked: wineLikes[wine._id || wine.id]?.liked || false
-    }));
-
-    // Ordenar por likes (descendente) y tomar los top 8
-    const sortedWines = winesWithLikes
-      .sort((a, b) => b.likes - a.likes)
-      .slice(0, 8);
-
-    // Crear el array de topWines con toda la información necesaria
-    const newTopWines = sortedWines.map((item, index) => ({
-      id: item.wine.id,
-      rank: index + 1,
-      wine: item.wine,
-      likes: item.likes,
-      liked: item.liked,
-      rating: (Math.random() * (5.0 - 4.0) + 4.0).toFixed(1), // Rating aleatorio entre 4.0 y 5.0
-      reviews: Math.floor(Math.random() * 50) + 15, // Reviews aleatorias entre 15 y 65
-      growth: `${Math.random() > 0.15 ? '+' : '-'}${(Math.random() * 15).toFixed(1)}%` // Growth aleatorio
-    }));
-
-    setTopWines(newTopWines);
-  }, [wineLikes, wines])
 
   const filteredOrders =
     ordersFilter === 'todos'
@@ -778,6 +750,34 @@ function App() {
     prevViewRef.current = currentView
   }, [currentView])
 
+  const fetchTopWines = useCallback(async () => {
+    if (!isAuthenticated || currentUser?.isGuest) {
+      setTopWines([])
+      return
+    }
+
+    setTopWinesLoading(true)
+    setTopWinesError('')
+
+    try {
+      const response = await statsService.getTopWines()
+      const topData = response.data?.data || response.data || []
+      setTopWines(topData.map((item, index) => ({
+        ...item,
+        rank: item.rank || index + 1
+      })))
+    } catch (error) {
+      console.error('Error al cargar top vinos', error)
+      setTopWinesError(error.response?.data?.message || error.message || 'No se pudo cargar el ranking de vinos')
+    } finally {
+      setTopWinesLoading(false)
+    }
+  }, [isAuthenticated, currentUser?.isGuest, currentUserId])
+
+  useEffect(() => {
+    fetchTopWines()
+  }, [fetchTopWines])
+
   // Función para toggle like en vinos de bodega (también para invitados)
   const handleToggleWineLike = async (wineId) => {
     if (!wineId) return
@@ -818,6 +818,7 @@ function App() {
               : wine
           )
         );
+        await fetchTopWines()
       }
     } catch (error) {
       // Si falla el backend, NO revertimos - el usuario ve su like inmediatamente
@@ -3217,7 +3218,22 @@ function App() {
             <div className="section section-full top-vinos-section">
               {/* Lista de top vinos estilo horizontal */}
               <div className="top-vinos-list">
-                {topWines.map((item, index) => (
+                {topWinesLoading && (
+                  <div className="top-vinos-placeholder">
+                    Cargando ranking de vinos...
+                  </div>
+                )}
+                {!topWinesLoading && topWinesError && (
+                  <div className="top-vinos-error">
+                    {topWinesError}
+                  </div>
+                )}
+                {!topWinesLoading && !topWinesError && topWines.length === 0 && (
+                  <div className="top-vinos-placeholder">
+                    Todavía no hay datos suficientes para generar el ranking. Dale like a tus vinos favoritos y crea algunas reseñas.
+                  </div>
+                )}
+                {!topWinesLoading && !topWinesError && topWines.length > 0 && topWines.map((item, index) => (
                   <div 
                     key={item.id} 
                     className={`top-vino-item ${item.rank <= 3 ? 'top-three' : ''}`}
@@ -3227,7 +3243,7 @@ function App() {
                     <div className="top-vino-main" onClick={() => setSelectedWine(item.wine)}>
                       <div className="top-vino-icon">
                         <img src={item.wine.image} alt={item.wine.name} />
-              </div>
+                      </div>
                       <div className="top-vino-info">
                         <h3 className="top-vino-title">{item.wine.name}</h3>
                         <div className="top-vino-subtitle">

@@ -11,6 +11,16 @@ const statsService = {
     }
   },
 
+  // Obtener top vinos
+  getTopWines: async () => {
+    try {
+      const response = await api.get('/stats/top-wines');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error al obtener top vinos' };
+    }
+  },
+
   // Registrar venta
   registerSale: async (wineId, quantity) => {
     try {

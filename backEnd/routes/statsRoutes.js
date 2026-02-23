@@ -5,7 +5,8 @@ const {
   getStats,
   registerSale,
   registerLoss,
-  resetStats
+  resetStats,
+  getTopWines
 } = require('../controllers/statsController');
 
 // Obtener estadísticas
@@ -16,6 +17,9 @@ router.post('/sale', protect, registerSale);
 
 // Registrar pérdida
 router.post('/loss', protect, registerLoss);
+
+// Obtener top vinos
+router.get('/top-wines', protect, getTopWines);
 
 // Resetear estadísticas (solo admin)
 router.delete('/reset', protect, resetStats);
