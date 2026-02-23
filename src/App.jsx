@@ -2996,12 +2996,16 @@ function App() {
                 {!vouchersLoading && !vouchersError && filteredVouchers.length === 0 && (
                   <div className="empty-state">No hay vales en este filtro.</div>
                 )}
-                {!vouchersLoading && !vouchersError && filteredVouchers.map((voucher) => {
+                {!vouchersLoading && !vouchersError && filteredVouchers.map((voucher, index) => {
                   const expired = isVoucherExpired(voucher)
                   const statusLabel = expired ? 'Vencido' : (voucher.status === 'usado' ? 'Usado' : 'Activo')
 
                   return (
-                    <article key={voucher.id} className={`vale-card ${expired ? 'is-expired' : ''}`}>
+                    <article
+                      key={voucher.id}
+                      className={`vale-card ${expired ? 'is-expired' : ''}`}
+                      style={{ '--vale-delay': `${Math.min(index, 12) * 55}ms` }}
+                    >
                       <div className="vale-badge-row">
                         <span className={`vale-badge vale-badge-floating ${expired ? 'expired' : voucher.status}`}>
                           {statusLabel}
@@ -3063,15 +3067,15 @@ function App() {
               </div>
 
               <div className="vales-summary">
-                <div className="vale-stat-card">
+                <div className="vale-stat-card" style={{ '--stat-delay': '60ms' }}>
                   <div className="vale-stat-value">{activeVouchersCount}</div>
                   <div className="vale-stat-label">Activos</div>
                 </div>
-                <div className="vale-stat-card">
+                <div className="vale-stat-card" style={{ '--stat-delay': '120ms' }}>
                   <div className="vale-stat-value">{usedVouchersCount}</div>
                   <div className="vale-stat-label">Usados</div>
                 </div>
-                <div className="vale-stat-card">
+                <div className="vale-stat-card" style={{ '--stat-delay': '180ms' }}>
                   <div className="vale-stat-value">{expiredVouchersCount}</div>
                   <div className="vale-stat-label">Vencidos</div>
                 </div>

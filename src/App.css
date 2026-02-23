@@ -5657,6 +5657,7 @@ flex-direction: column;
   margin: 0 auto;
   display: grid;
   gap: 10px;
+  animation: voucherPreviewIn 0.35s ease both;
 }
 
 .voucher-preview-title {
@@ -6504,6 +6505,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   position: relative;
   overflow: hidden;
+  animation: valeCardIn 0.46s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation-delay: var(--vale-delay, 0ms);
 }
 
 .vale-card::before {
@@ -6535,6 +6538,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .vale-badge-floating {
   position: relative;
   z-index: 1;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vale-badge-floating.activo {
+  animation: valeBadgeGlow 2.8s ease-in-out infinite;
 }
 
 .vale-layout {
@@ -6740,6 +6748,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .vale-action-btn:hover:not(:disabled) {
   background: rgba(236, 226, 207, 1);
   border-color: rgba(77, 58, 36, 0.45);
+  transform: translateY(-1px);
 }
 
 .vale-action-btn-secondary {
@@ -6773,6 +6782,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: valeStatIn 0.44s ease both;
+  animation-delay: var(--stat-delay, 0ms);
+}
+
+.vale-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .vale-stat-value {
@@ -6787,6 +6804,49 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: #9ca3c0;
   font-size: 12px;
   font-weight: 600;
+}
+
+@keyframes valeCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes valeStatIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes valeBadgeGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(54, 91, 36, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(54, 91, 36, 0.12);
+  }
+}
+
+@keyframes voucherPreviewIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @media (max-width: 600px) {
@@ -8218,7 +8278,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .top-vino-item,
   .top-vino-rank,
   .notificacion-item,
-  .notification-item {
+  .notification-item,
+  .vale-card,
+  .vale-stat-card,
+  .voucher-preview-card,
+  .vale-badge-floating.activo {
     animation: none !important;
     transition: none !important;
     transform: none !important;
