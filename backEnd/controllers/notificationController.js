@@ -1,14 +1,36 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 
+const isTaskCompletionNotification = (notification = {}) => {
+  const type = String(notification.type || '').toLowerCase();
+  const title = String(notification.title || '').toLowerCase();
+  const message = String(notification.message || '').toLowerCase();
+  const actions = Array.isArray(notification.actions)
+    ? notification.actions.map((action) => String(action || '').toLowerCase())
+    : [];
+
+  return (
+    ['tarea-completada', 'task-completed'].includes(type) ||
+    /tarea\s+completada/i.test(title) ||
+    /nota\s+completada/i.test(title) ||
+    /ha\s+completado\s+la\s+tarea/i.test(message) ||
+    /ha\s+completado\s+la\s+nota/i.test(message) ||
+    actions.includes('ver tareas')
+  );
+};
+
 // GET /api/notifications (solo las del usuario)
 exports.getNotifications = async (req, res, next) => {
   try {
-    const query = { user: req.user._id };
-    const notifications = await Notification.find(query)
-      .sort({ unread: -1, createdAt: -1 })
-      .lean();
-    res.json({ success: true, data: notifications });
+    const notifications = await Notification.find({ user: req.user._id }).lean();
+    const visibleNotifications = notifications
+      .filter((notification) => !isTaskCompletionNotification(notification))
+      .sort((a, b) => {
+        if (a.unread !== b.unread) return a.unread ? -1 : 1;
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      });
+
+    res.json({ success: true, data: visibleNotifications });
   } catch (error) {
     next(error);
   }
@@ -32,6 +54,10 @@ exports.createNotification = async (req, res, next) => {
       createdAt: req.body.createdAt || new Date(),
       createdBy: req.user._id, // Guardar quién creó la notificación
     };
+
+    if (isTaskCompletionNotification(basePayload)) {
+      return res.status(200).json({ success: true, data: null, message: 'Notificación de tarea completada bloqueada' });
+    }
 
     // Crear una notificación para cada usuario (excepto el creador)
     const notifications = await Promise.all(
