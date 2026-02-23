@@ -101,6 +101,7 @@ const getTopWines = async (req, res, next) => {
           score
         };
       })
+      .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, 8)
       .map((item, index) => ({
