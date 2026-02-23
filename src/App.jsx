@@ -1489,7 +1489,7 @@ function App() {
               >
                 <div className="nav-item-content">
                   <span className="nav-icon"><FiCheckSquare size={10} /></span>
-                  <span className="nav-text">Tareas</span>
+                  <span className="nav-text">Notas</span>
                 </div>
               </div>
             )}
@@ -1636,7 +1636,7 @@ function App() {
                   onClick={() => { setCurrentView('tareas'); setIsMenuOpen(false); }}
                 >
                   <span className="mobile-nav-icon"><FiCheckSquare /></span>
-                  <span className="mobile-nav-text">Tareas</span>
+                  <span className="mobile-nav-text">Notas</span>
                 </div>
               )}
               {/* Pedidos - Solo usuarios registrados */}
@@ -5581,4 +5581,3 @@ function SortByModal({ currentSort, onClose, onSelect }) {
 }
 
 export default App
-
