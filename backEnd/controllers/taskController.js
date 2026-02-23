@@ -23,8 +23,14 @@ const notifyAllUsersExcept = async (excludeUserId, notificationData) => {
 
 exports.getTasks = async (req, res, next) => {
   try {
-    // Mostrar todas las tareas, sin filtrar por usuario, e incluir nombre/avatar del usuario si existe
-    const tasks = await Task.find({})
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para acceder a las notas'
+      });
+    }
+
+    const tasks = await Task.find({ user: req.user._id })
       .populate('user', 'name avatar')
       .sort({ createdAt: -1 })
       .lean();
@@ -36,8 +42,13 @@ exports.getTasks = async (req, res, next) => {
 
 exports.createTask = async (req, res, next) => {
   try {
-    const payload = { ...req.body };
-    if (req.user && !payload.user) payload.user = req.user._id;
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para crear notas'
+      });
+    }
+    const payload = { ...req.body, user: req.user._id };
     const task = await Task.create(payload);
     res.status(201).json({ success: true, data: task });
   } catch (error) {
@@ -47,11 +58,36 @@ exports.createTask = async (req, res, next) => {
 
 exports.updateTask = async (req, res, next) => {
   try {
-    // Obtener la tarea antes del update para comparar
-    const oldTask = await Task.findById(req.params.id).lean();
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para actualizar esta nota'
+      });
+    }
+
+    const oldTask = await Task.findOne({ _id: req.params.id, user: req.user._id }).lean();
+    if (!oldTask) {
+      return res.status(404).json({
+        success: false,
+        message: 'Nota no encontrada'
+      });
+    }
+
     const wasCompleted = oldTask?.status === 'completed' || oldTask?.status === 'completada';
-    
-    const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('user', 'name avatar');
+
+    const { user: incomingUser, ...taskUpdates } = req.body;
+    const task = await Task.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      taskUpdates,
+      { new: true }
+    ).populate('user', 'name avatar');
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: 'Nota no encontrada'
+      });
+    }
     
     // Si la tarea acaba de completarse, notificar a todos los demás usuarios
     // solo cuando se solicite explícitamente.
@@ -79,7 +115,20 @@ exports.updateTask = async (req, res, next) => {
 
 exports.deleteTask = async (req, res, next) => {
   try {
-    await Task.findByIdAndDelete(req.params.id);
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para eliminar esta nota'
+      });
+    }
+
+    const deleted = await Task.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: 'Nota no encontrada'
+      });
+    }
     res.json({ success: true });
   } catch (error) {
     next(error);
