@@ -22,6 +22,8 @@ import reviewService from './api/reviewService'
 import { AIChat } from './components/AIChat'
 
 function App() {
+  const GUEST_PROFILE_KEY = 'vinosstk_guest_profile'
+
   const urlBase64ToUint8Array = useCallback((base64String) => {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
     const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
@@ -481,27 +483,21 @@ function App() {
     }
   }, [currentUser?.isGuest, currentView])
 
-  // Referencia para saber si ya se inicializaron los likes
-  const likesInitializedRef = useRef(false);
-
-  // Inicializar likes SOLO UNA VEZ cuando llegan los vinos por primera vez
+  // Sincronizar likes desde backend cuando cambian vinos o usuario
   useEffect(() => {
     if (!wines || wines.length === 0) return
-    if (likesInitializedRef.current) return; // Ya se inicializó, no volver a hacerlo
-    
+    const actorId = String(currentUserId || '')
     const initialLikes = {}
     wines.forEach((wine) => {
       const id = wine._id || wine.id
-      // Usar likes del backend si existen
+      const users = (wine.likes?.users || []).map((userId) => String(userId))
       initialLikes[id] = {
-        count: wine.likes?.count || 0,
-        liked: wine.likes?.users?.includes(currentUser?._id || currentUser?.id) || false
+        count: typeof wine.likes?.count === 'number' ? wine.likes.count : users.length,
+        liked: actorId ? users.includes(actorId) : false
       }
     })
     setWineLikes(initialLikes)
-    likesInitializedRef.current = true; // Marcar como inicializado
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wines.length, currentUser?._id])
+  }, [wines, currentUserId])
 
   useEffect(() => {
     if (!pendingNotificationWineId || !wines || wines.length === 0) return
@@ -1104,6 +1100,7 @@ function App() {
       const response = await wineService.toggleLike(wineId, guestId);
       
       if (response.success) {
+        const actorId = String(currentUser?._id || currentUser?.id || '')
         // Sincronizar con la respuesta del servidor
         setWineLikes(prev => ({
           ...prev,
@@ -1117,7 +1114,18 @@ function App() {
         setWines(prevWines => 
           prevWines.map(wine => 
             (wine._id || wine.id) === wineId 
-              ? { ...wine, likes: { count: response.data.likes, users: wine.likes?.users || [] } }
+              ? {
+                ...wine,
+                likes: {
+                  count: response.data.likes,
+                  users: (() => {
+                    const prevUsers = (wine.likes?.users || []).map((userId) => String(userId))
+                    if (!actorId) return prevUsers
+                    const withoutActor = prevUsers.filter((id) => id !== actorId)
+                    return response.data.liked ? [...withoutActor, actorId] : withoutActor
+                  })()
+                }
+              }
               : wine
           )
         );
@@ -1950,6 +1958,9 @@ function App() {
     if (userData?.token) {
       localStorage.setItem('token', userData.token)
     }
+    if (hydratedUser?.isGuest) {
+      localStorage.setItem(GUEST_PROFILE_KEY, JSON.stringify(hydratedUser))
+    }
     setCurrentUser(hydratedUser)
     setIsAuthenticated(true)
     // Actualizar datos de usuario en ajustes
@@ -1971,8 +1982,6 @@ function App() {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     localStorage.removeItem('currentView')
-    // Resetear likes para que se reinicialicen en próximo login
-    likesInitializedRef.current = false
     setWineLikes({})
     setTasks([])
     setOrders([])
@@ -6143,6 +6152,9 @@ function ChangePasswordModal({ onClose, onSave }) {
 }
 
 export default App
+
+
+
 
 
 

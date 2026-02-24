@@ -6,6 +6,9 @@ import authService from '../../api/authService'
 import './Login.css'
 
 function Login({ onLogin }) {
+  const GUEST_DEVICE_ID_KEY = 'vinosstk_guest_device_id'
+  const GUEST_PROFILE_KEY = 'vinosstk_guest_profile'
+
   const [showRegister, setShowRegister] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -45,16 +48,57 @@ function Login({ onLogin }) {
 
   const handleGuestLogin = () => {
     setIsLoading(true)
-    // Crear usuario invitado temporal
+
+    // Obtener o crear un identificador estable del dispositivo/navegador.
+    const getOrCreateGuestDeviceId = () => {
+      const existing = localStorage.getItem(GUEST_DEVICE_ID_KEY)
+      if (existing) return existing
+
+      const generated =
+        (typeof crypto !== 'undefined' && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+
+      localStorage.setItem(GUEST_DEVICE_ID_KEY, generated)
+      return generated
+    }
+
     setTimeout(() => {
-      const guestId = `guest_${Date.now()}`
-      onLogin({
-        id: guestId,
-        email: `${guestId}@invitado.local`,
-        name: 'Invitado',
-        isGuest: true, // Marca especial para identificar usuarios invitados
-        avatar: 'https://ui-avatars.com/api/?name=Invitado&background=6366f1&color=fff'
-      })
+      const deviceId = getOrCreateGuestDeviceId()
+      const guestId = `guest_${deviceId}`
+
+      let guestProfile = null
+      try {
+        const stored = localStorage.getItem(GUEST_PROFILE_KEY)
+        guestProfile = stored ? JSON.parse(stored) : null
+      } catch (e) {
+        guestProfile = null
+      }
+
+      const hydratedGuest =
+        guestProfile && (guestProfile.id === guestId || guestProfile._id === guestId)
+          ? {
+            ...guestProfile,
+            id: guestId,
+            _id: guestId,
+            email: guestProfile.email || `${guestId}@invitado.local`,
+            name: guestProfile.name || 'Invitado',
+            isGuest: true,
+            deviceId,
+            avatar: guestProfile.avatar || 'https://ui-avatars.com/api/?name=Invitado&background=6366f1&color=fff'
+          }
+          : {
+            id: guestId,
+            _id: guestId,
+            email: `${guestId}@invitado.local`,
+            name: 'Invitado',
+            isGuest: true, // Marca especial para identificar usuarios invitados
+            deviceId,
+            avatar: 'https://ui-avatars.com/api/?name=Invitado&background=6366f1&color=fff'
+          }
+
+      localStorage.setItem(GUEST_PROFILE_KEY, JSON.stringify(hydratedGuest))
+      onLogin(hydratedGuest)
     }, 500)
   }
 
@@ -176,4 +220,3 @@ function Login({ onLogin }) {
 }
 
 export default Login
-
