@@ -107,8 +107,10 @@ function normalizeText(value = '') {
     .replace(/[\u0300-\u036f]/g, '');
 }
 
-function extractWineFragment(text = '') {
-  const raw = String(text || '');
+function extractWineFragment(text = '', fromIndex = 0) {
+  const full = String(text || '');
+  const safeFromIndex = Math.max(0, Math.min(fromIndex, full.length));
+  const raw = full.slice(safeFromIndex);
   const trimmed = raw.trim();
   if (!trimmed) return '';
 
@@ -132,10 +134,13 @@ function extractWineFragment(text = '') {
   return lastSegment;
 }
 
-function injectSelectedWine(text = '', wineName = '') {
-  const input = String(text || '');
+function injectSelectedWine(text = '', wineName = '', fromIndex = 0) {
+  const fullInput = String(text || '');
+  const safeFromIndex = Math.max(0, Math.min(fromIndex, fullInput.length));
+  const fixedPrefix = fullInput.slice(0, safeFromIndex);
+  const input = fullInput.slice(safeFromIndex);
   const safeWine = String(wineName || '').trim();
-  if (!safeWine) return input;
+  if (!safeWine) return fullInput;
 
   // Reemplazar solo el último segmento (tras coma o salto de línea)
   // para permitir comandos encadenados: "suma 20 al X, 10 al Y, ..."
@@ -146,33 +151,33 @@ function injectSelectedWine(text = '', wineName = '') {
   const workingSegment = segment.trimStart();
 
   if (/["'][^"']*$/.test(workingSegment)) {
-    return `${prefix}${leadingSpaces}${workingSegment.replace(/(["'])[^"']*$/, `$1${safeWine}`)}`;
+    return `${fixedPrefix}${prefix}${leadingSpaces}${workingSegment.replace(/(["'])[^"']*$/, `$1${safeWine}`)}`;
   }
 
   const commandMatch = workingSegment.match(/^(.*?(?:sumar|sumale|sumarle|agregar|agrega|anadir|añadir|restar|resta|quitar|quita|buscar|busca|ver|mostrar|stock|precio|info|informacion|detalles|recomendar|recomienda|habla|hablame|cuentame|dime)(?:\s+\d+)?(?:\s+unidades?)?\s+(?:de|del|al|el|la|sobre|acerca\s+de)?\s*)(.*)$/i);
   if (commandMatch) {
-    return `${prefix}${leadingSpaces}${commandMatch[1]}${safeWine}`;
+    return `${fixedPrefix}${prefix}${leadingSpaces}${commandMatch[1]}${safeWine}`;
   }
 
   // Soporte para comandos encadenados abreviados:
   // "..., 10 al alba" -> "..., 10 al Albamar"
   const quantityPrepositionMatch = workingSegment.match(/^(.*?\b\d+(?:[.,]\d+)?\s+(?:unidades?\s+)?(?:de|del|al|el|la)\s*)(.*)$/i);
   if (quantityPrepositionMatch) {
-    return `${prefix}${leadingSpaces}${quantityPrepositionMatch[1]}${safeWine}`;
+    return `${fixedPrefix}${prefix}${leadingSpaces}${quantityPrepositionMatch[1]}${safeWine}`;
   }
 
   // Soporte para "20 albamar" (cantidad + nombre sin preposición)
   const quantityDirectMatch = workingSegment.match(/^(.*?\b\d+(?:[.,]\d+)?\s+)(.*)$/i);
   if (quantityDirectMatch) {
-    return `${prefix}${leadingSpaces}${quantityDirectMatch[1]}${safeWine}`;
+    return `${fixedPrefix}${prefix}${leadingSpaces}${quantityDirectMatch[1]}${safeWine}`;
   }
 
   const prepositionMatch = workingSegment.match(/^(.*?\b(?:de|del|al|el|la|sobre|acerca\s+de)\s*)(.*)$/i);
   if (prepositionMatch) {
-    return `${prefix}${leadingSpaces}${prepositionMatch[1]}${safeWine}`;
+    return `${fixedPrefix}${prefix}${leadingSpaces}${prepositionMatch[1]}${safeWine}`;
   }
 
-  return `${prefix}${leadingSpaces}${safeWine}`;
+  return `${fixedPrefix}${prefix}${leadingSpaces}${safeWine}`;
 }
 
 /**
@@ -241,6 +246,7 @@ export function AIChat({
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isInputMultiline, setIsInputMultiline] = useState(false);
+  const [autocompleteStartIndex, setAutocompleteStartIndex] = useState(0);
   const chatMessagesRef = useRef(null);
   const inputRef = useRef(null);
   const inputWrapperRef = useRef(null);
@@ -315,6 +321,7 @@ export function AIChat({
     };
     onMessagesChange(prev => [...prev, userMsg]);
     setInputMessage('');
+    setAutocompleteStartIndex(0);
 
     try {
       const response = await sendMessage(message);
@@ -351,7 +358,7 @@ export function AIChat({
   };
 
   const wineSuggestions = (() => {
-    const fragment = extractWineFragment(inputMessage);
+    const fragment = extractWineFragment(inputMessage, autocompleteStartIndex);
     const normalizedFragment = normalizeText(fragment);
     const canSuggest = isInputFocused && wines.length > 0 && normalizedFragment.length >= 1;
     if (!canSuggest) return [];
@@ -407,9 +414,20 @@ export function AIChat({
   const handlePickSuggestion = (wine) => {
     const wineName = wine?.name || '';
     if (!wineName) return;
-    setInputMessage((prev) => injectSelectedWine(prev, wineName));
+    const nextMessage = injectSelectedWine(inputMessage, wineName, autocompleteStartIndex);
+    setInputMessage(nextMessage);
+    // Fija el texto autocompletado: lo siguiente se buscará solo desde aquí en adelante.
+    setAutocompleteStartIndex(nextMessage.length);
     setSelectedSuggestionIndex(0);
     inputRef.current?.focus();
+  };
+
+  const handleInputChange = (e) => {
+    const nextValue = e.target.value;
+    setInputMessage(nextValue);
+    if (autocompleteStartIndex > nextValue.length) {
+      setAutocompleteStartIndex(nextValue.length);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -581,7 +599,7 @@ export function AIChat({
               className={`chat-input ${isInputMultiline ? 'chat-input-multiline' : ''}`}
               placeholder="Ej: sumar 2 de Marqués de Riscal"
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
+              onChange={handleInputChange}
               onFocus={() => setIsInputFocused(true)}
               onKeyDown={handleKeyDown}
               rows={1}
