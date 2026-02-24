@@ -366,6 +366,25 @@ function App() {
     id: wine.id || wine._id,
   })
 
+  const refreshStats = useCallback(async () => {
+    if (!currentUser || currentUser.isGuest) return
+
+    try {
+      const response = await statsService.getStats()
+      if (response.success && response.data) {
+        setStats({
+          sales: response.data.sales || { total: 0, tinto: 0, blanco: 0, rosado: 0, espumoso: 0, dulce: 0 },
+          losses: response.data.losses || { total: 0, tinto: 0, blanco: 0, rosado: 0, espumoso: 0, dulce: 0 },
+          trends: response.data.trends || { total: 0, tinto: 0, blanco: 0, rosado: 0, espumoso: 0, dulce: 0, losses: 0 }
+        })
+      }
+    } catch (error) {
+      if (error.message !== 'No autorizado para acceder a esta ruta') {
+        console.error('Error al refrescar estadísticas:', error)
+      }
+    }
+  }, [currentUser])
+
   // Cargar vinos desde API (público, optionalAuth en backend)
   useEffect(() => {
     const fetchWines = async () => {
@@ -3701,6 +3720,7 @@ function App() {
         onWineOutOfStock={addNotification}
         onUpdateWine={!currentUser?.isGuest ? handleUpdateWine : null}
         onDeleteWine={!currentUser?.isGuest ? handleDeleteWine : null}
+        onStatsChange={refreshStats}
         isGuest={currentUser?.isGuest}
       />
     )}

@@ -8465,6 +8465,25 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 }
 
+/* Estabilidad final para métricas Home */
+.home-metrics-row {
+  width: 100%;
+  overflow: hidden;
+}
+
+.home-metric {
+  min-width: 0;
+}
+
+.home-metric-label,
+.home-metric-value,
+.home-metric-trend {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .view-enter,
   .top-vino-item,

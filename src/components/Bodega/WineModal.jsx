@@ -26,7 +26,7 @@ const getOptimizedImageUrl = (url) => {
   return url;
 };
 
-function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine, isGuest = false }) {
+function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine, onStatsChange, isGuest = false }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedWine, setEditedWine] = useState({
     price: wine?.price || 0,
@@ -206,6 +206,8 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
     if (adjustType === 'subtract') {
       try {
         await statsService.registerSale(wine._id || wine.id, value);
+        if (onStatsChange) await onStatsChange();
+        
         console.log(`✅ Venta registrada: ${value} unidades de ${wine.name}`);
       } catch (err) {
         console.warn('No se pudo registrar la venta en estadísticas:', err);
@@ -264,6 +266,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
       // Registrar venta cuando se resta del restaurante
       try {
         await statsService.registerSale(wine._id || wine.id, value);
+        if (onStatsChange) await onStatsChange();
         console.log(`✅ Venta registrada: ${value} unidades de ${wine.name}`);
       } catch (err) {
         console.warn('No se pudo registrar la venta en estadísticas:', err);
@@ -347,6 +350,7 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
     // Registrar la pérdida en estadísticas
     try {
       await statsService.registerLoss(wine._id || wine.id, value, reasonText);
+      if (onStatsChange) await onStatsChange();
     } catch (err) {
       console.warn('No se pudo registrar la pérdida en estadísticas:', err);
     }
@@ -1180,3 +1184,5 @@ function WineModal({ wine, onClose, onWineOutOfStock, onUpdateWine, onDeleteWine
 }
 
 export default WineModal;
+
+
