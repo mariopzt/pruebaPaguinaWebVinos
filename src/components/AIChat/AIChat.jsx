@@ -240,9 +240,34 @@ export function AIChat({
   const [typingMessageId, setTypingMessageId] = useState(null);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isInputMultiline, setIsInputMultiline] = useState(false);
   const chatMessagesRef = useRef(null);
   const inputRef = useRef(null);
   const inputWrapperRef = useRef(null);
+
+  const adjustInputHeight = useCallback(() => {
+    const el = inputRef.current;
+    if (!el) return;
+
+    const computed = window.getComputedStyle(el);
+    const lineHeight = parseFloat(computed.lineHeight) || 18;
+    const paddingTop = parseFloat(computed.paddingTop) || 0;
+    const paddingBottom = parseFloat(computed.paddingBottom) || 0;
+    const borderTop = parseFloat(computed.borderTopWidth) || 0;
+    const borderBottom = parseFloat(computed.borderBottomWidth) || 0;
+    const maxHeight = (lineHeight * 3) + paddingTop + paddingBottom + borderTop + borderBottom;
+    const singleLineHeight = lineHeight + paddingTop + paddingBottom + borderTop + borderBottom;
+
+    el.style.height = 'auto';
+    const nextHeight = Math.min(el.scrollHeight, maxHeight);
+    el.style.height = `${nextHeight}px`;
+    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
+    setIsInputMultiline(el.scrollHeight > (singleLineHeight + 1));
+  }, []);
+
+  useEffect(() => {
+    adjustInputHeight();
+  }, [inputMessage, adjustInputHeight]);
 
   const {
     sendMessage,
@@ -388,6 +413,9 @@ export function AIChat({
   };
 
   const handleKeyDown = (e) => {
+    // No interceptar mientras el usuario compone texto (teclados IME)
+    if (e.nativeEvent?.isComposing) return;
+
     if (wineSuggestions.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -410,7 +438,18 @@ export function AIChat({
       }
     }
 
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && e.shiftKey) {
+      // En textarea dejamos que Shift+Enter inserte salto de línea.
+      return;
+    }
+
+    if (
+      e.key === 'Enter' &&
+      !e.shiftKey &&
+      !e.ctrlKey &&
+      !e.altKey &&
+      !e.metaKey
+    ) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -537,15 +576,15 @@ export function AIChat({
 
         <div className="chat-input-container ia-chat-input">
           <div ref={inputWrapperRef} className="chat-input-wrapper">
-            <input
+            <textarea
               ref={inputRef}
-              type="text"
-              className="chat-input"
+              className={`chat-input ${isInputMultiline ? 'chat-input-multiline' : ''}`}
               placeholder="Ej: sumar 2 de Marqués de Riscal"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onFocus={() => setIsInputFocused(true)}
               onKeyDown={handleKeyDown}
+              rows={1}
               disabled={isLoading}
             />
             {wineSuggestions.length > 0 && (
