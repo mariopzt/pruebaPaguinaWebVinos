@@ -8399,6 +8399,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 }
 
+@media (max-width: 370px) {
+  .ia-quick-actions {
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  /* Oculta 4 chips en pantallas muy estrechas */
+  .ia-quick-actions .ia-quick-chip:nth-child(n+6) {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .view-enter,
   .top-vino-item,
