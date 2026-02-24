@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
+const { startTaskReminderScheduler } = require('./services/taskReminderService');
 
 // Cargar variables de entorno
 dotenv.config();
@@ -89,6 +90,9 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐 URL Red: http://0.0.0.0:${PORT} (usa tu IP local)`);
   console.log(`🍷 API: http://localhost:${PORT}/api`);
   console.log(`\n✨ Presiona CTRL+C para detener el servidor\n`);
+
+  // Recordatorios automáticos de tareas por fecha
+  startTaskReminderScheduler();
 });
 
 // Manejar errores no capturados

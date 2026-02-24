@@ -18,6 +18,8 @@ const taskSchema = new mongoose.Schema(
     avatars: { type: [String], default: [] },
     extraCount: { type: Number, default: 0 },
     metadata: { type: Object, default: {} },
+    reminderForDate: { type: String, default: null }, // YYYY-MM-DD de la última fecha notificada
+    reminderSentAt: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now },
   },
   { timestamps: false }
