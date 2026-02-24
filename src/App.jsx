@@ -4383,7 +4383,7 @@ function AddTaskModal({ onClose, onSave }) {
 
   return (
     <div className="task-modal-overlay" onClick={onClose}>
-      <div className={`task-modal ${withPreview ? 'voucher-modal-wide' : ''}`} onClick={(e) => e.stopPropagation()}>
+      <div className="task-modal" onClick={(e) => e.stopPropagation()}>
         <div className="task-modal-header">
           <h3>Nueva Tarea</h3>
           <button className="task-modal-close" onClick={onClose}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
