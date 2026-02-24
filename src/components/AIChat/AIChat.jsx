@@ -141,12 +141,29 @@ function injectSelectedWine(text = '', wineName = '', fromIndex = 0) {
   const input = fullInput.slice(safeFromIndex);
   const safeWine = String(wineName || '').trim();
   if (!safeWine) return fullInput;
-  const stripTrailingPreposition = (value = '') =>
-    value.replace(/\b(?:de|del|al|el|la|sobre|acerca\s+de)\s*$/i, '').trimEnd();
+  const escapeRegExp = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const stripInsertedPrepositions = (value = '') => {
+    const escapedWine = escapeRegExp(safeWine);
+    return value
+      .replace(
+        new RegExp(
+          `\\b((?:de|del|al|el|la|sobre|acerca\\s+de)(?:\\s+(?:de|del|al|el|la|sobre|acerca\\s+de))*)\\s+(?=${escapedWine}\\b)`,
+          'gi'
+        ),
+        (full, group) => {
+          const parts = String(group)
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+          if (parts.length <= 1) return '';
+          return `${parts[0]} `;
+        }
+      )
+      .replace(/[ \t]{2,}/g, ' ');
+  };
   const appendWine = (prefixPart = '') => {
-    const sanitizedPrefix = stripTrailingPreposition(prefixPart);
-    const needsSpace = sanitizedPrefix.length > 0 && !/\s$/.test(sanitizedPrefix);
-    return `${sanitizedPrefix}${needsSpace ? ' ' : ''}${safeWine}`;
+    const needsSpace = prefixPart.length > 0 && !/\s$/.test(prefixPart);
+    return `${prefixPart}${needsSpace ? ' ' : ''}${safeWine}`;
   };
 
   // Reemplazar solo el último segmento (tras coma o salto de línea)
@@ -158,33 +175,51 @@ function injectSelectedWine(text = '', wineName = '', fromIndex = 0) {
   const workingSegment = segment.trimStart();
 
   if (/["'][^"']*$/.test(workingSegment)) {
-    return `${fixedPrefix}${prefix}${leadingSpaces}${workingSegment.replace(/(["'])[^"']*$/, `$1${safeWine}`)}`;
+    return stripInsertedPrepositions(`${fixedPrefix}${prefix}${leadingSpaces}${workingSegment.replace(/(["'])[^"']*$/, `$1${safeWine}`)}`);
+  }
+
+  const quantityPrefixMatch = workingSegment.match(/^(.*?\b\d+(?:[.,]\d+)?\s+(?:unidades?\s+)?)(.*)$/i);
+  if (quantityPrefixMatch) {
+    const qtyPrefix = quantityPrefixMatch[1];
+    const qtyRest = (quantityPrefixMatch[2] || '').trim();
+    if (qtyRest) {
+      const prepSet = new Set(['al', 'de', 'del', 'el', 'la']);
+      const tokens = qtyRest.split(/\s+/).filter(Boolean);
+      let prepCount = 0;
+      while (prepCount < tokens.length && prepSet.has(tokens[prepCount].toLowerCase())) {
+        prepCount++;
+      }
+      if (prepCount > 0) {
+        const keptPrep = prepCount >= 2 ? `${tokens[0]} ` : '';
+        return `${fixedPrefix}${prefix}${leadingSpaces}${qtyPrefix}${keptPrep}${safeWine}`.replace(/[ \t]{2,}/g, ' ');
+      }
+    }
   }
 
   const commandMatch = workingSegment.match(/^(.*?(?:sumar|sumale|sumarle|agregar|agrega|anadir|añadir|restar|resta|quitar|quita|buscar|busca|ver|mostrar|stock|precio|info|informacion|detalles|recomendar|recomienda|habla|hablame|cuentame|dime)(?:\s+\d+)?(?:\s+unidades?)?\s+(?:de|del|al|el|la|sobre|acerca\s+de)?\s*)(.*)$/i);
   if (commandMatch) {
-    return `${fixedPrefix}${prefix}${leadingSpaces}${appendWine(commandMatch[1])}`;
+    return stripInsertedPrepositions(`${fixedPrefix}${prefix}${leadingSpaces}${appendWine(commandMatch[1])}`);
   }
 
   // Soporte para comandos encadenados abreviados:
   // "..., 10 al alba" -> "..., 10 al Albamar"
   const quantityPrepositionMatch = workingSegment.match(/^(.*?\b\d+(?:[.,]\d+)?\s+(?:unidades?\s+)?(?:de|del|al|el|la)\s*)(.*)$/i);
   if (quantityPrepositionMatch) {
-    return `${fixedPrefix}${prefix}${leadingSpaces}${appendWine(quantityPrepositionMatch[1])}`;
+    return stripInsertedPrepositions(`${fixedPrefix}${prefix}${leadingSpaces}${appendWine(quantityPrepositionMatch[1])}`);
   }
 
   // Soporte para "20 albamar" (cantidad + nombre sin preposición)
   const quantityDirectMatch = workingSegment.match(/^(.*?\b\d+(?:[.,]\d+)?\s+)(.*)$/i);
   if (quantityDirectMatch) {
-    return `${fixedPrefix}${prefix}${leadingSpaces}${quantityDirectMatch[1]}${safeWine}`;
+    return stripInsertedPrepositions(`${fixedPrefix}${prefix}${leadingSpaces}${quantityDirectMatch[1]}${safeWine}`);
   }
 
-  const prepositionMatch = workingSegment.match(/^(.*?\b(?:de|del|al|el|la|sobre|acerca\s+de)\s*)(.*)$/i);
+  const prepositionMatch = workingSegment.match(/^(.*?\b(?:(?:de|del|al|el|la|sobre|acerca\s+de)\s+)+)(.*)$/i);
   if (prepositionMatch) {
-    return `${fixedPrefix}${prefix}${leadingSpaces}${appendWine(prepositionMatch[1])}`;
+    return stripInsertedPrepositions(`${fixedPrefix}${prefix}${leadingSpaces}${appendWine(prepositionMatch[1])}`);
   }
 
-  return `${fixedPrefix}${prefix}${leadingSpaces}${safeWine}`;
+  return stripInsertedPrepositions(`${fixedPrefix}${prefix}${leadingSpaces}${safeWine}`);
 }
 
 /**
