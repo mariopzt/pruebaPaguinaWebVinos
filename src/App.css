@@ -227,6 +227,10 @@ body {
   font-size: 7px;
   font-weight: 400;
   color: #9a9aaf;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Botones rápidos bajo el perfil (diseño provisional) */
@@ -3035,6 +3039,56 @@ body {
   .home-content .home-metrics-section {
     margin-top: auto;
     padding-bottom: 12px;
+  }
+}
+
+@media (min-width: 1441px) {
+  .guides-container {
+    max-width: 1400px;
+    gap: 20px;
+  }
+
+  .guide-card {
+    padding: 28px;
+    border-radius: 20px;
+    gap: 20px;
+  }
+
+  .guide-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 14px;
+  }
+
+  .guide-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .guide-content {
+    gap: 14px;
+  }
+
+  .guide-title {
+    font-size: 20px;
+  }
+
+  .guide-description {
+    font-size: 13px;
+  }
+
+  .guide-step {
+    padding: 12px 14px;
+  }
+
+  .step-number {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .step-text {
+    font-size: 11px;
   }
 }
 
