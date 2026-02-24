@@ -2174,10 +2174,17 @@ function App() {
         </div>
 
         {/* Botón flotante para abrir menú en móviles */}
-        {currentView !== 'ia' && (           <button             type="button"             className="floating-menu-button"             onClick={toggleMenu}             aria-label="Abrir menú"           >             <FiMenu />           </button>         )}
+        <button
+          type="button"
+          className="floating-menu-button"
+          onClick={toggleMenu}
+          aria-label="Abrir men�"
+        >
+          <FiMenu />
+        </button>
 
       {/* Mobile Menu Overlay */}
-      {currentView !== 'ia' && isMenuOpen && (
+      {isMenuOpen && (
         <div className="mobile-menu-overlay" onClick={toggleMenu}>
           <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-menu-header">
@@ -6145,6 +6152,7 @@ function ChangePasswordModal({ onClose, onSave }) {
 }
 
 export default App
+
 
 
 
