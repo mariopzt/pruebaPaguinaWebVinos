@@ -1,44 +1,34 @@
 /* AIChat usa los estilos de App.css */
 
-/* Typing animation mejorada - solo puntos */
+/* Typing animation minimal */
 .ia-typing {
   display: flex;
-  gap: 8px;
-  padding: 12px 8px;
+  gap: 5px;
+  padding: 4px 2px;
   align-items: center;
 }
 
 .ia-typing span {
-  width: 12px;
-  height: 12px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  animation: iaTyping 1.4s ease-in-out infinite both;
-  box-shadow: 0 3px 12px rgba(102, 126, 234, 0.5);
+  background: #8f84e8;
+  animation: iaTypingMinimal 1s ease-in-out infinite;
+  opacity: 0.35;
 }
 
-.ia-typing span:nth-child(1) {
-  animation-delay: 0s;
-}
+.ia-typing span:nth-child(1) { animation-delay: 0s; }
+.ia-typing span:nth-child(2) { animation-delay: 0.1s; }
+.ia-typing span:nth-child(3) { animation-delay: 0.2s; }
 
-.ia-typing span:nth-child(2) {
-  animation-delay: 0.15s;
-}
-
-.ia-typing span:nth-child(3) {
-  animation-delay: 0.3s;
-}
-
-@keyframes iaTyping {
-  0%, 60%, 100% {
-    transform: translateY(0) scale(0.7);
-    opacity: 0.3;
-    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+@keyframes iaTypingMinimal {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.35;
   }
-  30% {
-    transform: translateY(-16px) scale(1.2);
-    opacity: 1;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.8);
+  50% {
+    transform: translateY(-2px);
+    opacity: 0.9;
   }
 }
 
@@ -52,7 +42,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Efecto de aparición de mensajes */
+/* Entrada de mensajes */
 .chat-message-container {
   animation: messageSlideIn 0.3s ease-out;
 }
@@ -68,32 +58,36 @@
   }
 }
 
-/* Animación del icono de IA cuando está pensando */
+/* Icono IA mientras responde */
 .ai-icon-pulse {
-  animation: aiIconPulse 2s ease-in-out infinite;
+  animation: aiIconPulse 1.4s ease-in-out infinite;
 }
 
 @keyframes aiIconPulse {
   0%, 100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 4px rgba(102, 126, 234, 0.6));
+    filter: drop-shadow(0 0 3px rgba(107, 92, 231, 0.45));
   }
   50% {
-    transform: scale(1.15);
-    filter: drop-shadow(0 0 12px rgba(102, 126, 234, 1));
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 10px rgba(139, 124, 255, 0.65));
   }
 }
 
-/* Mensaje cuando la IA está pensando - sin cuadro, solo puntos */
+/* Estado "IA escribiendo" */
 .chat-message.ai-thinking {
+  position: relative;
   background: transparent !important;
-  border: none !important;
+  border: 0 !important;
   box-shadow: none !important;
-  padding: 4px 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
   display: flex;
   align-items: center;
   gap: 0;
-  max-width: none !important;
+  min-height: 0;
+  max-width: fit-content !important;
+  overflow: hidden;
 }
 
 .chat-message.ai-thinking:hover {
@@ -101,46 +95,74 @@
   box-shadow: none !important;
 }
 
-/* Ajustar el contenedor cuando está pensando */
+.chat-message.ai-thinking::after {
+  content: none;
+}
+
 .chat-message-container.ai:has(.ai-thinking) {
   align-items: center;
 }
 
 .chat-message-container.ai:has(.ai-thinking) .chat-message-icon {
-  opacity: 0.7;
+  opacity: 0.9;
 }
 
-/* Animación de typing cuando la IA escribe el mensaje */
+/* Icono de IA sin círculo/fondo */
+.chat-message-container.ai .chat-message-icon {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Mensaje IA en texto limpio, sin recuadro */
+.chat-message.ai {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+.chat-message-container.ai .chat-message:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 .chat-message-container.ai .chat-message:not(.ai-thinking) {
   animation: messageSlideIn 0.4s ease-out;
 }
 
-/* Estilos para el efecto typing */
+/* Typing cursor */
 .typing-text {
   display: inline;
 }
 
 .typing-text.typing {
-  /* Mientras está escribiendo */
 }
 
 .typing-text.complete {
-  /* Cuando termina */
 }
 
 .typing-cursor {
   display: inline-block;
-  color: #a78bfa;
+  color: #9a8cff;
   font-weight: bold;
   animation: blinkCursor 0.6s step-end infinite;
   margin-left: 1px;
 }
 
 @keyframes blinkCursor {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ia-typing span,
+  .ai-icon-pulse,
+  .chat-message-container,
+  .chat-message-container.ai .chat-message:not(.ai-thinking),
+  .chat-message.ai-thinking::after,
+  .typing-cursor {
+    animation: none !important;
   }
 }

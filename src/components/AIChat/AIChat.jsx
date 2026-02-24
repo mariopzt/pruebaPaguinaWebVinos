@@ -539,17 +539,15 @@ export function AIChat({
           {messages.length > 0 && (
             messages.map(msg => (
               <div key={msg.id} className={`chat-message-container ${msg.sender} ${msg.isError ? 'error' : ''}`}>
-                <span className="chat-message-icon">
-                  {msg.sender === 'user' ? (
+                {msg.sender === 'user' && (
+                  <span className="chat-message-icon">
                     <img
                       src={currentUser?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=user"}
                       alt="User avatar"
                       className="chat-avatar"
                     />
-                  ) : (
-                    <FiCpu size={14} />
-                  )}
-                </span>
+                  </span>
+                )}
                 <div className={`chat-message ${msg.sender}`}>
                   {msg.sender === 'ai' && msg.id === typingMessageId ? (
                     <p>
@@ -570,9 +568,6 @@ export function AIChat({
           )}
           {isLoading && (
             <div className="chat-message-container ai">
-              <span className="chat-message-icon">
-                <FiCpu size={16} className="ai-icon-pulse" />
-              </span>
               <div className="chat-message ai-thinking">
                 <div className="ia-typing">
                   <span></span>
@@ -584,7 +579,6 @@ export function AIChat({
           )}
           {error && (
             <div className="chat-message-container ai error">
-              <span className="chat-message-icon"><FiCpu size={14} /></span>
               <div className="chat-message">
                 <p>{error}</p>
               </div>

@@ -4005,12 +4005,11 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 5px;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 4px 8px;
+  border-radius: 7px;
+  border: #191919 1px dotted;
   font-size: 14px;
   line-height: 1.6;
-  background: radial-gradient(circle at top left, rgba(30, 30, 50, 0.9) 0%, rgba(20, 20, 35, 0.95) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
   color: #e5e7eb;
   max-width: 75%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -4040,6 +4039,7 @@ body {
   word-break: break-word;
   white-space: pre-wrap;
   max-width: 100%;
+  font-weight: 400;
 }
 
 /* Estilos mejorados para mensajes de IA con formato rico */
