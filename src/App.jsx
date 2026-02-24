@@ -105,7 +105,7 @@ function App() {
     return getDeterministicAvatar(seed)
   }, [getDeterministicAvatar])
 
-  const resolveReviewDisplay = useCallback((review) => {
+  const resolveReviewDisplay = (review) => {
     const reviewUserId = String(review?.userId || '')
     const loggedUserId = String(currentUser?._id || currentUser?.id || '')
     const isOwnReview = reviewUserId && loggedUserId && reviewUserId === loggedUserId
@@ -121,7 +121,7 @@ function App() {
       name: review?.userName || 'Usuario',
       avatar: resolveReviewAvatar(review),
     }
-  }, [currentUser, getUserAvatar, resolveReviewAvatar])
+  }
   // Estado de autenticación
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
@@ -2601,7 +2601,7 @@ function App() {
                     <div className="tarea-card-footer-new">
                       <div className="tarea-card-user">
                         <img 
-                          src={(task.avatars && task.avatars[0]) || DEFAULT_AVATAR} 
+                          src={(task.avatars && task.avatars[0]) || DEFAULT_AVATARS[0]} 
                           alt="Avatar"
                           className="tarea-user-avatar"
                         />
