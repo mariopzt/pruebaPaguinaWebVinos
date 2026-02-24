@@ -87,6 +87,13 @@ function App() {
     () => getDeterministicAvatar('fallback'),
     [getDeterministicAvatar]
   )
+
+  const resolveReviewAvatar = useCallback((review) => {
+    const candidate = (review?.userAvatar || '').trim()
+    if (candidate) return candidate
+    const seed = review?.userEmail || review?.userName || review?.userId || 'reviewer'
+    return getDeterministicAvatar(seed)
+  }, [getDeterministicAvatar])
   // Estado de autenticación
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
@@ -3478,7 +3485,7 @@ function App() {
                       <div className="valoracion-card-footer">
                         <div className="valoracion-user">
                           <img
-                            src={review.userAvatar}
+                            src={resolveReviewAvatar(review)}
                             alt={review.userName}
                             className="valoracion-user-avatar"
                           />

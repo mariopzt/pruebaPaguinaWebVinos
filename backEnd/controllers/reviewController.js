@@ -34,7 +34,6 @@ const formatReview = (review) => {
   const wine = review.wine || {};
   const date = review.createdAt ? review.createdAt.toISOString().split('T')[0] : '';
   const displayName = user.name || review.guestName || 'Usuario';
-  const defaultAvatar = `https://api.dicebear.com/8.x/bottts-neutral/png?seed=${encodeURIComponent(displayName || user.email || 'reviewer')}`;
 
   return {
     id: review._id,
@@ -47,8 +46,9 @@ const formatReview = (review) => {
     date,
     verified: review.verified || false,
     userId: user._id || user.id || review.guestId || '',
+    userEmail: user.email || '',
     userName: displayName,
-    userAvatar: user.avatar || review.guestAvatar || defaultAvatar
+    userAvatar: user.avatar || review.guestAvatar || ''
   };
 };
 
