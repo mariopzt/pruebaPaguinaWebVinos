@@ -600,7 +600,15 @@ function App() {
       if (taskData.id) {
         const resp = await taskService.update(taskData.id, taskData)
         const saved = resp.data?.data || resp.data || taskData
-        setTasks(tasks.map(t => t.id === taskData.id ? { ...saved, id: saved._id || saved.id } : t))
+        setTasks(tasks.map(t => t.id === taskData.id ? {
+          ...saved,
+          id: saved._id || saved.id,
+          displayName: saved.user?.name || saved.userName || t.displayName || currentUser?.name || 'Usuario',
+          avatars: saved.avatars && saved.avatars.length
+            ? saved.avatars
+            : (t.avatars && t.avatars.length ? t.avatars : [getUserAvatar(currentUser)]),
+          extraCount: saved.extraCount ?? t.extraCount ?? 0,
+        } : t))
       } else {
         const payload = {
           ...taskData,
@@ -612,7 +620,15 @@ function App() {
         };
         const resp = await taskService.create(payload)
         const saved = resp.data?.data || resp.data || taskData
-        setTasks([...tasks, { ...saved, id: saved._id || saved.id }])
+        setTasks([...tasks, {
+          ...saved,
+          id: saved._id || saved.id,
+          displayName: saved.user?.name || saved.userName || currentUser?.name || 'Usuario',
+          avatars: saved.avatars && saved.avatars.length
+            ? saved.avatars
+            : [getUserAvatar(currentUser)],
+          extraCount: saved.extraCount ?? 0,
+        }])
       }
     } catch (e) {
       console.error('Error al guardar tarea', e)
