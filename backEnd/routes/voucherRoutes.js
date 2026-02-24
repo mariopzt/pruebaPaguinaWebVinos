@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const { getVouchers, createVoucher, updateVoucher, deleteVoucher } = require('../controllers/voucherController');
-const { optionalAuth } = require('../middleware/auth');
+const { protect, optionalAuth } = require('../middleware/auth');
 
 router.route('/')
   .get(optionalAuth, getVouchers)
-  .post(optionalAuth, createVoucher);
+  .post(protect, createVoucher);
 
 router.route('/:id')
-  .put(optionalAuth, updateVoucher)
-  .delete(optionalAuth, deleteVoucher);
+  .put(protect, updateVoucher)
+  .delete(protect, deleteVoucher);
 
 module.exports = router;

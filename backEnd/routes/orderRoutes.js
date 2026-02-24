@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { getOrders, createOrder, updateOrder, deleteOrder } = require('../controllers/orderController');
-const { optionalAuth } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 
 router.route('/')
-  .get(optionalAuth, getOrders)
-  .post(optionalAuth, createOrder);
+  .get(protect, getOrders)
+  .post(protect, createOrder);
 
 router.route('/:id')
-  .put(optionalAuth, updateOrder)
-  .delete(optionalAuth, deleteOrder);
+  .put(protect, updateOrder)
+  .delete(protect, deleteOrder);
 
 module.exports = router;
 

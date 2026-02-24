@@ -23,6 +23,13 @@ const notifyAllUsersExcept = async (excludeUserId, notificationData) => {
 
 exports.getOrders = async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para acceder a pedidos'
+      });
+    }
+
     const query = {};
     if (req.user) query.$or = [{ user: req.user._id }, { user: null }];
     const orders = await Order.find(query).sort({ createdAt: -1 }).lean();
@@ -34,6 +41,13 @@ exports.getOrders = async (req, res, next) => {
 
 exports.createOrder = async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para crear pedidos'
+      });
+    }
+
     const payload = { ...req.body };
     const items = Array.isArray(payload.items) ? payload.items : [];
     const allCompleted = items.length > 0 && items.every(it => !!it.completed);
@@ -49,6 +63,13 @@ exports.createOrder = async (req, res, next) => {
 
 exports.updateOrder = async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para actualizar pedidos'
+      });
+    }
+
     console.log('[updateOrder] id:', req.params.id);
     console.log('[updateOrder] body:', JSON.stringify(req.body, null, 2));
     
@@ -110,6 +131,13 @@ exports.updateOrder = async (req, res, next) => {
 
 exports.deleteOrder = async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para eliminar pedidos'
+      });
+    }
+
     await Order.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (error) {

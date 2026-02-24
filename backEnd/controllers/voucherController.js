@@ -14,6 +14,13 @@ exports.getVouchers = async (req, res, next) => {
 
 exports.createVoucher = async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para crear vales'
+      });
+    }
+
     const payload = { ...req.body };
     payload.code = normalizeCode(payload.code);
     // Forzamos vale compartido (no ligado a un usuario concreto).
@@ -27,6 +34,13 @@ exports.createVoucher = async (req, res, next) => {
 
 exports.updateVoucher = async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para actualizar vales'
+      });
+    }
+
     const payload = { ...req.body };
     if (payload.code !== undefined) payload.code = normalizeCode(payload.code);
 
@@ -47,6 +61,13 @@ exports.updateVoucher = async (req, res, next) => {
 
 exports.deleteVoucher = async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para eliminar vales'
+      });
+    }
+
     await Voucher.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (error) {

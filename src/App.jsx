@@ -635,7 +635,7 @@ function App() {
       if (taskData.id) {
         const resp = await taskService.update(taskData.id, taskData)
         const saved = resp.data?.data || resp.data || taskData
-        setTasks(tasks.map(t => t.id === taskData.id ? {
+        setTasks(prev => prev.map(t => t.id === taskData.id ? {
           ...saved,
           id: saved._id || saved.id,
           displayName: saved.user?.name || saved.userName || t.displayName || currentUser?.name || 'Usuario',
@@ -655,7 +655,7 @@ function App() {
         };
         const resp = await taskService.create(payload)
         const saved = resp.data?.data || resp.data || taskData
-        setTasks([...tasks, {
+        setTasks(prev => [...prev, {
           ...saved,
           id: saved._id || saved.id,
           displayName: saved.user?.name || saved.userName || currentUser?.name || 'Usuario',
@@ -678,21 +678,34 @@ function App() {
     } catch (e) {
       console.error('No se pudo eliminar en backend, borrando local')
     }
-    setTasks(tasks.filter(t => t.id !== taskId))
+    setTasks(prev => prev.filter(t => t.id !== taskId))
     setShowTaskModal(false)
   }
 
   // Handlers para Pedidos
   const handleAddOrder = () => {
+    if (currentUser?.isGuest) {
+      alert('Debes iniciar sesión con una cuenta para crear pedidos')
+      return
+    }
     setShowAddOrderModal(true)
   }
 
   const handleCreateVoucher = () => {
+    if (currentUser?.isGuest) {
+      alert('Debes iniciar sesión con una cuenta para crear vales')
+      return
+    }
     setSelectedVoucher(null)
     setShowAddVoucherModal(true)
   }
 
   const handleToggleVoucherStatus = async (voucherId) => {
+    if (currentUser?.isGuest) {
+      alert('Debes iniciar sesión con una cuenta para modificar vales')
+      return
+    }
+
     const target = vouchers.find((voucher) => voucher.id === voucherId || voucher._id === voucherId)
     if (!target) return
 
@@ -732,6 +745,11 @@ function App() {
   }
 
   const handleSaveVoucher = async (voucherData) => {
+    if (currentUser?.isGuest) {
+      alert('Debes iniciar sesión con una cuenta para crear vales')
+      return
+    }
+
     try {
       const payload = {
         ...voucherData,
@@ -753,6 +771,11 @@ function App() {
   }
 
   const handleUpdateVoucher = async (voucherData) => {
+    if (currentUser?.isGuest) {
+      alert('Debes iniciar sesión con una cuenta para editar vales')
+      return
+    }
+
     if (!voucherData?.id) return
     try {
       const payload = {
@@ -773,6 +796,11 @@ function App() {
   }
 
   const handleDeleteVoucher = async (voucherId) => {
+    if (currentUser?.isGuest) {
+      alert('Debes iniciar sesión con una cuenta para eliminar vales')
+      return
+    }
+
     if (!voucherId) return
     const shouldDelete = window.confirm('¿Eliminar este vale? Esta acción no se puede deshacer.')
     if (!shouldDelete) return
@@ -789,6 +817,11 @@ function App() {
   }
 
   const handleSaveOrder = async (orderData) => {
+    if (currentUser?.isGuest) {
+      alert('Debes iniciar sesión con una cuenta para guardar pedidos')
+      return
+    }
+
     console.log('handleSaveOrder recibido:', orderData)
     try {
       const orderId = orderData.id || orderData._id;
@@ -809,7 +842,7 @@ function App() {
         const resp = await orderService.update(orderId, payload)
         console.log('Respuesta del servidor:', resp)
         const saved = normalizeOrder(resp.data?.data || resp.data || payload)
-        setOrders(orders.map(o => (o.id === saved.id || o._id === saved._id) ? saved : o))
+        setOrders((prev) => prev.map((order) => (order.id === saved.id || order._id === saved._id ? saved : order)))
       } else {
         // Crear nuevo pedido
         const payload = {
@@ -825,7 +858,7 @@ function App() {
         const resp = await orderService.create(payload)
         console.log('Respuesta del servidor:', resp)
         const saved = normalizeOrder(resp.data?.data || resp.data || payload)
-        setOrders([...orders, saved])
+        setOrders((prev) => [...prev, saved])
       }
       // Refrescar desde API para asegurar consistencia
       fetchOrders()
@@ -838,16 +871,26 @@ function App() {
   }
 
   const handleDeleteOrder = async (orderId) => {
+    if (currentUser?.isGuest) {
+      alert('Debes iniciar sesión con una cuenta para eliminar pedidos')
+      return
+    }
+
     try {
       await orderService.delete(orderId)
     } catch (e) {
       console.error('No se pudo eliminar pedido en backend, borrando local')
     }
-    setOrders(orders.filter(o => o.id !== orderId))
+    setOrders((prev) => prev.filter((order) => order.id !== orderId && order._id !== orderId))
     setShowEditOrderModal(false)
   }
 
   const handleToggleOrderItem = async (orderId, itemId) => {
+    if (currentUser?.isGuest) {
+      alert('Debes iniciar sesión con una cuenta para modificar pedidos')
+      return
+    }
+
     // Buscar el pedido actual
     const currentOrder = orders.find(o => o.id === orderId || o._id === orderId);
     if (!currentOrder) {
@@ -960,6 +1003,10 @@ function App() {
   const handleAddReview = () => {
     if (!isAuthenticated) {
       alert('Para escribir una resena debes iniciar sesion.')
+      return
+    }
+    if (currentUser?.isGuest) {
+      alert('Como invitado solo puedes ver valoraciones. Inicia sesión para publicar.')
       return
     }
 
@@ -1098,6 +1145,10 @@ function App() {
       alert('Necesitas iniciar sesion para publicar una valoracion')
       return
     }
+    if (currentUser?.isGuest) {
+      alert('Como invitado no puedes publicar valoraciones. Inicia sesión.')
+      return
+    }
 
     const guestContext = currentUser?.isGuest
       ? {
@@ -1147,14 +1198,13 @@ function App() {
   }
 
   const handleDeleteReview = async (reviewId) => {
+    if (currentUser?.isGuest) {
+      alert('Como invitado no puedes eliminar valoraciones.')
+      return
+    }
+
     try {
-      if (currentUser?.isGuest) {
-        await reviewService.delete(reviewId, {
-          guestId: currentUser._id || currentUser.id
-        })
-      } else {
-        await reviewService.delete(reviewId)
-      }
+      await reviewService.delete(reviewId)
       setReviews((prev) => prev.filter((r) => r.id !== reviewId))
     } catch (error) {
       console.error('Error al eliminar valoracion', error)
@@ -2569,7 +2619,7 @@ function App() {
                           e.stopPropagation()
                           
                           // Marcar la tarea como "removing" para activar la animación
-                          setTasks(tasks.map(t => 
+                          setTasks(prev => prev.map(t => 
                             t.id === task.id ? { ...t, removing: true } : t
                           ))
                           
@@ -2580,7 +2630,7 @@ function App() {
                               status: task.status === 'completed' ? 'pending' : 'completed',
                               removing: false
                             }
-                            setTasks(tasks.map(t => t.id === task.id ? updatedTask : t))
+                            setTasks(prev => prev.map(t => t.id === task.id ? updatedTask : t))
 
                             // Persistir en backend
                             taskService.update(task.id, updatedTask).catch(() => {})
@@ -2753,12 +2803,14 @@ function App() {
               </div>
                 
                 {/* Botón nuevo pedido */}
-                <button className="tareas-add-btn" onClick={handleAddOrder}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 5v14M5 12h14"/>
-                  </svg>
-                  Nuevo
-                </button>
+                {!currentUser?.isGuest && (
+                  <button className="tareas-add-btn" onClick={handleAddOrder}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Nuevo
+                  </button>
+                )}
               </div>
 
               {/* Grid de pedidos */}
@@ -2766,8 +2818,8 @@ function App() {
                 {filteredOrders.map((order) => {
                     const completedItems = order.items.filter(item => item.completed).length
                     const totalItems = order.items.length
-                    const progress = (completedItems / totalItems) * 100
-                    const isCompleted = completedItems === totalItems
+                    const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0
+                    const isCompleted = totalItems > 0 && completedItems === totalItems
 
                     return (
                       <article
@@ -3060,12 +3112,14 @@ function App() {
                     )}
                   </div>
                 </div>
-                <button className="tareas-add-btn vales-add-btn" onClick={handleCreateVoucher}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 5v14M5 12h14"/>
-                  </svg>
-                  Nuevo vale
-                </button>
+                {!currentUser?.isGuest && (
+                  <button className="tareas-add-btn vales-add-btn" onClick={handleCreateVoucher}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Nuevo vale
+                  </button>
+                )}
               </div>
 
               <div className="vales-grid">
@@ -3127,23 +3181,25 @@ function App() {
                         </div>
                       </div>
 
-                      <div className="vale-actions">
-                        <button
-                          type="button"
-                          className="vale-action-btn vale-action-btn-secondary"
-                          onClick={() => handleOpenEditVoucher(voucher)}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          className="vale-action-btn"
-                          onClick={() => handleToggleVoucherStatus(voucher.id)}
-                          disabled={expired || isExiting}
-                        >
-                          {voucher.status === 'activo' ? 'Marcar usado' : 'Reactivar'}
-                        </button>
-                      </div>
+                      {!currentUser?.isGuest && (
+                        <div className="vale-actions">
+                          <button
+                            type="button"
+                            className="vale-action-btn vale-action-btn-secondary"
+                            onClick={() => handleOpenEditVoucher(voucher)}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            className="vale-action-btn"
+                            onClick={() => handleToggleVoucherStatus(voucher.id)}
+                            disabled={expired || isExiting}
+                          >
+                            {voucher.status === 'activo' ? 'Marcar usado' : 'Reactivar'}
+                          </button>
+                        </div>
+                      )}
                     </article>
                   )
                 })}
@@ -3455,12 +3511,14 @@ function App() {
                   )}
                 </div>
 
-                <button className="tareas-add-btn" onClick={handleAddReview}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 5v14M5 12h14"/>
-                  </svg>
-                  Nueva Reseña
-                </button>
+                {!currentUser?.isGuest && (
+                  <button className="tareas-add-btn" onClick={handleAddReview}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Nueva Reseña
+                  </button>
+                )}
               </div>
 
               {reviewsError && (

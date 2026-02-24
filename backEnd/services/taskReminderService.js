@@ -1,9 +1,8 @@
 const Task = require('../models/Task');
 const Notification = require('../models/Notification');
 
-const CHECK_INTERVAL_MS = 15 * 60 * 1000; // 15 minutos
 const REMINDER_HOUR = Number(process.env.TASK_REMINDER_HOUR || 9); // 09:00 por defecto
-let intervalRef = null;
+let timeoutRef = null;
 
 const toDateKeyLocal = (date = new Date()) => {
   const y = date.getFullYear();
@@ -14,10 +13,7 @@ const toDateKeyLocal = (date = new Date()) => {
 
 const runTaskRemindersCheck = async () => {
   const now = new Date();
-  // Enviar recordatorios solo desde la hora configurada en adelante.
-  if (now.getHours() < REMINDER_HOUR) return;
-
-  const todayKey = toDateKeyLocal();
+  const todayKey = toDateKeyLocal(now);
 
   const dueTasks = await Task.find({
     dateValue: todayKey,
@@ -31,7 +27,7 @@ const runTaskRemindersCheck = async () => {
     .select('_id user title date dateValue reminderForDate')
     .lean();
 
-  if (!dueTasks.length) return;
+  if (!dueTasks.length) return 0;
 
   const notifications = dueTasks
     .filter((task) => !!task.user)
@@ -60,26 +56,66 @@ const runTaskRemindersCheck = async () => {
     { _id: { $in: dueTasks.map((t) => t._id) } },
     { $set: { reminderForDate: todayKey, reminderSentAt: now } }
   );
+
+  return notifications.length;
+};
+
+const getNextRunDate = (fromDate = new Date()) => {
+  const next = new Date(fromDate);
+  next.setSeconds(0, 0);
+  next.setHours(REMINDER_HOUR, 0, 0, 0);
+
+  if (fromDate >= next) {
+    next.setDate(next.getDate() + 1);
+  }
+
+  return next;
+};
+
+const scheduleNextRun = () => {
+  const now = new Date();
+  const nextRun = getNextRunDate(now);
+  const delayMs = Math.max(1000, nextRun.getTime() - now.getTime());
+
+  timeoutRef = setTimeout(async () => {
+    try {
+      const sent = await runTaskRemindersCheck();
+      console.log(`[TaskReminder] Recordatorios enviados: ${sent}`);
+    } catch (error) {
+      console.error('[TaskReminder] Error en ejecución diaria:', error.message);
+    } finally {
+      scheduleNextRun();
+    }
+  }, delayMs);
+
+  console.log(`[TaskReminder] Próxima ejecución: ${nextRun.toLocaleString()}`);
 };
 
 const startTaskReminderScheduler = () => {
-  if (intervalRef) return;
+  if (timeoutRef) return;
 
-  // Primera pasada al iniciar servidor
-  runTaskRemindersCheck().catch((error) => {
-    console.error('[TaskReminder] Error en chequeo inicial:', error.message);
-  });
+  const now = new Date();
 
-  intervalRef = setInterval(() => {
-    runTaskRemindersCheck().catch((error) => {
-      console.error('[TaskReminder] Error en chequeo programado:', error.message);
-    });
-  }, CHECK_INTERVAL_MS);
+  // Si el servidor arranca después de la hora configurada,
+  // intentamos un envío inmediato de "catch-up" para hoy.
+  if (now.getHours() >= REMINDER_HOUR) {
+    runTaskRemindersCheck()
+      .then((sent) => {
+        if (sent > 0) {
+          console.log(`[TaskReminder] Catch-up al iniciar: ${sent} recordatorios`);
+        }
+      })
+      .catch((error) => {
+        console.error('[TaskReminder] Error en catch-up inicial:', error.message);
+      });
+  }
 
-  console.log(`[TaskReminder] Scheduler iniciado (cada 15 minutos, envío desde las ${String(REMINDER_HOUR).padStart(2, '0')}:00)`);
+  scheduleNextRun();
+  console.log(`[TaskReminder] Scheduler iniciado (diario a las ${String(REMINDER_HOUR).padStart(2, '0')}:00)`);
 };
 
 module.exports = {
   startTaskReminderScheduler,
   runTaskRemindersCheck,
 };
+

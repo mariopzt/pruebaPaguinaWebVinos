@@ -60,6 +60,13 @@ exports.getWine = async (req, res) => {
 // @access  Private
 exports.createWine = async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para crear vinos'
+      });
+    }
+
     // Agregar usuario al body
     if (req.user?.id) {
       req.body.user = req.user.id;
@@ -107,6 +114,13 @@ exports.createWine = async (req, res) => {
 // @access  Private
 exports.updateWine = async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para actualizar vinos'
+      });
+    }
+
     let wine = await Wine.findById(req.params.id);
 
     if (!wine) {
@@ -236,6 +250,13 @@ exports.updateWine = async (req, res) => {
 // @access  Private
 exports.deleteWine = async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado para eliminar vinos'
+      });
+    }
+
     const wine = await Wine.findById(req.params.id);
 
     if (!wine) {

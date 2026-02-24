@@ -13,12 +13,12 @@ const { protect, optionalAuth } = require('../middleware/auth');
 // Lectura pública/semiautenticada, escritura protegida
 router.route('/')
   .get(optionalAuth, getWines)
-  .post(optionalAuth, createWine);
+  .post(protect, createWine);
 
 router.route('/:id')
   .get(optionalAuth, getWine)
-  .put(optionalAuth, updateWine)
-  .delete(optionalAuth, deleteWine);
+  .put(protect, updateWine)
+  .delete(protect, deleteWine);
 
 // Toggle like en un vino (permite invitados)
 router.post('/:id/like', optionalAuth, toggleLike);
