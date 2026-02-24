@@ -141,6 +141,13 @@ function injectSelectedWine(text = '', wineName = '', fromIndex = 0) {
   const input = fullInput.slice(safeFromIndex);
   const safeWine = String(wineName || '').trim();
   if (!safeWine) return fullInput;
+  const stripTrailingPreposition = (value = '') =>
+    value.replace(/\b(?:de|del|al|el|la|sobre|acerca\s+de)\s*$/i, '').trimEnd();
+  const appendWine = (prefixPart = '') => {
+    const sanitizedPrefix = stripTrailingPreposition(prefixPart);
+    const needsSpace = sanitizedPrefix.length > 0 && !/\s$/.test(sanitizedPrefix);
+    return `${sanitizedPrefix}${needsSpace ? ' ' : ''}${safeWine}`;
+  };
 
   // Reemplazar solo el último segmento (tras coma o salto de línea)
   // para permitir comandos encadenados: "suma 20 al X, 10 al Y, ..."
@@ -156,14 +163,14 @@ function injectSelectedWine(text = '', wineName = '', fromIndex = 0) {
 
   const commandMatch = workingSegment.match(/^(.*?(?:sumar|sumale|sumarle|agregar|agrega|anadir|añadir|restar|resta|quitar|quita|buscar|busca|ver|mostrar|stock|precio|info|informacion|detalles|recomendar|recomienda|habla|hablame|cuentame|dime)(?:\s+\d+)?(?:\s+unidades?)?\s+(?:de|del|al|el|la|sobre|acerca\s+de)?\s*)(.*)$/i);
   if (commandMatch) {
-    return `${fixedPrefix}${prefix}${leadingSpaces}${commandMatch[1]}${safeWine}`;
+    return `${fixedPrefix}${prefix}${leadingSpaces}${appendWine(commandMatch[1])}`;
   }
 
   // Soporte para comandos encadenados abreviados:
   // "..., 10 al alba" -> "..., 10 al Albamar"
   const quantityPrepositionMatch = workingSegment.match(/^(.*?\b\d+(?:[.,]\d+)?\s+(?:unidades?\s+)?(?:de|del|al|el|la)\s*)(.*)$/i);
   if (quantityPrepositionMatch) {
-    return `${fixedPrefix}${prefix}${leadingSpaces}${quantityPrepositionMatch[1]}${safeWine}`;
+    return `${fixedPrefix}${prefix}${leadingSpaces}${appendWine(quantityPrepositionMatch[1])}`;
   }
 
   // Soporte para "20 albamar" (cantidad + nombre sin preposición)
@@ -174,7 +181,7 @@ function injectSelectedWine(text = '', wineName = '', fromIndex = 0) {
 
   const prepositionMatch = workingSegment.match(/^(.*?\b(?:de|del|al|el|la|sobre|acerca\s+de)\s*)(.*)$/i);
   if (prepositionMatch) {
-    return `${fixedPrefix}${prefix}${leadingSpaces}${prepositionMatch[1]}${safeWine}`;
+    return `${fixedPrefix}${prefix}${leadingSpaces}${appendWine(prepositionMatch[1])}`;
   }
 
   return `${fixedPrefix}${prefix}${leadingSpaces}${safeWine}`;
@@ -468,6 +475,13 @@ export function AIChat({
       !e.altKey &&
       !e.metaKey
     ) {
+      // Enter primero intenta autocompletar vino (si hay sugerencias),
+      // y solo envía cuando ya no hay nada que autocompletar.
+      if (wineSuggestions.length > 0) {
+        e.preventDefault();
+        handlePickSuggestion(wineSuggestions[selectedSuggestionIndex] || wineSuggestions[0]);
+        return;
+      }
       e.preventDefault();
       handleSendMessage();
     }
