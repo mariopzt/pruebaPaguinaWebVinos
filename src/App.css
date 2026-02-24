@@ -4175,6 +4175,7 @@ body {
   flex: 1;
   position: relative;
   border-radius: 10px;
+  overflow: visible;
   display: flex;
   align-items: center;
   border: 1px solid rgba(99, 102, 241, 0.2);
@@ -4204,6 +4205,67 @@ body {
 
 .chat-input::placeholder {
   color: #6b7280;
+}
+
+.ia-wine-suggestions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 90;
+  border-radius: 12px;
+  padding: 8px;
+  background: radial-gradient(circle at top left, rgba(36, 36, 58, 0.98) 0%, rgba(18, 18, 30, 0.98) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.ia-wine-suggestions::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ia-wine-suggestions::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.35);
+  border-radius: 999px;
+}
+
+.ia-wine-suggestion-item {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #f2f2ff;
+  text-align: left;
+  padding: 9px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ia-wine-suggestion-item:hover,
+.ia-wine-suggestion-item.active {
+  border-color: rgba(129, 140, 248, 0.5);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(167, 139, 250, 0.12));
+  transform: translateY(-1px);
+}
+
+.ia-wine-suggestion-main {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.ia-wine-suggestion-meta {
+  font-size: 10px;
+  color: #b9bfd8;
 }
 
 .chat-send-arrow {
@@ -8188,6 +8250,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     font-size: 15px;
   }
 
+  .ia-wine-suggestion-main {
+    font-size: 14px;
+  }
+
+  .ia-wine-suggestion-meta {
+    font-size: 12px;
+  }
+
   /* Chips de acciones rápidas */
   .ia-quick-chip {
     font-size: 14px;
@@ -8266,6 +8336,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .chat-input {
     font-size: 14px !important;
     padding: 12px 55px 12px 14px;
+  }
+
+  .ia-wine-suggestions {
+    left: 4px;
+    right: 4px;
+    bottom: calc(100% + 6px);
+    max-height: 200px;
   }
 
   /* Opciones más grandes */

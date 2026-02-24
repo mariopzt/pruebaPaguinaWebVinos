@@ -100,6 +100,81 @@ function formatMessage(text) {
   return formatted;
 }
 
+function normalizeText(value = '') {
+  return String(value)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function extractWineFragment(text = '') {
+  const raw = String(text || '');
+  const trimmed = raw.trim();
+  if (!trimmed) return '';
+
+  // Trabajar con el último segmento escrito (permite frases encadenadas con comas).
+  const segments = trimmed.split(/[,\n]/).map((part) => part.trim()).filter(Boolean);
+  const lastSegment = segments.length > 0 ? segments[segments.length - 1] : trimmed;
+
+  const quoteMatch = trimmed.match(/["']([^"']*)$/);
+  if (quoteMatch) return quoteMatch[1].trim();
+
+  const commandMatch = lastSegment.match(/(?:sumar|sumale|sumarle|agregar|agrega|anadir|añadir|restar|resta|quitar|quita|buscar|busca|ver|mostrar|stock|precio|info|informacion|detalles|recomendar|recomienda|habla|hablame|cuentame|dime)(?:\s+\d+)?(?:\s+unidades?)?\s+(?:de|del|al|el|la|sobre|acerca\s+de)?\s*(.*)$/i);
+  if (commandMatch) {
+    const clean = commandMatch[1]
+      .replace(/^[.\-:; ]+/, '')
+      .replace(/\b(vino|vinos)\b/gi, '')
+      .replace(/[.\-:; ]+$/g, '')
+      .trim();
+    return clean;
+  }
+
+  return lastSegment;
+}
+
+function injectSelectedWine(text = '', wineName = '') {
+  const input = String(text || '');
+  const safeWine = String(wineName || '').trim();
+  if (!safeWine) return input;
+
+  // Reemplazar solo el último segmento (tras coma o salto de línea)
+  // para permitir comandos encadenados: "suma 20 al X, 10 al Y, ..."
+  const lastSeparatorIndex = Math.max(input.lastIndexOf(','), input.lastIndexOf('\n'));
+  const prefix = lastSeparatorIndex >= 0 ? input.slice(0, lastSeparatorIndex + 1) : '';
+  const segment = lastSeparatorIndex >= 0 ? input.slice(lastSeparatorIndex + 1) : input;
+  const leadingSpaces = segment.match(/^\s*/)?.[0] || '';
+  const workingSegment = segment.trimStart();
+
+  if (/["'][^"']*$/.test(workingSegment)) {
+    return `${prefix}${leadingSpaces}${workingSegment.replace(/(["'])[^"']*$/, `$1${safeWine}`)}`;
+  }
+
+  const commandMatch = workingSegment.match(/^(.*?(?:sumar|sumale|sumarle|agregar|agrega|anadir|añadir|restar|resta|quitar|quita|buscar|busca|ver|mostrar|stock|precio|info|informacion|detalles|recomendar|recomienda|habla|hablame|cuentame|dime)(?:\s+\d+)?(?:\s+unidades?)?\s+(?:de|del|al|el|la|sobre|acerca\s+de)?\s*)(.*)$/i);
+  if (commandMatch) {
+    return `${prefix}${leadingSpaces}${commandMatch[1]}${safeWine}`;
+  }
+
+  // Soporte para comandos encadenados abreviados:
+  // "..., 10 al alba" -> "..., 10 al Albamar"
+  const quantityPrepositionMatch = workingSegment.match(/^(.*?\b\d+(?:[.,]\d+)?\s+(?:unidades?\s+)?(?:de|del|al|el|la)\s*)(.*)$/i);
+  if (quantityPrepositionMatch) {
+    return `${prefix}${leadingSpaces}${quantityPrepositionMatch[1]}${safeWine}`;
+  }
+
+  // Soporte para "20 albamar" (cantidad + nombre sin preposición)
+  const quantityDirectMatch = workingSegment.match(/^(.*?\b\d+(?:[.,]\d+)?\s+)(.*)$/i);
+  if (quantityDirectMatch) {
+    return `${prefix}${leadingSpaces}${quantityDirectMatch[1]}${safeWine}`;
+  }
+
+  const prepositionMatch = workingSegment.match(/^(.*?\b(?:de|del|al|el|la|sobre|acerca\s+de)\s*)(.*)$/i);
+  if (prepositionMatch) {
+    return `${prefix}${leadingSpaces}${prepositionMatch[1]}${safeWine}`;
+  }
+
+  return `${prefix}${leadingSpaces}${safeWine}`;
+}
+
 /**
  * Componente de texto con efecto typing
  */
@@ -163,8 +238,11 @@ export function AIChat({
 }) {
   const [inputMessage, setInputMessage] = useState('');
   const [typingMessageId, setTypingMessageId] = useState(null);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const chatMessagesRef = useRef(null);
   const inputRef = useRef(null);
+  const inputWrapperRef = useRef(null);
 
   const {
     sendMessage,
@@ -247,7 +325,91 @@ export function AIChat({
     handleSendMessage(optionText);
   };
 
-  const handleKeyPress = (e) => {
+  const wineSuggestions = (() => {
+    const fragment = extractWineFragment(inputMessage);
+    const normalizedFragment = normalizeText(fragment);
+    const canSuggest = isInputFocused && wines.length > 0 && normalizedFragment.length >= 1;
+    if (!canSuggest) return [];
+
+    let filtered = wines
+      .filter((wine) => {
+        const name = normalizeText(wine?.name || '');
+        if (!name) return false;
+        if (!normalizedFragment) return true;
+        return name.includes(normalizedFragment);
+      })
+      .sort((a, b) => {
+        const aName = normalizeText(a?.name || '');
+        const bName = normalizeText(b?.name || '');
+        const aStarts = normalizedFragment ? aName.startsWith(normalizedFragment) : false;
+        const bStarts = normalizedFragment ? bName.startsWith(normalizedFragment) : false;
+        if (aStarts !== bStarts) return aStarts ? -1 : 1;
+        return aName.localeCompare(bName, 'es');
+      })
+      .slice(0, 6);
+
+    // Fallback: si escribió una frase larga y no hubo match directo,
+    // intentamos con sufijos ("... vino albamar" -> "albamar")
+    if (filtered.length === 0 && normalizedFragment.includes(' ')) {
+      const tokens = normalizedFragment.split(/\s+/).filter(Boolean);
+      for (let i = Math.floor(tokens.length / 2); i < tokens.length; i++) {
+        const suffix = tokens.slice(i).join(' ');
+        filtered = wines
+          .filter((wine) => normalizeText(wine?.name || '').includes(suffix))
+          .sort((a, b) => normalizeText(a?.name || '').localeCompare(normalizeText(b?.name || ''), 'es'))
+          .slice(0, 6);
+        if (filtered.length > 0) break;
+      }
+    }
+
+    return filtered;
+  })();
+
+  useEffect(() => {
+    setSelectedSuggestionIndex(0);
+  }, [inputMessage]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (!inputWrapperRef.current?.contains(event.target)) {
+        setIsInputFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
+  const handlePickSuggestion = (wine) => {
+    const wineName = wine?.name || '';
+    if (!wineName) return;
+    setInputMessage((prev) => injectSelectedWine(prev, wineName));
+    setSelectedSuggestionIndex(0);
+    inputRef.current?.focus();
+  };
+
+  const handleKeyDown = (e) => {
+    if (wineSuggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) => (prev + 1) % wineSuggestions.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) => (prev - 1 + wineSuggestions.length) % wineSuggestions.length);
+        return;
+      }
+      if ((e.key === 'Enter' || e.key === 'Tab') && wineSuggestions[selectedSuggestionIndex]) {
+        e.preventDefault();
+        handlePickSuggestion(wineSuggestions[selectedSuggestionIndex]);
+        return;
+      }
+      if (e.key === 'Escape') {
+        setIsInputFocused(false);
+        return;
+      }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -374,17 +536,36 @@ export function AIChat({
         </div>
 
         <div className="chat-input-container ia-chat-input">
-          <div className="chat-input-wrapper">
+          <div ref={inputWrapperRef} className="chat-input-wrapper">
             <input
               ref={inputRef}
               type="text"
               className="chat-input"
-              placeholder="Escribe tu mensaje..."
+              placeholder="Ej: sumar 2 de Marqués de Riscal"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onFocus={() => setIsInputFocused(true)}
+              onKeyDown={handleKeyDown}
               disabled={isLoading}
             />
+            {wineSuggestions.length > 0 && (
+              <div className="ia-wine-suggestions" role="listbox" aria-label="Sugerencias de vinos">
+                {wineSuggestions.map((wine, index) => (
+                  <button
+                    key={wine?.id || wine?._id || `${wine?.name}-${index}`}
+                    type="button"
+                    className={`ia-wine-suggestion-item ${index === selectedSuggestionIndex ? 'active' : ''}`}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handlePickSuggestion(wine)}
+                  >
+                    <span className="ia-wine-suggestion-main">{wine?.name}</span>
+                    <span className="ia-wine-suggestion-meta">
+                      {[wine?.type, wine?.year ? `Año ${wine.year}` : null].filter(Boolean).join(' · ') || 'Vino en bodega'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
             <button
               className={`chat-send-arrow ${isLoading ? 'loading' : ''}`}
               onClick={() => handleSendMessage()}
