@@ -4604,12 +4604,15 @@ flex-direction: column;
   min-height: 95vh;
   padding: 20px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: column;
 }
 
 .ajustes-container {
   width: 100%;
   max-width: 800px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 20px;
