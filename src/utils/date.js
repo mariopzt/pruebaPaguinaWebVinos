@@ -1,13 +1,20 @@
-﻿export const getTimeAgo = (date) => {
+export const getTimeAgo = (date) => {
+  if (!date) return 'Actualizado recientemente';
+
+  const parsedDate = new Date(date);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return 'Actualizado recientemente';
+  }
+
   const now = new Date();
-  const diffTime = Math.abs(now - new Date(date));
+  const diffTime = Math.abs(now - parsedDate);
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return 'Updated today';
-  if (diffDays === 1) return 'Updated yesterday';
-  if (diffDays < 7) return `Updated ${diffDays} days ago`;
+  if (diffDays === 0) return 'Actualizado hoy';
+  if (diffDays === 1) return 'Actualizado ayer';
+  if (diffDays < 7) return `Actualizado hace ${diffDays} dias`;
 
   const diffWeeks = Math.floor(diffDays / 7);
-  if (diffWeeks === 1) return 'Updated 1 week ago';
-  return `Updated ${diffWeeks} weeks ago`;
+  if (diffWeeks === 1) return 'Actualizado hace 1 semana';
+  return `Actualizado hace ${diffWeeks} semanas`;
 };

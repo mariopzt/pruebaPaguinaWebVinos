@@ -25,6 +25,7 @@
 .bodega-filters {
   display: flex;
   gap: 8px;
+  padding-top: 3px;
   margin-bottom: 16px;
   flex-wrap: nowrap;
   flex-shrink: 0;
@@ -88,7 +89,6 @@
   background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: #ffffff;
   border-color: rgba(99, 102, 241, 0.6);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .checkmark {

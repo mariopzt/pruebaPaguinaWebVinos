@@ -105,8 +105,8 @@ function WineCard({ wine, onClick, isHighlighted, likes = 0, liked = false, onTo
       </div>
       <div className="wine-card-info">
         <h3 className="wine-card-title">{wine.name}</h3>
-        <div className="wine-card-footer">
-          <p className="wine-card-updated">{getTimeAgo(wine.updatedAt)}</p>
+          <div className="wine-card-footer">
+          <p className="wine-card-updated">{getTimeAgo(wine.updatedAt || wine.updatedAtClient || wine.createdAt)}</p>
           <div className="wine-likes-count">
             <FiHeart size={12} />
             <span>{likes}</span>
@@ -118,4 +118,3 @@ function WineCard({ wine, onClick, isHighlighted, likes = 0, liked = false, onTo
 }
 
 export default WineCard;
-
