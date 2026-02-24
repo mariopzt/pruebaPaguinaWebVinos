@@ -211,9 +211,21 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.sidebar-user-name-text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
 }
 
 .guest-badge {
+  flex-shrink: 0;
   font-size: 7px;
   font-weight: 500;
   padding: 2px 6px;

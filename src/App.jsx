@@ -1959,7 +1959,7 @@ function App() {
               />
             </div>
             <div className="sidebar-user-name">
-              {currentUser?.name || 'Usuario'}
+              <span className="sidebar-user-name-text">{currentUser?.name || 'Usuario'}</span>
               {currentUser?.isGuest && <span className="guest-badge">Invitado</span>}
             </div>
             {!currentUser?.isGuest && (
