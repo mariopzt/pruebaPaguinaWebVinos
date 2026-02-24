@@ -3027,6 +3027,17 @@ body {
   display: none;
 }
 
+@media (min-width: 1025px) {
+  .home-content {
+    min-height: calc(100vh - 120px);
+  }
+
+  .home-content .home-metrics-section {
+    margin-top: auto;
+    padding-bottom: 12px;
+  }
+}
+
 /* Mobile Menu Styles */
 .mobile-menu-overlay {
   position: fixed;

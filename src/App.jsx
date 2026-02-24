@@ -2187,7 +2187,7 @@ function App() {
       <div className="main-content">
         {/* Vista Home */}
         {currentView === 'home' && (
-          <div key="home-view" className="content view-enter">
+          <div key="home-view" className="content home-content view-enter">
             {/* Sección de Guías de Uso */}
             <section className="guides-section">
               <div className="guides-container">
