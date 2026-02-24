@@ -54,7 +54,17 @@ function App() {
       '/avatars/avatar-17.svg',
       '/avatars/avatar-18.svg',
       '/avatars/avatar-19.svg',
-      '/avatars/avatar-20.svg'
+      '/avatars/avatar-20.svg',
+      '/avatars/avatar-21.svg',
+      '/avatars/avatar-22.svg',
+      '/avatars/avatar-23.svg',
+      '/avatars/avatar-24.svg',
+      '/avatars/avatar-25.svg',
+      '/avatars/avatar-26.svg',
+      '/avatars/avatar-27.svg',
+      '/avatars/avatar-28.svg',
+      '/avatars/avatar-29.svg',
+      '/avatars/avatar-30.svg'
     ],
     []
   )
@@ -94,6 +104,24 @@ function App() {
     const seed = review?.userEmail || review?.userName || review?.userId || 'reviewer'
     return getDeterministicAvatar(seed)
   }, [getDeterministicAvatar])
+
+  const resolveReviewDisplay = useCallback((review) => {
+    const reviewUserId = String(review?.userId || '')
+    const loggedUserId = String(currentUser?._id || currentUser?.id || '')
+    const isOwnReview = reviewUserId && loggedUserId && reviewUserId === loggedUserId
+
+    if (isOwnReview) {
+      return {
+        name: currentUser?.name || review?.userName || 'Usuario',
+        avatar: currentUser?.avatar || getUserAvatar(currentUser),
+      }
+    }
+
+    return {
+      name: review?.userName || 'Usuario',
+      avatar: resolveReviewAvatar(review),
+    }
+  }, [currentUser, getUserAvatar, resolveReviewAvatar])
   // Estado de autenticación
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
@@ -3452,7 +3480,9 @@ function App() {
                     {reviewPlaceholderMessage}
                   </div>
                 )}
-                {!reviewsLoading && filteredReviews.length > 0 && filteredReviews.map((review) => (
+                {!reviewsLoading && filteredReviews.length > 0 && filteredReviews.map((review) => {
+                  const reviewDisplay = resolveReviewDisplay(review)
+                  return (
                     <div
                       key={review.id}
                       className="valoracion-card"
@@ -3485,12 +3515,12 @@ function App() {
                       <div className="valoracion-card-footer">
                         <div className="valoracion-user">
                           <img
-                            src={resolveReviewAvatar(review)}
-                            alt={review.userName}
+                            src={reviewDisplay.avatar}
+                            alt={reviewDisplay.name}
                             className="valoracion-user-avatar"
                           />
                           <div className="valoracion-user-info">
-                            <span className="valoracion-user-name">{review.userName}</span>
+                            <span className="valoracion-user-name">{reviewDisplay.name}</span>
                             {review.verified && (
                               <span className="valoracion-verified">
                                 <FiCheckCircle size={12} /> Verificada
@@ -3501,7 +3531,8 @@ function App() {
                         <span className="valoracion-date">{review.date}</span>
                       </div>
                     </div>
-                  ))}
+                  )
+                })}
               </div>
             </div>
           </div>
