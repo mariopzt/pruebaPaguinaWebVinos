@@ -1,7 +1,7 @@
 services:
   # Backend API
   - type: web
-    name: vinosstk-backend
+    name: catas-backend
     runtime: node
     region: frankfurt
     plan: free
@@ -15,19 +15,13 @@ services:
         value: 5000
       - key: MONGODB_URI
         sync: false
-      - key: JWT_SECRET
-        sync: false
-      - key: JWT_EXPIRE
-        value: 7d
-      - key: FRONTEND_URL
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
+      - key: MONGODB_DB
+        value: catas
     healthCheckPath: /api/health
 
   # Frontend (Static Site)
   - type: web
-    name: vinosstk-frontend
+    name: catas-frontend
     runtime: static
     region: frankfurt
     plan: free
@@ -39,7 +33,5 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        sync: false
-      - key: VITE_FRONTEND_URL
         sync: false
 
