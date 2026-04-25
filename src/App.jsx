@@ -936,16 +936,21 @@ function CataDetailModal({ cata, onClose, onEdit, onDelete, onToggleFavorite }) 
 
   return createPortal((
     <div className="modal-backdrop" onClick={onClose}>
-      <article className="detail-modal" onClick={(event) => event.stopPropagation()}>
+      <article className={cata.photo ? 'detail-modal has-photo' : 'detail-modal'} onClick={(event) => event.stopPropagation()}>
+        <button className="icon-button detail-close-button" onClick={onClose} type="button"><FiX /></button>
+        {cata.photo && (
+          <div className="detail-media">
+            <img className="detail-photo" src={cata.photo} alt={cata.name} />
+          </div>
+        )}
+
+        <div className="detail-content">
         <div className="modal-header">
           <div>
             <span className="eyebrow">Ficha completa</span>
             <h2>{cata.name}</h2>
           </div>
-          <button className="icon-button" onClick={onClose} type="button"><FiX /></button>
         </div>
-
-        {cata.photo && <img className="detail-photo" src={cata.photo} alt={cata.name} />}
 
         <div className="detail-score-row">
           <div className="score-ring">
@@ -1026,6 +1031,7 @@ function CataDetailModal({ cata, onClose, onEdit, onDelete, onToggleFavorite }) 
             <button className="ghost-button" onClick={() => onEdit(cata)} type="button"><FiEdit3 /> Editar</button>
             <button className="primary-button small" onClick={onClose} type="button">Cerrar</button>
           </div>
+        </div>
         </div>
       </article>
     </div>
