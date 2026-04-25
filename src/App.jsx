@@ -1,5 +1,6 @@
 import './App.css';
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   FiActivity,
   FiArchive,
@@ -933,7 +934,7 @@ function CataDetailModal({ cata, onClose, onEdit, onDelete, onToggleFavorite }) 
   const categoryMeta = getCategoryMeta(cata.category);
   const CategoryIcon = categoryMeta.icon;
 
-  return (
+  return createPortal((
     <div className="modal-backdrop" onClick={onClose}>
       <article className="detail-modal" onClick={(event) => event.stopPropagation()}>
         <div className="modal-header">
@@ -1028,7 +1029,7 @@ function CataDetailModal({ cata, onClose, onEdit, onDelete, onToggleFavorite }) 
         </div>
       </article>
     </div>
-  );
+  ), document.body);
 }
 
 function DetailItem({ label, value }) {
@@ -1065,7 +1066,7 @@ function CataForm({ form, editing, onClose, onSubmit, onChange, onScore }) {
     reader.readAsDataURL(file);
   };
 
-  return (
+  return createPortal((
     <div className="modal-backdrop">
       <form className="cata-modal" onSubmit={onSubmit}>
         <div className="modal-header">
@@ -1208,7 +1209,7 @@ function CataForm({ form, editing, onClose, onSubmit, onChange, onScore }) {
         </div>
       </form>
     </div>
-  );
+  ), document.body);
 }
 
 function StatCard({ label, value, helper }) {

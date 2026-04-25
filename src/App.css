@@ -1165,9 +1165,9 @@ select:focus-visible {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 9998;
   display: grid;
-  place-items: end center;
+  place-items: center;
   padding: 18px;
   background: rgba(0, 0, 0, 0.56);
   backdrop-filter: blur(12px);
@@ -1175,6 +1175,8 @@ select:focus-visible {
 
 .cata-modal,
 .detail-modal {
+  position: relative;
+  z-index: 9999;
   width: min(100%, 560px);
   max-height: min(92vh, 860px);
   overflow-y: auto;
