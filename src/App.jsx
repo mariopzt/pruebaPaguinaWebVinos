@@ -583,8 +583,6 @@ function App() {
           </div>
         </header>
 
-        {notice && <p className="notice">{notice}</p>}
-
         {view === 'inicio' && (
           <HomeView
             loading={loading}

@@ -1605,6 +1605,45 @@ select:focus-visible {
   }
 }
 
+@media (max-width: 480px) {
+  .hero-card {
+    grid-template-columns: 1fr;
+    min-height: 320px;
+  }
+
+  .hero-copy {
+    justify-items: center;
+    align-content: center;
+    gap: 14px;
+    padding-top: 10px;
+    text-align: center;
+  }
+
+  .hero-copy .eyebrow {
+    text-align: center;
+  }
+
+  .hero-card h2 {
+    max-width: 10ch;
+    margin-top: 0;
+  }
+
+  .hero-copy > p:not(.eyebrow) {
+    max-width: 26ch;
+    margin-inline: auto;
+  }
+
+  .hero-copy .primary-button {
+    margin-inline: auto;
+  }
+
+  .hero-side,
+  .hero-score-card,
+  .hero-mini-grid {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
