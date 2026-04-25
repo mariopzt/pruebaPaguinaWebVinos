@@ -173,6 +173,16 @@ const seedCatas = templates.map((template, index) => ({
   status: 'catada',
 }));
 
+const categoryMetaMap = {
+  Vino: { icon: FaWineGlassAlt, tone: 'wine' },
+  Cafe: { icon: FiCoffee, tone: 'coffee' },
+  Comida: { icon: FiActivity, tone: 'food' },
+  Cerveza: { icon: FiArchive, tone: 'beer' },
+  Queso: { icon: FiStar, tone: 'cheese' },
+  Chocolate: { icon: FiHeart, tone: 'chocolate' },
+  Otro: { icon: FiArchive, tone: 'other' },
+};
+
 const calculateTotalScore = (score = {}) => {
   const total = scoreFields.reduce((sum, field) => sum + (Number(score[field.key]) || 0), 0);
   return Math.round((total / 50) * 100);
@@ -205,6 +215,27 @@ const writeLocalCatas = (items) => {
 
 const formatTags = (tags) => (Array.isArray(tags) ? tags.join(', ') : '');
 const parseTags = (value) => value.split(',').map((item) => item.trim()).filter(Boolean);
+const getCategoryMeta = (category) => categoryMetaMap[category] || categoryMetaMap.Otro;
+const formatDateLabel = (value) => {
+  if (!value) return 'Sin fecha';
+  return new Intl.DateTimeFormat('es-ES', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(`${value}T00:00:00`));
+};
+const formatDayLabel = () => new Intl.DateTimeFormat('es-ES', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+}).format(new Date());
+const getScoreMood = (score) => {
+  if (score >= 92) return 'Memorable';
+  if (score >= 84) return 'Muy fina';
+  if (score >= 75) return 'Equilibrada';
+  if (score >= 65) return 'Prometedora';
+  return 'Por pulir';
+};
 
 function App() {
   const [session, setSession] = useState(() => {
@@ -234,6 +265,7 @@ function App() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingCata, setEditingCata] = useState(null);
   const [form, setForm] = useState(emptyCata);
+  const currentDayLabel = useMemo(() => formatDayLabel(), []);
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -429,7 +461,7 @@ function App() {
     setLoginError('');
 
     if (!user || loginData.password.length < 3) {
-      setLoginError('Pon usuario y una contraseña de al menos 3 caracteres');
+      setLoginError('Pon usuario y una contrasena de al menos 3 caracteres');
       return;
     }
 
@@ -449,7 +481,7 @@ function App() {
         tasterName: current.tasterName === defaultSettings.tasterName ? nextSession.displayName : current.tasterName,
       }));
     } catch (error) {
-      setLoginError(error.message || 'Usuario o contraseña incorrectos');
+      setLoginError(error.message || 'Usuario o contrasena incorrectos');
     } finally {
       setLoginLoading(false);
     }
@@ -465,34 +497,66 @@ function App() {
   if (!session) {
     return (
       <main className="app-shell login-shell">
-        <section className="login-card">
-          <div className="login-mark">
-            <FaWineGlassAlt />
-          </div>
-          <span className="eyebrow">Acceso privado</span>
-          <h1>Catas</h1>
-          <p>Entra para guardar tus fichas, ajustes y puntuaciones.</p>
+        <section className="login-stage">
+          <article className="login-card">
+            <div className="login-intro">
+              <span className="eyebrow">Acceso privado</span>
+              <div className="login-header">
+                <div className="login-mark">
+                  <FaWineGlassAlt />
+                </div>
+                <div className="login-brand-copy">
+                  <small>Cuaderno de cata</small>
+                  <h1>Catas</h1>
+                </div>
+              </div>
+              <p>Una entrada simple para seguir tus notas, puntuaciones y favoritos sin distracciones.</p>
+            </div>
 
-          <form className="login-form" onSubmit={handleLogin}>
-            <label>
-              Usuario
-              <div className="login-input">
-                <FiUser />
-                <input value={loginData.user} onChange={(event) => setLoginData({ ...loginData, user: event.target.value })} placeholder="Tu nombre" autoFocus />
+            <div className="login-visual">
+              <div className="login-visual-card">
+                <div className="login-visual-top">
+                  <span className="category-badge">
+                    <FaWineGlassAlt />
+                    Vino
+                  </span>
+                  <span className="score-pill">91/100</span>
+                </div>
+                <strong>Ribera reserva</strong>
+                <p>Fruta negra, cacao y final largo. Lo importante se entiende de un vistazo.</p>
               </div>
-            </label>
-            <label>
-              Contraseña
-              <div className="login-input">
-                <FiLock />
-                <input type="password" value={loginData.password} onChange={(event) => setLoginData({ ...loginData, password: event.target.value })} placeholder="Minimo 3 caracteres" />
+              <div className="login-visual-metrics">
+                <span>Archivo claro</span>
+                <span>Sincronizacion opcional</span>
               </div>
-            </label>
-            {loginError && <p className="login-error">{loginError}</p>}
-            <button className="primary-button" type="submit" disabled={loginLoading}>
-              {loginLoading ? 'Entrando...' : 'Entrar'}
-            </button>
-          </form>
+            </div>
+
+            <form className="login-form" onSubmit={handleLogin}>
+              <label>
+                Usuario
+                <div className="login-input">
+                  <FiUser />
+                  <input value={loginData.user} onChange={(event) => setLoginData({ ...loginData, user: event.target.value })} placeholder="Tu nombre" autoFocus />
+                </div>
+              </label>
+              <label>
+                Contrasena
+                <div className="login-input">
+                  <FiLock />
+                  <input type="password" value={loginData.password} onChange={(event) => setLoginData({ ...loginData, password: event.target.value })} placeholder="Minimo 3 caracteres" />
+                </div>
+              </label>
+              {loginError && <p className="login-error">{loginError}</p>}
+              <button className="primary-button" type="submit" disabled={loginLoading}>
+                {loginLoading ? 'Entrando...' : 'Entrar'}
+              </button>
+            </form>
+
+            <div className="login-footnote">
+              <span>Acceso privado para tu archivo de catas.</span>
+              <span>La sesion conserva ajustes y notas locales.</span>
+            </div>
+          </article>
         </section>
       </main>
     );
@@ -502,14 +566,21 @@ function App() {
     <main className="app-shell">
       <section className="phone-frame">
         <header className="topbar">
-          <div>
-            <span className="eyebrow">APK de catas</span>
+          <div className="topbar-copy">
+            <span className="eyebrow">Cuaderno de cata</span>
             <h1>Catas</h1>
+            <p>{session.displayName} / {currentDayLabel}</p>
           </div>
-          <button className={`sync-pill ${apiOnline ? 'online' : 'offline'}`} type="button">
-            {apiOnline ? <FiWifi /> : <FiWifiOff />}
-            {apiOnline ? 'Mongo catas' : 'Local'}
-          </button>
+          <div className="topbar-actions">
+            <div className="profile-pill">
+              <FiUser />
+              <span>{session.displayName}</span>
+            </div>
+            <button className={`sync-pill ${apiOnline ? 'online' : 'offline'}`} type="button">
+              {apiOnline ? <FiWifi /> : <FiWifiOff />}
+              {apiOnline ? 'Conectado' : 'Local'}
+            </button>
+          </div>
         </header>
 
         {notice && <p className="notice">{notice}</p>}
@@ -587,21 +658,42 @@ function HomeView({ loading, stats, templates: templateList, onStart, onGoList }
   return (
     <div className="screen-content">
       <section className="hero-card">
-        <div>
+        <div className="hero-copy">
           <p className="eyebrow">Panel rapido</p>
-          <h2>Registra lo que catas sin ruido.</h2>
-          <p>Ficha visual, aroma, sabor, textura, final, notas, maridaje y favoritos.</p>
+          <h2>Registra lo que pruebas con mas criterio visual.</h2>
+          <p>Una portada clara, archivo filtrable y una ficha que deja la puntuacion en primer plano.</p>
+          <button className="primary-button" onClick={() => onStart()} type="button">
+            <FiPlus />
+            Nueva cata
+          </button>
         </div>
-        <button className="primary-button" onClick={() => onStart()} type="button">
-          <FiPlus />
-          Nueva cata
-        </button>
+
+        <div className="hero-side">
+          <div className="hero-score-card">
+            <span className="eyebrow">Media actual</span>
+            <div className="hero-score-value">
+              <strong>{loading ? '...' : stats.average}</strong>
+              <span>/100</span>
+            </div>
+            <p>{stats.best ? `${stats.best.name} marca el ritmo del archivo.` : 'Empieza con una plantilla y crea la primera referencia.'}</p>
+          </div>
+          <div className="hero-mini-grid">
+            <div className="mini-stat">
+              <span>Guardadas</span>
+              <strong>{loading ? '...' : stats.real}</strong>
+            </div>
+            <div className="mini-stat">
+              <span>Favoritas</span>
+              <strong>{stats.favoriteCount}</strong>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="stats-grid">
-        <StatCard label="Catas" value={loading ? '...' : stats.total} />
-        <StatCard label="Media" value={`${stats.average}/100`} />
-        <StatCard label="Favoritas" value={stats.favoriteCount} />
+        <StatCard label="Catas" value={loading ? '...' : stats.total} helper="Total cargadas en pantalla" />
+        <StatCard label="Media" value={`${stats.average}/100`} helper={getScoreMood(stats.average)} />
+        <StatCard label="Favoritas" value={stats.favoriteCount} helper="Referencias para repetir" />
       </section>
 
       <section className="section-block">
@@ -624,9 +716,17 @@ function HomeView({ loading, stats, templates: templateList, onStart, onGoList }
 
       {stats.best && (
         <section className="best-card">
-          <span className="eyebrow">Mejor puntuacion</span>
-          <h3>{stats.best.name}</h3>
-          <p>{stats.best.category} - {calculateTotalScore(stats.best.score)}/100</p>
+          <div className="best-card-head">
+            <div>
+              <span className="eyebrow">Mejor puntuacion</span>
+              <h3>{stats.best.name}</h3>
+            </div>
+            <div className="best-card-score">{calculateTotalScore(stats.best.score)}/100</div>
+          </div>
+          <p>{[stats.best.category, stats.best.origin || stats.best.place || 'Sin origen'].join(' / ')}</p>
+          <div className="tag-row">
+            {[...stats.best.aromas, ...stats.best.flavors].slice(0, 4).map((tag) => <span key={tag}>{tag}</span>)}
+          </div>
         </section>
       )}
     </div>
@@ -663,13 +763,14 @@ function CatasView({
         </div>
       </section>
 
-      <div className="section-heading inline">
+      <section className="archive-overview">
         <div>
           <span className="eyebrow">Archivo</span>
-          <h3>{catas.length} catas</h3>
+          <h3>{catas.length} catas visibles</h3>
+          <p>{category === 'Todas' ? 'Mostrando todas las categorias con el filtro actual.' : `Filtrando por ${category.toLowerCase()}.`}</p>
         </div>
         <button className="primary-button small" onClick={onCreate} type="button"><FiPlus /> Nueva</button>
-      </div>
+      </section>
 
       <section className={settings.compactCards ? 'cata-list compact' : 'cata-list'}>
         {catas.length === 0 && (
@@ -695,17 +796,17 @@ function CatasView({
         <CataDetailModal
           cata={detailCata}
           onClose={() => setDetailCata(null)}
-          onEdit={(cata) => {
+          onEdit={(item) => {
             setDetailCata(null);
-            onEdit(cata);
+            onEdit(item);
           }}
-          onDelete={(cata) => {
+          onDelete={(item) => {
             setDetailCata(null);
-            onDelete(cata);
+            onDelete(item);
           }}
-          onToggleFavorite={(cata) => {
-            onToggleFavorite(cata);
-            setDetailCata({ ...cata, favorite: !cata.favorite });
+          onToggleFavorite={(item) => {
+            onToggleFavorite(item);
+            setDetailCata({ ...item, favorite: !item.favorite });
           }}
         />
       )}
@@ -760,10 +861,13 @@ function SettingsView({ settings, stats, session, onChange, onResetExamples, onL
 
 function CataCard({ cata, onOpen, onEdit, onDelete, onToggleFavorite }) {
   const score = calculateTotalScore(cata.score);
+  const categoryMeta = getCategoryMeta(cata.category);
+  const CategoryIcon = categoryMeta.icon;
+  const tags = [...new Set([...cata.aromas, ...cata.flavors])].slice(0, 5);
 
   return (
     <article
-      className="cata-card"
+      className={`cata-card tone-${categoryMeta.tone}`}
       onClick={() => onOpen(cata)}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') onOpen(cata);
@@ -776,16 +880,24 @@ function CataCard({ cata, onOpen, onEdit, onDelete, onToggleFavorite }) {
           <img src={cata.photo} alt={cata.name} />
         ) : (
           <div className="score-ring">
+            <span className="score-ring-icon"><CategoryIcon /></span>
             <strong>{score}</strong>
             <span>/100</span>
           </div>
         )}
       </div>
       <div className="cata-main">
+        <div className="cata-kicker-row">
+          <span className="category-badge">
+            <CategoryIcon />
+            {cata.category}
+          </span>
+          <span className="score-pill">{score}/100</span>
+        </div>
         <div className="cata-title-row">
           <div>
-            <span className="category-label">{cata.category}</span>
             <h3>{cata.name}</h3>
+            <p className="cata-meta">{[cata.producer, cata.origin, cata.vintage].filter(Boolean).join(' / ') || cata.place || 'Sin origen'}</p>
           </div>
           <button
             className={cata.favorite ? 'icon-button favorite active' : 'icon-button favorite'}
@@ -798,10 +910,14 @@ function CataCard({ cata, onOpen, onEdit, onDelete, onToggleFavorite }) {
             <FiHeart />
           </button>
         </div>
-        <p className="cata-meta">{[cata.producer, cata.origin, cata.vintage].filter(Boolean).join(' - ') || cata.place || 'Sin origen'}</p>
+        <div className="cata-info-row">
+          <span>{formatDateLabel(cata.date)}</span>
+          {cata.place && <span>{cata.place}</span>}
+          <span>{getScoreMood(score)}</span>
+        </div>
         {cata.photo && <p className="cata-photo-score">{score}/100</p>}
         <div className="tag-row">
-          {[...cata.aromas, ...cata.flavors].slice(0, 5).map((tag) => <span key={tag}>{tag}</span>)}
+          {tags.map((tag) => <span key={tag}>{tag}</span>)}
         </div>
         {cata.notes && <p className="cata-notes">{cata.notes}</p>}
         <div className="card-actions">
@@ -815,14 +931,16 @@ function CataCard({ cata, onOpen, onEdit, onDelete, onToggleFavorite }) {
 
 function CataDetailModal({ cata, onClose, onEdit, onDelete, onToggleFavorite }) {
   const score = calculateTotalScore(cata.score);
-  const meta = [cata.producer, cata.origin, cata.vintage].filter(Boolean).join(' - ');
+  const meta = [cata.producer, cata.origin, cata.vintage].filter(Boolean).join(' / ');
+  const categoryMeta = getCategoryMeta(cata.category);
+  const CategoryIcon = categoryMeta.icon;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <article className="detail-modal" onClick={(event) => event.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <span className="eyebrow">{cata.category}</span>
+            <span className="eyebrow">Ficha completa</span>
             <h2>{cata.name}</h2>
           </div>
           <button className="icon-button" onClick={onClose} type="button"><FiX /></button>
@@ -832,10 +950,18 @@ function CataDetailModal({ cata, onClose, onEdit, onDelete, onToggleFavorite }) 
 
         <div className="detail-score-row">
           <div className="score-ring">
+            <span className="score-ring-icon"><CategoryIcon /></span>
             <strong>{score}</strong>
             <span>/100</span>
           </div>
-          <div>
+          <div className="detail-score-copy">
+            <div className="detail-badge-row">
+              <span className="category-badge">
+                <CategoryIcon />
+                {cata.category}
+              </span>
+              <span className="detail-mood">{getScoreMood(score)}</span>
+            </div>
             <h3>Puntuacion final</h3>
             <p>{meta || cata.place || 'Sin origen indicado'}</p>
           </div>
@@ -849,7 +975,7 @@ function CataDetailModal({ cata, onClose, onEdit, onDelete, onToggleFavorite }) 
         </div>
 
         <div className="detail-grid">
-          <DetailItem label="Fecha" value={cata.date} />
+          <DetailItem label="Fecha" value={formatDateLabel(cata.date)} />
           <DetailItem label="Lugar" value={cata.place} />
           <DetailItem label="Catador" value={cata.taster} />
           <DetailItem label="Maridaje" value={cata.pairing} />
@@ -921,6 +1047,7 @@ function DetailItem({ label, value }) {
 function CataForm({ form, editing, onClose, onSubmit, onChange, onScore }) {
   const total = calculateTotalScore(form.score);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -997,7 +1124,7 @@ function CataForm({ form, editing, onClose, onSubmit, onChange, onScore }) {
           <label>
             Fecha
             <div className="date-field">
-              <span>{form.date ? new Date(`${form.date}T00:00:00`).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Seleccionar fecha'}</span>
+              <span>{form.date ? formatDateLabel(form.date) : 'Seleccionar fecha'}</span>
               <FiCalendar />
               <input type="date" value={form.date} onChange={(event) => onChange('date', event.target.value)} />
             </div>
@@ -1086,11 +1213,12 @@ function CataForm({ form, editing, onClose, onSubmit, onChange, onScore }) {
   );
 }
 
-function StatCard({ label, value }) {
+function StatCard({ label, value, helper }) {
   return (
     <div className="stat-card">
       <span>{label}</span>
       <strong>{value}</strong>
+      <small>{helper}</small>
     </div>
   );
 }
