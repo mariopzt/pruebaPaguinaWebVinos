@@ -539,11 +539,15 @@ export function AIChat({
         <div className="ia-hero">
           <h2 className="ia-hero-title">Bienvenido a VinosStK IA</h2>
           <p className="ia-hero-subtitle">
-            Explora preguntas sugeridas o pregúntanos lo que quieras sobre tu bodega y tus vinos.
+            Pídele altas de vinos, fotos, stock y recomendaciones con criterio de sumiller para tu bodega.
           </p>
         </div>
 
         <div className="ia-quick-actions">
+          <button className="ia-quick-chip" onClick={() => handleSuggestedOption('Agrega 10 vinos con fotos al stock')}>
+            <span className="ia-quick-chip-icon"><FiBox size={12} /></span>
+            <span>Alta 10 vinos</span>
+          </button>
           <button className="ia-quick-chip" onClick={() => handleSuggestedOption('Ver vinos disponibles')}>
             <span className="ia-quick-chip-icon"><FiBox size={12} /></span>
             <span>Disponibles</span>
@@ -640,7 +644,7 @@ export function AIChat({
             <textarea
               ref={inputRef}
               className={`chat-input ${isInputMultiline ? 'chat-input-multiline' : ''}`}
-              placeholder="Ej: sumar 2 de Marqués de Riscal"
+              placeholder="Ej: agrega 10 vinos con fotos y una selección equilibrada"
               value={inputMessage}
               onChange={handleInputChange}
               onFocus={() => setIsInputFocused(true)}

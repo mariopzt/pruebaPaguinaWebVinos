@@ -3,6 +3,7 @@ const { generateText } = require('ai');
 const Wine = require('../models/Wine');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const sampleWines = require('../data/sampleWines');
 
 // Modelo de memoria en MongoDB (opcional)
 const mongoose = require('mongoose');
@@ -559,6 +560,14 @@ const ConversationMemory = mongoose.model('ConversationMemory', conversationMemo
  */
 function detectUserIntent(message) {
   const messageLower = message.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  if (isWineCreationRequest(messageLower)) {
+    console.log('[INTENT] ✅ Detectada intención: add_wine');
+    return {
+      type: 'add_wine',
+      action: 'add_wine'
+    };
+  }
   
   // PATRONES DE INTENCIÓN - ordenados por prioridad
   const intents = [
@@ -673,6 +682,12 @@ function detectUserIntent(message) {
         /agregar?\s+(un\s+)?nuevo?\s*vino/i,
         /anadir?\s+(un\s+)?nuevo?\s*vino/i,
         /crear?\s+(un\s+)?nuevo?\s*vino/i,
+        /agrega(r)?\s+\d+\s+vinos?/i,
+        /anad(e|ir)?\s+\d+\s+vinos?/i,
+        /crea(r)?\s+\d+\s+vinos?/i,
+        /agrega(r)?\s+vinos?\s+(al\s+)?(stock|inventario|catalogo|catalogo|bodega)/i,
+        /anad(e|ir)?\s+vinos?\s+(al\s+)?(stock|inventario|catalogo|catalogo|bodega)/i,
+        /seleccion\s+de\s+vinos/i,
         /nuevo\s+vino/i,
         /vino\s+nuevo/i
       ],
@@ -748,6 +763,60 @@ function extractNumberFromMessage(message) {
   if (!match) return null;
   const value = parseFloat(match[1].replace(',', '.'));
   return Number.isFinite(value) ? value : null;
+}
+
+function extractRequestedWineCount(message) {
+  if (!message) return null;
+  const countMatch = message.match(/(\d+)\s+vinos?/i);
+  if (!countMatch) return null;
+  const value = parseInt(countMatch[1], 10);
+  return Number.isFinite(value) ? value : null;
+}
+
+function isWineCreationRequest(message) {
+  if (!message) return false;
+
+  const normalized = message
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  const hasAddVerb = /\b(agrega|agregar|anade|anadir|crea|crear|mete|incorpora|carga|rellena|puebla)\b/i.test(normalized);
+  const hasWineWord = /\bvinos?\b/i.test(normalized);
+  const hasCount = /\b\d+\s+vinos?\b/i.test(normalized);
+  const hasCreationContext = /\b(stock|bodega|inventario|catalogo|catalogo)\b/i.test(normalized);
+  const hasPhotoContext = /\b(foto|fotos|imagen|imagenes)\b/i.test(normalized);
+  const hasManualUpdateContext = /\b(descripcion|precio)\b/i.test(normalized);
+  const hasStockMutationContext = /\b(resta|quita|suma|vend|stock\s+a|stock\s+en)\b/i.test(normalized);
+
+  return hasAddVerb &&
+    hasWineWord &&
+    (hasCount || hasCreationContext || hasPhotoContext) &&
+    !hasManualUpdateContext &&
+    !hasStockMutationContext;
+}
+
+function buildCuratedWineSelection(count = 10) {
+  const safeCount = Math.max(1, Math.min(Number(count) || 10, sampleWines.length));
+  return sampleWines.slice(0, safeCount).map((wine, index) => {
+    const grape = wine.grape || (wine.grapeVariety || []).map(item => item.name).join(', ');
+    return {
+      name: wine.name,
+      type: wine.type || 'Tinto',
+      year: wine.year || 2021,
+      region: wine.region || 'España',
+      grape,
+      price: wine.price || 14,
+      stock: wine.stock || 18,
+      restaurantStock: wine.restaurantStock || Math.max(4, Math.min(12, Math.floor((wine.stock || 18) / 3))),
+      description: wine.description || '',
+      image: wine.image,
+      alcoholContent: wine.alcoholContent || '',
+      location: wine.location || `Estante ${String.fromCharCode(65 + (index % 5))}${(index % 4) + 1}`,
+      awards: Array.isArray(wine.awards) ? wine.awards : [],
+      rating: wine.rating || 0
+    };
+  });
 }
 
 function extractDescriptionFromMessage(message) {
@@ -947,6 +1016,23 @@ exports.processCommand = async (req, res, next) => {
     const explicitAllRegex = /\b(todos?|todas?|todo|toda)\b.*\b(vinos?|bodega|inventario)\b|\b(elimina|borra|eliminar|borrar)\b.*\b(todo|toda|todos|todas)\b|\bvac[ií]a\b.*\b(bodega|inventario)\b/i;
     const explicitAll = explicitAllRegex.test(message);
     const needsWineName = ['change_image', 'search_description', 'change_description', 'change_price', 'modify_stock', 'set_stock', 'delete_wine'].includes(userIntent.type);
+
+    if (userIntent.type === 'add_wine' && isWineCreationRequest(message)) {
+      const requestedCount = extractRequestedWineCount(message) || 10;
+      const curatedWines = buildCuratedWineSelection(requestedCount);
+      const responseIntro = curatedWines.length >= 8
+        ? 'He preparado una selección inicial equilibrada, pensada como lo haría un sumiller de sala: tintos con estructura, blancos frescos, un rosado gastronómico, un espumoso y un vino dulce.'
+        : 'He preparado una selección inicial equilibrada para arrancar la bodega con criterio de sala.';
+
+      return res.json({
+        success: true,
+        action: 'add_wine',
+        response: `${responseIntro} Te añado ${curatedWines.length} vinos con foto y perfiles listos para trabajar carta, recomendación y stock.`,
+        data: {
+          wines: curatedWines
+        }
+      });
+    }
 
     // Detectar si pide descripción para todos antes de exigir nombre
     if (needsWineName && !explicitAll && !mentionedWineName && !wantsAllDescriptionsEarly) {
@@ -1405,6 +1491,8 @@ ${foundWine ? `🍷 VINO OBJETIVO: "${foundWine.name}" - Este vino SÍ EXISTE en
     // Construir prompt del sistema OPTIMIZADO
     const systemPrompt = `Asistente IA de VinosStK con CONTROL TOTAL de la bodega.
 Tienes acceso COMPLETO para: crear, modificar, eliminar vinos, cambiar stock, precios, descripciones, imágenes, etc.
+Actúa como un sumiller profesional: criterio afinado, lenguaje claro, gusto por el detalle útil y foco práctico para vender mejor y ordenar la bodega.
+Cuando respondas consultas, prioriza estilo del vino, perfil de cata, momento de consumo, servicio y maridaje si aporta valor.
 ${intentContext}
 ${webSearchInfo}
 
@@ -1427,6 +1515,7 @@ ${webSearchInfo}
 
 4. **CONSULTA** → Preguntas sobre información
    - Acción: none
+   - Responde con criterio de sumiller, sin sonar robótico
 
 ⚠️ INSTRUCCIÓN CRÍTICA: La lista siguiente contiene ${allWines.slice(0, 50).length} vinos. DEBES revisar TODA la lista COMPLETA antes de responder cualquier pregunta sobre características, cantidades o búsquedas. NO te detengas en el primer resultado.
 
@@ -1497,6 +1586,12 @@ ACCIONES (responde en JSON cuando modifiques stock/vinos):
      "description": "Vino excepcional de crianza...",
      "image": "https://ejemplo.com/imagen.jpg"
    }]}
+
+   Si el usuario pide "agrega 10 vinos", "añade vinos al stock", "mete una selección con fotos":
+   - Devuelve un array de wines completo
+   - Aporta variedad real de estilos
+   - Incluye image si la tienes; si no, usa "searchImage": true dentro de updates solo cuando sea update_wine
+   - Redacta la respuesta como un sumiller que arma una selección equilibrada
    
    CAMPOS OBLIGATORIOS para cada vino:
    - name: Nombre completo del vino (bodega + tipo)
@@ -1637,8 +1732,9 @@ EJEMPLOS DE PETICIONES DE FOTO:
 - NO muestres el JSON como parte de tu respuesta
 
 🚫 REGLA CRÍTICA: NUNCA INVENTES INFORMACIÓN 🚫
-- SOLO usa datos de "VINOS DISPONIBLES", NO inventes nada
-- NO uses tu conocimiento general de vinos
+- Si hablas de vinos YA existentes, SOLO usa datos de "VINOS DISPONIBLES"
+- Si el usuario pide CREAR vinos nuevos, puedes proponer una selección coherente y completa
+- NO inventes premios, puntuaciones o descripciones del stock existente fuera del contexto dado
 
 🔍 **BUSCAR VINOS - COINCIDENCIA FLEXIBLE**:
 - Si el usuario dice "Vandama", busca vinos que CONTENGAN "Vandama" en su nombre

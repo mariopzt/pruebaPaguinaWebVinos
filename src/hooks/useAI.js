@@ -269,6 +269,11 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
       if (!wineData.name) continue;
 
       try {
+        let imageUrl = wineData.image;
+        if (!imageUrl || wineData.searchImage) {
+          imageUrl = await searchWineImage(wineData.name, wineData.type || 'tinto');
+        }
+
         // Convertir grape string a grapeVariety array con porcentajes
         let grapeVariety = [];
         const grapeString = wineData.grape || '';
@@ -292,7 +297,12 @@ export function useAI({ wines, onWinesChange, onUIChange, currentUser }) {
           region: wineData.region || 'España',
           grape: grapeString,
           grapeVariety: grapeVariety,
-          description: wineData.description || ''
+          description: wineData.description || '',
+          image: imageUrl,
+          alcoholContent: wineData.alcoholContent || '',
+          location: wineData.location || '',
+          awards: Array.isArray(wineData.awards) ? wineData.awards : [],
+          rating: typeof wineData.rating === 'number' ? wineData.rating : 0
         };
 
         const response = await wineService.createWine(wine);
